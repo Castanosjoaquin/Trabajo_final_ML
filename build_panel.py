@@ -732,39 +732,6 @@ def flag_anomalas_train(df, oni):
     return df
 
 
-def normalize_climate_features(df, clim_cols):
-    """
-    Normalización z-score POR DEPARTAMENTO, parámetros calculados SOLO sobre train.
-    Devuelve df con columnas _norm y guarda los parámetros de normalización.
-    """
-    train = df[df["campania_inicio"] <= TRAIN_END]
-    norm_params = []
-
-    for col in clim_cols:
-        if col not in df.columns:
-            continue
-        # Estadísticos por departamento usando solo train
-        stats = (
-            train.groupby("departamento")[col]
-            .agg(["mean", "std"])
-            .rename(columns={"mean": f"{col}_mu", "std": f"{col}_sigma"})
-            .reset_index()
-        )
-        df = df.merge(stats, on="departamento", how="left")
-        sigma_col = f"{col}_sigma"
-        mu_col    = f"{col}_mu"
-        df[f"{col}_norm"] = (df[col] - df[mu_col]) / df[sigma_col].replace(0, np.nan)
-        norm_params.append(stats)
-        df = df.drop(columns=[mu_col, sigma_col])
-
-    # Guardar parámetros
-    if norm_params:
-        all_params = norm_params[0]
-        for p in norm_params[1:]:
-            all_params = all_params.merge(p, on="departamento", how="outer")
-        all_params.to_parquet(PROC / "norm_params.parquet", index=False)
-
-    return df
 
 
 def build_panel():
@@ -825,17 +792,7 @@ def build_panel():
         else:                 return "test"
     panel["split"] = panel["campania_inicio"].apply(assign_split)
 
-    # 9. Normalización de features climáticas (solo sobre train, por departamento)
-    clim_base = ["tmean", "tmax_p95", "precip_total", "gdd", "dias_t_mayor_35",
-                 "rad_solar_mean", "precip_siembra", "precip_vegetativo",
-                 "precip_r1_r5", "precip_llenado"]
-    clim_monthly = [c for c in panel.columns
-                    if any(c.startswith(f"{v}_") for v in
-                           ["t2m","t2m_max","t2m_min","prectotcorr","rh2m","allsky_sfc_sw_dwn","ws2m"])]
-    clim_all = [c for c in clim_base + clim_monthly if c in panel.columns]
-    panel = normalize_climate_features(panel, clim_all)
-
-    # 10. Guardar
+    # 9. Guardar panel crudo (sin transformaciones)
     out_panel = PROC / "panel_nucleo.parquet"
     panel.to_parquet(out_panel, index=False)
     log.info("\n✓ Panel guardado: %s", out_panel)
@@ -844,6 +801,22 @@ def build_panel():
     log.info("  Campañas: %d–%d", panel["campania_inicio"].min(), panel["campania_inicio"].max())
     log.info("  Departamentos: %d", panel["departamento"].nunique())
     log.info("  Splits: %s", panel.groupby("split")["campania_inicio"].agg(["min","max"]).to_dict())
+
+    # Guardar parquets por fuente (para EDA y reproducibilidad)
+    magyp[[
+        "cultivo", "campania_inicio", "provincia", "departamento",
+        "sup_sembrada_ha", "sup_cosechada_ha", "produccion_tn", "rinde_kgha"
+    ]].to_parquet(PROC / "fuente_magyp.parquet", index=False)
+
+    oni.to_parquet(PROC / "fuente_oni.parquet", index=False)
+
+    if nasa is not None:
+        nasa.to_parquet(PROC / "fuente_nasa_power.parquet", index=False)
+
+    if ndvi is not None:
+        ndvi.to_parquet(PROC / "fuente_ndvi.parquet", index=False)
+
+    log.info("Parquets por fuente guardados en %s", PROC)
 
     # Guardar subconjunto de campañas normales para train del AE
     normales_train = panel[
