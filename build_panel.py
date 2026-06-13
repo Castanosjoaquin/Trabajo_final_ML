@@ -628,112 +628,6 @@ def load_ndvi():
 # ENSAMBLE DEL PANEL
 # ──────────────────────────────────────────────
 
-def compute_lags_and_zrinde(df):
-    """
-    Agrega lags del rinde (1-5 años), media móvil, z-rinde sin look-ahead.
-    CRÍTICO: rolling con shift(1) para evitar incluir campaña actual.
-    """
-    df = df.sort_values(["cultivo", "departamento", "campania_inicio"]).copy()
-
-    # Lags y rolling por grupo (cultivo × departamento)
-    result = []
-    for (cult, depto), grp in df.groupby(["cultivo", "departamento"]):
-        grp = grp.sort_values("campania_inicio").copy()
-        rinde = grp["rinde_kgha"]
-
-        for lag in range(1, 6):
-            grp[f"rinde_lag{lag}"] = rinde.shift(lag)
-
-        # Media móvil de 5 años sobre los 5 años ANTERIORES (shift(1) primero)
-        # rolling(5, min_periods=3) sobre la serie shifteada
-        rinde_shifted = rinde.shift(1)
-        grp["rinde_ma5"]   = rinde_shifted.rolling(5, min_periods=3).mean()
-        grp["rinde_std5"]  = rinde_shifted.rolling(5, min_periods=3).std()
-        grp["z_rinde"]     = (rinde - grp["rinde_ma5"]) / grp["rinde_std5"].replace(0, np.nan)
-
-        result.append(grp)
-
-    df = pd.concat(result, ignore_index=True)
-    return df
-
-
-def flag_anomalas_train(df, oni):
-    """
-    Marca campañas anómalas dentro del período de train, usando criterio automático
-    sin look-ahead (usamos z_rinde ya calculado con rolling correcto).
-
-    Criterio 1: ≥30% de departamentos con z_rinde < -1.5 (por cultivo × campaña)
-    Criterio 2: ONI Oct-Feb ≤ -0.5 Y rinde promedio regional < media_ma5 - 1*std
-    """
-    df = df.copy()
-    df["es_anomala_train"] = False
-
-    train_mask = df["campania_inicio"] <= TRAIN_END
-
-    # Criterio 1
-    c1 = (
-        df[train_mask]
-        .groupby(["cultivo", "campania_inicio"])
-        .apply(lambda g: (g["z_rinde"] < -1.5).sum() / max(len(g), 1) >= 0.30)
-        .reset_index()
-        .rename(columns={0: "c1"})
-    )
-
-    # Criterio 2: ONI ≤ -0.5 sostenido Oct-Feb
-    oni_nina = oni[oni["oni_oct_feb_mean"] <= -0.5][["campania_inicio"]].copy()
-    oni_nina["oni_nina"] = True
-
-    rinde_regional = (
-        df[train_mask]
-        .groupby(["cultivo", "campania_inicio"])
-        .agg(rinde_reg_mean=("rinde_kgha", "mean"),
-             rinde_reg_ma5=("rinde_ma5", "mean"),
-             rinde_reg_std5=("rinde_std5", "mean"))
-        .reset_index()
-    )
-    rinde_regional = rinde_regional.merge(oni_nina, on="campania_inicio", how="left")
-    rinde_regional["oni_nina"] = rinde_regional["oni_nina"].fillna(False)
-    rinde_regional["c2"] = (
-        rinde_regional["oni_nina"] &
-        (rinde_regional["rinde_reg_mean"] <
-         rinde_regional["rinde_reg_ma5"] - rinde_regional["rinde_reg_std5"])
-    )
-
-    anomalas = c1.merge(rinde_regional[["cultivo","campania_inicio","c2"]],
-                        on=["cultivo","campania_inicio"], how="left")
-    anomalas["c2"] = anomalas["c2"].fillna(False)
-    anomalas["es_anomala"] = anomalas["c1"] | anomalas["c2"]
-
-    # Excluir campañas sin z_rinde suficiente (primeras 5): son anomalas=False por default
-    camp_anomalas = anomalas[anomalas["es_anomala"]][["cultivo","campania_inicio"]].copy()
-    df["es_anomala_train"] = False
-
-    for _, row in camp_anomalas.iterrows():
-        mask = (
-            (df["cultivo"] == row["cultivo"]) &
-            (df["campania_inicio"] == row["campania_inicio"]) &
-            train_mask
-        )
-        df.loc[mask, "es_anomala_train"] = True
-
-    # Primeras 5 campañas (1981-1985): excluimos del train AE directamente
-    df.loc[(df["campania_inicio"] <= 1985) & train_mask, "es_anomala_train"] = True
-
-    anomalas_log = (
-        df[df["es_anomala_train"]]
-        .groupby(["cultivo","campania_inicio"])
-        .size()
-        .reset_index(name="n_deptos")
-    )
-    log.info("\nCampañas marcadas como anómalas en train:")
-    for _, r in anomalas_log.iterrows():
-        log.info("  %s %d/%d", r["cultivo"], r["campania_inicio"], r["campania_inicio"]+1)
-
-    return df
-
-
-
-
 def build_panel():
     log.info("=" * 60)
     log.info("BUILD PANEL NUCLEO — iniciando")
@@ -779,20 +673,14 @@ def build_panel():
         panel = panel.merge(ndvi, on=["departamento", "campania_inicio"], how="left")
         log.info("NDVI mergeado")
 
-    # 6. Lags y z-rinde (sin look-ahead)
-    panel = compute_lags_and_zrinde(panel)
-
-    # 7. Flag campañas anómalas (train)
-    panel = flag_anomalas_train(panel, oni)
-
-    # 8. Split column
+    # 6. Split column (partición temporal, no es feature engineering)
     def assign_split(y):
         if y <= TRAIN_END:    return "train"
         elif y <= VAL_END:    return "val"
         else:                 return "test"
     panel["split"] = panel["campania_inicio"].apply(assign_split)
 
-    # 9. Guardar panel crudo (sin transformaciones)
+    # 7. Guardar panel (merge puro de fuentes + identificadores + split)
     out_panel = PROC / "panel_nucleo.parquet"
     panel.to_parquet(out_panel, index=False)
     log.info("\n✓ Panel guardado: %s", out_panel)
@@ -818,15 +706,6 @@ def build_panel():
 
     log.info("Parquets por fuente guardados en %s", PROC)
 
-    # Guardar subconjunto de campañas normales para train del AE
-    normales_train = panel[
-        (panel["split"] == "train") &
-        (~panel["es_anomala_train"])
-    ][["cultivo", "campania_inicio", "departamento"]].drop_duplicates()
-    normales_train.to_parquet(SPLITS / "campanias_normales_train.parquet", index=False)
-    log.info("  Campañas normales train (AE): %d únicas",
-             normales_train["campania_inicio"].nunique())
-
     return panel
 
 
@@ -837,5 +716,6 @@ def build_panel():
 if __name__ == "__main__":
     panel = build_panel()
     print("\n=== RESUMEN DEL PANEL ===")
-    print(panel[["cultivo","campania_inicio","departamento","split","rinde_kgha",
-                 "es_anomala_train"]].describe(include="all"))
+    print(panel[["cultivo","campania_inicio","departamento","split","rinde_kgha"]]
+          .describe(include="all"))
+
