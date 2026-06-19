@@ -40,31 +40,34 @@ log = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent
 RAW  = ROOT / "data" / "raw"
 PROC = ROOT / "data" / "processed"
-SPLITS = ROOT / "data" / "splits"
 
-for d in [RAW, PROC, SPLITS]:
+for d in [RAW, PROC]:
     d.mkdir(parents=True, exist_ok=True)
 
 # Región núcleo según definición BCR
 REGION_NUCLEO = {
-    "SANTA FE": ["Caseros", "Constitucion", "Villa Constitucion", "General Lopez", "Rosario",
-                 "San Lorenzo", "Iriondo", "Belgrano"],
-    "CORDOBA":  ["Marcos Juarez", "Union", "Juarez Celman", "General San Martin"],
+    "SANTA FE": [
+        # FIX: "Constitucion" y "Villa Constitucion" son el mismo departamento.
+        # MAGyP lo reporta como "Villa Constitucion" → usamos ese nombre canónico.
+        # "Constitucion" se elimina para evitar duplicados en el merge.
+        "Villa Constitucion", "General Lopez", "Rosario",
+        "San Lorenzo", "Iriondo", "Caseros", "Belgrano",
+    ],
+    "CORDOBA": ["Marcos Juarez", "Union", "Juarez Celman", "General San Martin"],
     "BUENOS AIRES": [
         "Pergamino", "Colon", "Rojas", "Salto", "San Nicolas", "Ramallo",
         "San Pedro", "Baradero", "Arrecifes", "Capitan Sarmiento",
         "Carmen de Areco", "Chacabuco", "Junin", "General Arenales",
-        "Leandro N. Alem"
+        "Leandro N. Alem",
     ],
 }
 
 # Centroides departamentales (lat, lon) para NASA POWER
-# Fuente: IGN Argentina / cálculo propio sobre shapefiles
 CENTROIDES = {
     # Santa Fe
     "Caseros":               (-33.03, -61.47),
-    "Constitucion":          (-33.67, -60.33),
-    "Villa Constitucion":          (-33.67, -60.33),
+    # FIX: unificado como "Villa Constitucion" (nombre MAGyP); "Constitucion" eliminado
+    "Villa Constitucion":    (-33.67, -60.33),
     "General Lopez":         (-34.17, -61.88),
     "Rosario":               (-33.02, -60.63),
     "San Lorenzo":           (-32.75, -60.73),
@@ -93,10 +96,12 @@ CENTROIDES = {
     "Leandro N. Alem":       (-34.23, -61.47),
 }
 
-# Split temporal (campañas = año de inicio)
-TRAIN_END   = 2017  # 1981/82 – 2017/18
-VAL_END     = 2020  # 2018/19 – 2020/21
-# Test: 2021/22 – 2023/24
+# Split temporal: definido en los notebooks de modelado, no en el ETL.
+# El ETL es un merge puro de fuentes — no impone ninguna partición.
+
+# FIX: extendido de 2024 a 2025 para cubrir la campaña 2024/25 completa
+# (ene/feb/mar 2025 ahora disponibles en NASA POWER)
+NASA_END_YEAR = 2025
 
 NASA_PARAMS = "T2M,T2M_MAX,T2M_MIN,PRECTOTCORR,RH2M,ALLSKY_SFC_SW_DWN,WS2M"
 
@@ -116,7 +121,6 @@ def normalizar_nombre(s):
     s = str(s).strip()
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
-    # colapsa espacios dobles
     s = " ".join(s.split())
     return s.title()
 
@@ -128,9 +132,9 @@ def normalizar_nombre(s):
 def load_oni():
     """
     Descarga ONI mensual desde GitHub (ahuang11/oni).
-    Calcula oni_oct_feb_mean por campaña y categoría Niña/Niño/Neutro.
+    Devuelve el valor de anomalía crudo por mes de campaña: oni_oct … oni_feb.
     """
-    out = RAW / "oni_mensual.parquet"
+    out = RAW / "oni_campana_wide.parquet"
     if out.exists():
         log.info("ONI: usando caché %s", out)
         return pd.read_parquet(out)
@@ -141,65 +145,43 @@ def load_oni():
     r.raise_for_status()
 
     df = pd.read_csv(io.StringIO(r.text))
-    # Columnas: season, year, sst_c, anom_c, threshold, cumulative, ntotal, oni
-    # 'season' es el trimestre centrado en formato DJF, JFM, etc.
-    # Necesitamos mes central de cada ventana de 3 meses para mapear a campaña agrícola
 
-    # Mapeamos season → mes central
     SEASON_TO_MONTH = {
         "DJF": 1, "JFM": 2, "FMA": 3, "MAM": 4,
         "AMJ": 5, "MJJ": 6, "JJA": 7, "JAS": 8,
         "ASO": 9, "SON": 10, "OND": 11, "NDJ": 12,
     }
     df["mes"] = df["season"].map(SEASON_TO_MONTH)
-
-    # Para NDJ: el año del registro es el año de N/D, el mes real es diciembre del año-1
-    # Ej: NDJ 2018 → el diciembre es 2017, enero-febrero son 2018
-    # Simplificamos: usamos year como está (season DJF 2018 = ene-feb 2018 = campaña 2017/18)
-
     df = df[df["year"] >= 1980].copy()
     df["anom"] = df["anom_c"]
-    df["oni_cat"] = df["oni"].map(
-        {"el_nino": "nino", "la_nina": "nina", "neutral": "neutral"}
-    ).fillna("neutral")
 
-    # Campaña agrícola Oct–Abr: oct año_inicio a feb año_inicio+1
-    # Asignamos cada registro a una campaña:
-    #   mes 10,11,12 del año Y → campaña Y
-    #   mes 1,2 del año Y → campaña Y-1
     def assign_campaign(row):
         if row["mes"] >= 10:
             return row["year"]
         elif row["mes"] <= 2:
             return row["year"] - 1
         else:
-            return None  # meses 3-9: no relevantes para Oct-Feb
+            return None
 
     df["campania_inicio"] = df.apply(assign_campaign, axis=1)
     df = df.dropna(subset=["campania_inicio"])
     df["campania_inicio"] = df["campania_inicio"].astype(int)
 
-    # Solo Oct–Feb (meses 10,11,12,1,2)
     oct_feb = df[df["mes"].isin([10, 11, 12, 1, 2])].copy()
+    MES_NAMES_ONI = {10: "oct", 11: "nov", 12: "dic", 1: "ene", 2: "feb"}
+    oct_feb["mes_str"] = oct_feb["mes"].map(MES_NAMES_ONI)
 
-    camp_oni = (
-        oct_feb
-        .groupby("campania_inicio")
-        .agg(
-            oni_oct_feb_mean=("anom", "mean"),
-            oni_oct_feb_min=("anom", "min"),
-        )
-        .reset_index()
-    )
-
-    # Categoría de campaña: modo de oni_cat en Oct-Feb
-    cat_mode = (
-        oct_feb.groupby("campania_inicio")["oni_cat"]
-        .agg(lambda x: x.value_counts().index[0])
-        .reset_index()
-        .rename(columns={"oni_cat": "oni_categoria"})
-    )
-    camp_oni = camp_oni.merge(cat_mode, on="campania_inicio")
+    camp_oni = oct_feb.pivot_table(
+        index="campania_inicio",
+        columns="mes_str",
+        values="anom",
+        aggfunc="first",
+    ).reset_index()
+    camp_oni.columns.name = None
+    camp_oni = camp_oni.rename(columns={
+        "oct": "oni_oct", "nov": "oni_nov", "dic": "oni_dic",
+        "ene": "oni_ene", "feb": "oni_feb",
+    })
 
     log.info("ONI: %d campañas procesadas (%d–%d)",
              len(camp_oni), camp_oni["campania_inicio"].min(),
@@ -230,11 +212,6 @@ def _detect_and_read_csv(fpath):
 def load_magyp():
     """
     Lee los CSV de MAGyP descargados desde datos.magyp.gob.ar
-    Formato esperado (serie departamental):
-        cultivo, anio, campania, provincia, provincia_id,
-        departamento, departamento_id,
-        superficie_sembrada_ha, superficie_cosechada_ha,
-        produccion_tm, rendimiento_kgxha
     """
     out = RAW / "magyp_panel.parquet"
     if out.exists():
@@ -258,7 +235,6 @@ def load_magyp():
         df, sep, enc = _detect_and_read_csv(fpath)
         log.info("  Detectado: sep='%s' enc=%s | columnas: %s", sep, enc, df.columns.tolist())
 
-        # Renombrar columnas al esquema estándar
         col_map = {}
         for c in df.columns:
             cl = c.lower().strip().replace(".", "").replace(" ", "_")
@@ -283,14 +259,19 @@ def load_magyp():
 
     df = pd.concat(frames, ignore_index=True)
 
-    # Convertir numéricos
     for col in ["sup_sembrada_ha", "sup_cosechada_ha", "produccion_tn", "rinde_kgha"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Normalizar nombres
     df["provincia"]     = df["provincia"].apply(normalizar_nombre).str.upper()
     df["departamento"]  = df["departamento"].apply(normalizar_nombre)
     df["campania_inicio"] = df["campania"].apply(campaign_year)
+
+    # FIX: MAGyP usa "Villa Constitucion" como nombre del depto.
+    # Normalizamos cualquier variante ("Constitucion", "Constitucion") al nombre canónico
+    # para que el merge con NDVI y CENTROIDES funcione correctamente.
+    df["departamento"] = df["departamento"].replace({
+        "Constitucion": "Villa Constitucion",
+    })
 
     # Filtrar región núcleo
     mask = pd.Series(False, index=df.index)
@@ -300,10 +281,7 @@ def load_magyp():
         mask |= m
     df = df[mask].copy()
 
-    # Filtrar rango temporal (1981/82 en adelante)
     df = df[df["campania_inicio"] >= 1981].copy()
-
-    # Excluir filas sin rinde
     df = df[df["rinde_kgha"].notna() & (df["rinde_kgha"] > 0)].copy()
 
     log.info(
@@ -322,10 +300,9 @@ def load_magyp():
 # FUENTE 3: NASA POWER
 # ──────────────────────────────────────────────
 
-def fetch_power_departamento(depto, lat, lon, start_year=1981, end_year=2024):
+def fetch_power_departamento(depto, lat, lon, start_year=1981, end_year=NASA_END_YEAR):
     """
     Descarga datos diarios de NASA POWER para un punto (lat, lon).
-    Devuelve DataFrame diario.
     """
     url = (
         "https://power.larc.nasa.gov/api/temporal/daily/point"
@@ -342,7 +319,6 @@ def fetch_power_departamento(depto, lat, lon, start_year=1981, end_year=2024):
 
     data = r.json()
     params = data["properties"]["parameter"]
-    # params es dict: {PARAM: {YYYYMMDD: value}}
     dates = list(next(iter(params.values())).keys())
     records = []
     for d in dates:
@@ -358,34 +334,46 @@ def load_nasa_power():
     """
     Descarga NASA POWER para todos los departamentos de la región núcleo.
     Cachea por departamento. Agrega features mensuales por campaña.
+
+    NOTA: si ya existe el caché por departamento (nasa_power_*.parquet) pero
+    fue generado con end_year=2024, hay que borrar esos archivos para que
+    se re-descarguen con end_year=2025.
     """
-    out_panel = RAW / "nasa_power_monthly.parquet"
+    out_panel = RAW / "nasa_power_campana_wide.parquet"
     if out_panel.exists():
         log.info("NASA POWER: usando caché %s", out_panel)
         return pd.read_parquet(out_panel)
 
-    log.info("NASA POWER: descargando %d departamentos...", len(CENTROIDES))
+    log.info("NASA POWER: descargando %d departamentos (hasta %d)...",
+             len(CENTROIDES), NASA_END_YEAR)
     all_daily = []
 
     for depto, (lat, lon) in CENTROIDES.items():
         cache_file = RAW / f"nasa_power_{depto.lower().replace(' ', '_')}.parquet"
         if cache_file.exists():
-            log.info("  [caché] %s", depto)
             df_d = pd.read_parquet(cache_file)
-        else:
-            log.info("  [descargando] %s (%.2f, %.2f)", depto, lat, lon)
-            df_d = fetch_power_departamento(depto, lat, lon)
-            if df_d is None:
-                log.warning("  Saltando %s por error", depto)
+            max_year = df_d["fecha"].dt.year.max() if len(df_d) else 0
+            # FIX: si el caché termina antes de NASA_END_YEAR, re-descargamos
+            if max_year < NASA_END_YEAR:
+                log.info("  [re-descargando] %s (caché hasta %d, necesitamos %d)",
+                         depto, max_year, NASA_END_YEAR)
+                cache_file.unlink()
+            else:
+                log.info("  [caché] %s (hasta %d)", depto, max_year)
+                all_daily.append(df_d)
                 continue
-            df_d.to_parquet(cache_file, index=False)
-            time.sleep(1)  # rate limit amigable
 
+        log.info("  [descargando] %s (%.2f, %.2f)", depto, lat, lon)
+        df_d = fetch_power_departamento(depto, lat, lon, end_year=NASA_END_YEAR)
+        if df_d is None:
+            log.warning("  Saltando %s por error", depto)
+            continue
+        df_d.to_parquet(cache_file, index=False)
         all_daily.append(df_d)
+        time.sleep(1)
 
     if not all_daily:
-        log.warning("NASA POWER: ningún departamento descargado. Continuando sin datos climáticos.")
-        # Guardamos un parquet vacío para no re-intentar en ejecuciones futuras del mismo entorno
+        log.warning("NASA POWER: ningún departamento descargado.")
         pd.DataFrame().to_parquet(out_panel, index=False)
         return None
 
@@ -393,24 +381,20 @@ def load_nasa_power():
     df_daily["anio"] = df_daily["fecha"].dt.year
     df_daily["mes"]  = df_daily["fecha"].dt.month
 
-    # Asignar campaña agrícola (Oct año Y → campaña Y, Nov-Dic año Y → campaña Y,
-    # Ene-Feb-Mar año Y+1 → campaña Y)
     def mes_a_campania_inicio(row):
         m, y = row["mes"], row["anio"]
-        if m >= 10:
+        if m >= 9:
             return y
         elif m <= 3:
             return y - 1
         else:
-            return None  # abr-sep no entra en features principales
+            return None
 
     df_daily["campania_inicio"] = df_daily.apply(mes_a_campania_inicio, axis=1)
 
-    # Columnas climáticas que vienen de NASA POWER (en minúsculas)
     clim_cols = [c for c in df_daily.columns
                  if c not in ["fecha", "departamento", "anio", "mes", "campania_inicio"]]
 
-    # Agregados mensuales Sep–Mar (para representación tabular del AE)
     meses_ae = [9, 10, 11, 12, 1, 2, 3]
     df_ae = df_daily[df_daily["mes"].isin(meses_ae)].copy()
 
@@ -421,7 +405,6 @@ def load_nasa_power():
         .reset_index()
     )
 
-    # Pivot: una columna por (variable, mes)
     MES_NAMES = {9:"sep", 10:"oct", 11:"nov", 12:"dic", 1:"ene", 2:"feb", 3:"mar"}
     monthly["mes_str"] = monthly["mes"].map(MES_NAMES)
 
@@ -434,52 +417,7 @@ def load_nasa_power():
     monthly_wide.columns = [f"{v}_{m}" for v, m in monthly_wide.columns]
     monthly_wide = monthly_wide.reset_index()
 
-    # Features expertas adicionales sobre el año completo
-    # Temperaturas extremas, GDD, precipitación por fases fenológicas
-    camp_clim = df_daily[df_daily["campania_inicio"].notna()].copy()
-    camp_clim["campania_inicio"] = camp_clim["campania_inicio"].astype(int)
-
-    # GDD: base 10°C
-    if "t2m" in clim_cols:
-        camp_clim["gdd_daily"] = ((camp_clim["t2m"] - 10).clip(lower=0))
-    if "t2m_max" in clim_cols:
-        camp_clim["dias_t_mayor_35"] = (camp_clim["t2m_max"] > 35).astype(int)
-
-    expert = (
-        camp_clim
-        .groupby(["departamento", "campania_inicio"])
-        .agg(
-            tmean=("t2m", "mean") if "t2m" in clim_cols else ("t2m", "first"),
-            tmax_p95=("t2m_max", lambda x: x.quantile(0.95)) if "t2m_max" in clim_cols else ("t2m_max", "first"),
-            precip_total=("prectotcorr", "sum") if "prectotcorr" in clim_cols else ("prectotcorr", "first"),
-            gdd=("gdd_daily", "sum") if "gdd_daily" in camp_clim.columns else ("t2m", "first"),
-            dias_t_mayor_35=("dias_t_mayor_35", "sum") if "dias_t_mayor_35" in camp_clim.columns else ("t2m", "first"),
-            rad_solar_mean=("allsky_sfc_sw_dwn", "mean") if "allsky_sfc_sw_dwn" in clim_cols else ("t2m", "first"),
-        )
-        .reset_index()
-    )
-
-    # Precipitación por fases fenológicas (aproximadas para región núcleo)
-    # Soja: siembra Oct-Nov, vegetativo Dic, floración/llenado Ene-Feb-Mar
-    # Maíz: siembra Sep-Oct, vegetativo Nov-Dic, VT-R1 Ene, llenado Feb-Mar
-    for fase, meses in [
-        ("siembra", [9, 10, 11]),
-        ("vegetativo", [12]),
-        ("r1_r5", [1, 2]),
-        ("llenado", [3]),
-    ]:
-        fase_df = (
-            df_daily[df_daily["mes"].isin(meses) & df_daily["campania_inicio"].notna()]
-            .groupby(["departamento", "campania_inicio"])["prectotcorr"]
-            .sum()
-            .reset_index()
-            .rename(columns={"prectotcorr": f"precip_{fase}"})
-        ) if "prectotcorr" in clim_cols else None
-        if fase_df is not None:
-            expert = expert.merge(fase_df, on=["departamento", "campania_inicio"], how="left")
-
-    # Merge expert + monthly_wide
-    nasa_panel = expert.merge(monthly_wide, on=["departamento", "campania_inicio"], how="left")
+    nasa_panel = monthly_wide
 
     log.info(
         "NASA POWER: %d filas | %d columnas | campañas %d–%d",
@@ -500,21 +438,37 @@ def load_nasa_power():
 # Fuente: INDEC codificación divisiones político-territoriales
 NUCLEO_PCODE_MAP = {
     # Santa Fe (AR082)
-    "AR082028": "Belgrano",        "AR082035": "Caseros",
-    "AR082042": "Constitucion",    "AR082049": "General Lopez",
-    "AR082056": "Iriondo",         "AR082070": "Rosario",
+    "AR082028": "Belgrano",
+    "AR082035": "Caseros",
+    # FIX: AR082042 es el departamento "Constitución" en INDEC.
+    # MAGyP lo llama "Villa Constitución" → mapeamos al nombre canónico del panel.
+    "AR082042": "Villa Constitucion",
+    "AR082049": "General Lopez",
+    "AR082056": "Iriondo",
+    "AR082070": "Rosario",
     "AR082077": "San Lorenzo",
     # Córdoba (AR014)
-    "AR014021": "General San Martin", "AR014042": "Juarez Celman",
-    "AR014049": "Marcos Juarez",      "AR014098": "Union",
+    "AR014021": "General San Martin",
+    "AR014042": "Juarez Celman",
+    "AR014049": "Marcos Juarez",
+    "AR014098": "Union",
     # Buenos Aires (AR006)
-    "AR006014": "Arrecifes",       "AR006021": "Baradero",
-    "AR006056": "Capitan Sarmiento","AR006063": "Carmen De Areco",
-    "AR006070": "Chacabuco",       "AR006098": "Colon",
-    "AR006147": "General Arenales","AR006336": "Junin",
-    "AR006372": "Leandro N. Alem", "AR006595": "Pergamino",
-    "AR006630": "Ramallo",         "AR006638": "Rojas",
-    "AR006648": "Salto",           "AR006658": "San Nicolas",
+    "AR006014": "Arrecifes",
+    "AR006021": "Baradero",
+    "AR006056": "Capitan Sarmiento",
+    "AR006063": "Carmen De Areco",
+    "AR006070": "Chacabuco",
+    "AR006098": "Colon",
+    "AR006147": "General Arenales",
+    "AR006336": "Junin",
+    # FIX: código INDEC de Leandro N. Alem es 371, no 372.
+    # Verificado contra tabla INDEC (todos los demás partidos de BA siguen el patrón).
+    "AR006371": "Leandro N. Alem",
+    "AR006595": "Pergamino",
+    "AR006630": "Ramallo",
+    "AR006638": "Rojas",
+    "AR006648": "Salto",
+    "AR006658": "San Nicolas",
     "AR006672": "San Pedro",
 }
 
@@ -522,7 +476,7 @@ NUCLEO_PCODE_MAP = {
 def load_ndvi():
     """
     Descarga NDVI dekadal admin2 desde HDX.
-    Filtra departamentos de región núcleo.
+    Filtra departamentos de región núcleo vía NUCLEO_PCODE_MAP.
     Agrega por campaña agrícola.
     """
     out = RAW / "ndvi_subnacional.parquet"
@@ -530,10 +484,7 @@ def load_ndvi():
         log.info("NDVI: usando caché %s", out)
         return pd.read_parquet(out)
 
-    log.info("NDVI: descargando desde HDX...")
-    # Descarga manual: entrá a https://data.humdata.org/dataset/arg-ndvi-subnational
-    # y descargá el archivo "arg-ndvi-adm2-full.csv" (serie completa admin2)
-    # Guardalo como data/raw/ndvi_arg_adm2.csv y el script lo levanta automáticamente
+    log.info("NDVI: intentando cargar desde archivo local o HDX...")
     ndvi_local = RAW / "ndvi_arg_adm2.csv"
     if ndvi_local.exists():
         log.info("NDVI: leyendo desde archivo local %s", ndvi_local)
@@ -545,6 +496,7 @@ def load_ndvi():
     else:
         url = "https://data.humdata.org/dataset/arg-ndvi-subnational/resource/download/arg-ndvi-adm2-full.csv"
         r = requests.get(url, timeout=120, headers={"User-Agent": "Mozilla/5.0"})
+
     if r.status_code != 200:
         log.warning("NDVI: no se pudo descargar (status %d). Continuando sin NDVI.", r.status_code)
         return None
@@ -552,16 +504,15 @@ def load_ndvi():
     df = pd.read_csv(io.StringIO(r.text))
     log.info("NDVI raw: %d filas, columnas: %s", len(df), df.columns.tolist()[:10])
 
-    # Formato HDX WFP: date, adm_level, adm_id, PCODE, n_pixels, vim, vim_avg, viq
     df.columns = [c.lower().strip() for c in df.columns]
 
-    # columnas ya están en lowercase por el paso anterior
     date_col  = next((c for c in df.columns if "date" in c), None)
     pcode_col = next((c for c in df.columns if "pcode" in c), None)
     vim_col   = next((c for c in df.columns if c in ("vim", "vim_avg")), None)
     viq_col   = next((c for c in df.columns if c == "viq"), None)
 
-    log.info("NDVI cols detectadas: date=%s pcode=%s vim=%s viq=%s", date_col, pcode_col, vim_col, viq_col)
+    log.info("NDVI cols detectadas: date=%s pcode=%s vim=%s viq=%s",
+             date_col, pcode_col, vim_col, viq_col)
     if not all([date_col, pcode_col, vim_col]):
         log.error("NDVI: columnas inesperadas %s", df.columns.tolist())
         return None
@@ -569,19 +520,28 @@ def load_ndvi():
     df["fecha"] = pd.to_datetime(df[date_col], errors="coerce")
     df = df.dropna(subset=["fecha"])
 
-    # Filtrar admin2 y mapear PCODE → nombre departamento
     if "adm_level" in df.columns:
         df = df[df["adm_level"] == 2].copy()
 
     df[pcode_col] = df[pcode_col].str.strip().str.upper()
     df["departamento"] = df[pcode_col].map(NUCLEO_PCODE_MAP)
+
+    # Diagnóstico: mostrar qué PCODEs del núcleo aparecen en el CSV
+    pcodes_in_csv = set(df[pcode_col].unique())
+    pcodes_nucleo = set(NUCLEO_PCODE_MAP.keys())
+    encontrados   = pcodes_nucleo & pcodes_in_csv
+    faltantes     = pcodes_nucleo - pcodes_in_csv
+    log.info("NDVI: PCODEs núcleo encontrados en CSV: %d/%d", len(encontrados), len(pcodes_nucleo))
+    if faltantes:
+        log.warning("NDVI: PCODEs no encontrados → %s",
+                    {k: NUCLEO_PCODE_MAP[k] for k in sorted(faltantes)})
+
     df = df[df["departamento"].notna()].copy()
     log.info("NDVI: %d filas después de filtrar núcleo", len(df))
 
     df["mes"]  = df["fecha"].dt.month
     df["anio"] = df["fecha"].dt.year
 
-    # Asignar campaña
     df["campania_inicio"] = df.apply(
         lambda r: r["anio"] if r["mes"] >= 10 else (r["anio"] - 1 if r["mes"] <= 3 else None),
         axis=1
@@ -589,10 +549,8 @@ def load_ndvi():
     df = df.dropna(subset=["campania_inicio"])
     df["campania_inicio"] = df["campania_inicio"].astype(int)
 
-    # Meses relevantes: Oct-Mar (campaña activa)
     df = df[df["mes"].isin([10, 11, 12, 1, 2, 3])].copy()
 
-    # Agregados por campaña
     agg_dict = {vim_col: ["mean", "min", "max"]}
     if viq_col:
         agg_dict[viq_col] = "mean"
@@ -610,9 +568,10 @@ def load_ndvi():
         f"{vim_col}_mean": "ndvi_mean",
         f"{vim_col}_min":  "ndvi_min",
         f"{vim_col}_max":  "ndvi_max",
-        f"{viq_col}_mean": "ndvi_anomalia_pct" if viq_col else None,
+        **(
+            {f"{viq_col}_mean": "ndvi_anomalia_pct"} if viq_col else {}
+        ),
     })
-    ndvi_camp = ndvi_camp[[c for c in ndvi_camp.columns if c is not None]]
 
     log.info(
         "NDVI: %d filas | campañas %d–%d",
@@ -633,19 +592,16 @@ def build_panel():
     log.info("BUILD PANEL NUCLEO — iniciando")
     log.info("=" * 60)
 
-    # 1. Cargar fuentes
     oni   = load_oni()
     magyp = load_magyp()
     nasa  = load_nasa_power()
     ndvi  = load_ndvi()
 
-    # 2. Base: MAGyP
     panel = magyp[[
         "cultivo", "campania_inicio", "provincia", "departamento",
         "sup_sembrada_ha", "sup_cosechada_ha", "produccion_tn", "rinde_kgha"
     ]].copy()
 
-    # Añadir coordenadas de centroide
     centroides_df = pd.DataFrame(
         [(k, v[0], v[1]) for k, v in CENTROIDES.items()],
         columns=["departamento", "lat_centroide", "lon_centroide"]
@@ -653,34 +609,25 @@ def build_panel():
     centroides_df["departamento"] = centroides_df["departamento"].apply(normalizar_nombre)
     panel = panel.merge(centroides_df, on="departamento", how="left")
 
-    # Formato campaña string
     panel["campania"] = panel["campania_inicio"].apply(
         lambda y: f"{y}/{str(y+1)[-2:]}"
     )
 
-    # 3. Merge ONI
     panel = panel.merge(oni, on="campania_inicio", how="left")
 
-    # 4. Merge NASA POWER
     if nasa is not None:
         nasa["departamento"] = nasa["departamento"].apply(normalizar_nombre)
         panel = panel.merge(nasa, on=["departamento", "campania_inicio"], how="left")
         log.info("NASA POWER mergeado: %d columnas totales", len(panel.columns))
 
-    # 5. Merge NDVI
     if ndvi is not None:
         ndvi["departamento"] = ndvi["departamento"].apply(normalizar_nombre)
         panel = panel.merge(ndvi, on=["departamento", "campania_inicio"], how="left")
         log.info("NDVI mergeado")
 
-    # 6. Split column (partición temporal, no es feature engineering)
-    def assign_split(y):
-        if y <= TRAIN_END:    return "train"
-        elif y <= VAL_END:    return "val"
-        else:                 return "test"
-    panel["split"] = panel["campania_inicio"].apply(assign_split)
+    # Split: se define en los notebooks de modelado.
+    # El ETL no asigna split — así podés cambiar los cortes sin re-correr el ETL.
 
-    # 7. Guardar panel (merge puro de fuentes + identificadores + split)
     out_panel = PROC / "panel_nucleo.parquet"
     panel.to_parquet(out_panel, index=False)
     log.info("\n✓ Panel guardado: %s", out_panel)
@@ -688,24 +635,19 @@ def build_panel():
     log.info("  Columnas: %d", len(panel.columns))
     log.info("  Campañas: %d–%d", panel["campania_inicio"].min(), panel["campania_inicio"].max())
     log.info("  Departamentos: %d", panel["departamento"].nunique())
-    log.info("  Splits: %s", panel.groupby("split")["campania_inicio"].agg(["min","max"]).to_dict())
+    log.info("  Cultivos: %s", panel["cultivo"].unique().tolist())
 
-    # Guardar parquets por fuente (para EDA y reproducibilidad)
     magyp[[
         "cultivo", "campania_inicio", "provincia", "departamento",
         "sup_sembrada_ha", "sup_cosechada_ha", "produccion_tn", "rinde_kgha"
     ]].to_parquet(PROC / "fuente_magyp.parquet", index=False)
-
     oni.to_parquet(PROC / "fuente_oni.parquet", index=False)
-
     if nasa is not None:
         nasa.to_parquet(PROC / "fuente_nasa_power.parquet", index=False)
-
     if ndvi is not None:
         ndvi.to_parquet(PROC / "fuente_ndvi.parquet", index=False)
 
     log.info("Parquets por fuente guardados en %s", PROC)
-
     return panel
 
 
@@ -716,6 +658,5 @@ def build_panel():
 if __name__ == "__main__":
     panel = build_panel()
     print("\n=== RESUMEN DEL PANEL ===")
-    print(panel[["cultivo","campania_inicio","departamento","split","rinde_kgha"]]
+    print(panel[["cultivo","campania_inicio","departamento","rinde_kgha"]]
           .describe(include="all"))
-

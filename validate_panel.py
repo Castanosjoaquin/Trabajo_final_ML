@@ -78,9 +78,9 @@ check(df.duplicated(subset=["cultivo","departamento","campania_inicio"]).sum() =
       "Sin filas duplicadas",
       f"{df.duplicated(subset=['cultivo','departamento','campania_inicio']).sum()} duplicadas")
 
-check(df.shape[1] == 71,
-      f"71 columnas (merge puro)",
-      f"{df.shape[1]} columnas (esperadas 71) — revisar composición",
+check(df.shape[1] == 70,
+      f"70 columnas (merge puro)",
+      f"{df.shape[1]} columnas (esperadas 70) — revisar composición",
       is_warning=True)
 
 # ─────────────────────────────────────────────
@@ -171,29 +171,28 @@ for col in ["sup_sembrada_ha","sup_cosechada_ha","produccion_tn"]:
 print("\n[5] NASA POWER")
 
 nasa_cols = [c for c in df.columns if any(
-    c.startswith(p) for p in ["tmean","precip_","gdd","dias_t","rad_solar",
-                               "t2m_","prectotcorr_","allsky_","rh2m_","ws2m_"]
+    c.startswith(p) for p in ["t2m_","prectotcorr_","allsky_","rh2m_","ws2m_"]
 )]
-check(len(nasa_cols) == 54,
-      f"{len(nasa_cols)} columnas NASA POWER (esperadas 54)",
-      f"{len(nasa_cols)} columnas NASA POWER (esperadas 54)",
+# 7 variables × 7 meses (sep–mar) = 49 columnas
+check(len(nasa_cols) == 49,
+      f"{len(nasa_cols)} columnas NASA POWER (esperadas 49)",
+      f"{len(nasa_cols)} columnas NASA POWER (esperadas 49)",
       is_warning=True)
 
 if nasa_cols:
-    for col, lo, hi in [("tmean",10,30), ("precip_total",200,2000), ("gdd",800,3000)]:
-        if col in df.columns:
-            s = df[col].dropna()
-            pct = s.between(lo,hi).mean()
-            print(f"  {col}: mean={s.mean():.1f} | nan%={df[col].isna().mean()*100:.1f}")
-            check(pct > 0.90,
-                  f"{col} en rango [{lo},{hi}]: {pct*100:.0f}%",
-                  f"{col} fuera de rango: {pct*100:.0f}% en [{lo},{hi}]")
-
     pct_nan = df[nasa_cols].isna().mean().mean()
     check(pct_nan < 0.10,
           f"NaN promedio NASA POWER: {pct_nan*100:.1f}%",
           f"NaN promedio NASA POWER alto: {pct_nan*100:.1f}%",
           is_warning=True)
+
+    # Rango sanity check sobre t2m mensual (temperatura media, esperado 10–35 °C)
+    t2m_cols = [c for c in nasa_cols if c.startswith("t2m_") and not c.startswith("t2m_m")]
+    if t2m_cols:
+        s = df[t2m_cols].stack().dropna()
+        check(s.between(5, 40).mean() > 0.95,
+              f"t2m mensual en rango [5,40]°C: {s.between(5,40).mean()*100:.0f}%",
+              f"t2m mensual fuera de rango: revisar unidades")
 
 # ─────────────────────────────────────────────
 print("\n[6] NDVI")
@@ -228,31 +227,33 @@ if "ndvi_mean" in df.columns:
 # ─────────────────────────────────────────────
 print("\n[7] ONI")
 
-if "oni_oct_feb_mean" in df.columns:
-    cov = df["oni_oct_feb_mean"].notna().mean()
+oni_cols = [c for c in df.columns if c.startswith("oni_")]
+check(len(oni_cols) == 5,
+      f"5 columnas ONI (oni_oct…oni_feb): {oni_cols}",
+      f"{len(oni_cols)} columnas ONI (esperadas 5): {oni_cols}")
+
+if "oni_oct" in df.columns:
+    cov = df["oni_oct"].notna().mean()
     check(cov > 0.95,
           f"Cobertura ONI: {cov*100:.1f}%",
           f"Cobertura ONI baja: {cov*100:.1f}%")
 
+    # Niñas conocidas: anomalía de enero debe ser ≤ -0.5
     for y, label in [(1988,"triple Niña"),(2008,"2008/09"),(2010,"triple Niña"),(2022,"sequía")]:
-        rows = df[(df["campania_inicio"]==y) & df["oni_oct_feb_mean"].notna()]
+        rows = df[(df["campania_inicio"]==y) & df["oni_ene"].notna()]
         if len(rows):
-            val = rows["oni_oct_feb_mean"].iloc[0]
+            val = rows["oni_ene"].iloc[0]
             check(val <= -0.5,
-                  f"{y}/{y+1} ({label}): ONI={val:.2f} ≤ -0.5",
-                  f"{y}/{y+1}: ONI={val:.2f} > -0.5", is_warning=True)
+                  f"{y}/{y+1} ({label}): oni_ene={val:.2f} ≤ -0.5",
+                  f"{y}/{y+1}: oni_ene={val:.2f} > -0.5", is_warning=True)
 
-    if "oni_categoria" in df.columns:
-        cats = df.drop_duplicates("campania_inicio")["oni_categoria"].value_counts()
-        print(f"  Categorías ONI: {cats.to_dict()}")
-
-    # Mismo valor de ONI para todos los deptos/cultivos de una campaña (no varía geográficamente)
-    oni_unique_per_camp = df.groupby("campania_inicio")["oni_oct_feb_mean"].nunique()
+    # ONI global (no varía por depto/cultivo)
+    oni_unique_per_camp = df.groupby("campania_inicio")["oni_oct"].nunique()
     check((oni_unique_per_camp <= 1).all(),
           "ONI constante dentro de cada campaña (no varía por depto/cultivo)",
           "ONI varía dentro de una misma campaña — inconsistencia en el merge")
 else:
-    print(f"  {WARN} oni_oct_feb_mean no presente")
+    print(f"  {WARN} oni_oct no presente")
 
 # ─────────────────────────────────────────────
 print("\n[8] CONSISTENCIA GEOGRÁFICA")
