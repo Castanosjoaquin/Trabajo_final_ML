@@ -1,0 +1,1145 @@
+departamento,campania_inicio,z_rinde,es_anomala,confianza_anomalia
+Arrecifes,1981,,False,False
+Arrecifes,1982,,False,False
+Arrecifes,1983,,False,False
+Arrecifes,1984,0.24762233736129968,False,False
+Arrecifes,1985,1.1007175271141276,False,False
+Arrecifes,1986,-0.23322393631449895,False,False
+Arrecifes,1987,1.1273650372159938,False,False
+Arrecifes,1988,-3.136463004922707,True,True
+Arrecifes,1989,1.7279236519790484,False,False
+Arrecifes,1990,1.3211313028781377,False,False
+Arrecifes,1991,1.0852894295546196,False,False
+Arrecifes,1992,0.4328589692754135,False,False
+Arrecifes,1993,1.0891928574303409,False,False
+Arrecifes,1994,-0.4771096246594553,False,False
+Arrecifes,1995,-1.228170701655321,False,False
+Arrecifes,1996,2.628579691661025,False,False
+Arrecifes,1997,5.992683257577692,False,False
+Arrecifes,1998,0.48098444611213026,False,False
+Arrecifes,1999,-1.4587839733513,False,False
+Arrecifes,2000,0.2013461555547046,False,False
+Arrecifes,2001,0.023952833662154827,False,False
+Arrecifes,2002,0.5932268706239204,False,False
+Arrecifes,2003,1.5538275139925337,False,False
+Arrecifes,2004,1.2158474338908236,False,False
+Arrecifes,2005,-0.6928317234404011,False,False
+Arrecifes,2006,2.3519111912149717,False,False
+Arrecifes,2007,-0.4145093199235598,False,False
+Arrecifes,2008,-3.7568227854001703,True,False
+Arrecifes,2009,1.8037864601266558,False,False
+Arrecifes,2010,-0.6459822850618085,False,False
+Arrecifes,2011,-0.8135757269877152,False,False
+Arrecifes,2012,0.7937836491146132,False,False
+Arrecifes,2013,0.35929074877222417,False,False
+Arrecifes,2014,0.8248764286015452,False,False
+Arrecifes,2015,-0.03455851982239533,False,False
+Arrecifes,2016,0.9685726154462582,False,False
+Arrecifes,2017,-1.7354772220109407,True,True
+Arrecifes,2018,2.203247943288582,False,False
+Arrecifes,2019,-0.44013175465750815,False,False
+Arrecifes,2020,-0.4640954808922571,False,False
+Arrecifes,2021,-1.474410377306519,False,False
+Arrecifes,2022,-2.26392132984983,True,True
+Arrecifes,2023,0.4389142554354756,False,False
+Arrecifes,2024,0.39195363538682737,False,False
+Baradero,1981,,False,False
+Baradero,1982,,False,False
+Baradero,1983,,False,False
+Baradero,1984,0.8988833444405727,False,False
+Baradero,1985,1.489846825915605,False,False
+Baradero,1986,0.26427817016991506,False,False
+Baradero,1987,0.8391787682089147,False,False
+Baradero,1988,-1.7203046970103382,True,True
+Baradero,1989,1.3364798968006064,False,False
+Baradero,1990,2.3992369763862844,False,False
+Baradero,1991,1.0117312166832848,False,False
+Baradero,1992,1.0566140000392799,False,False
+Baradero,1993,1.2252493515730827,False,False
+Baradero,1994,0.28204410305198085,False,False
+Baradero,1995,-4.167839395374291,True,False
+Baradero,1996,-0.20519567041703035,False,False
+Baradero,1997,4.271299723019412,False,False
+Baradero,1998,0.32896357177294105,False,False
+Baradero,1999,-1.2579907737574698,False,False
+Baradero,2000,0.47973192676114884,False,False
+Baradero,2001,-0.31949131757038607,False,False
+Baradero,2002,0.9113003450397105,False,False
+Baradero,2003,1.3258732647440667,False,False
+Baradero,2004,0.7211490171674404,False,False
+Baradero,2005,-0.8151238417997327,False,False
+Baradero,2006,2.2230333457502813,False,False
+Baradero,2007,-1.375016738478686,False,False
+Baradero,2008,-2.6331073463817707,True,False
+Baradero,2009,2.1360032506139293,False,False
+Baradero,2010,-0.5918802177396675,False,False
+Baradero,2011,-0.7543526020015118,False,False
+Baradero,2012,0.9338525240555585,False,False
+Baradero,2013,0.503860812548238,False,False
+Baradero,2014,0.7942466926044711,False,False
+Baradero,2015,0.1516123478420199,False,False
+Baradero,2016,0.9234359509133241,False,False
+Baradero,2017,-2.335031709299476,True,True
+Baradero,2018,1.8474455102410143,False,False
+Baradero,2019,-0.19522745170660338,False,False
+Baradero,2020,-0.421108810723739,False,False
+Baradero,2021,-1.5277577512467977,True,False
+Baradero,2022,-2.4995320943851453,True,True
+Baradero,2023,0.5451932195347954,False,False
+Baradero,2024,0.24899446181757107,False,False
+Belgrano,1981,,False,False
+Belgrano,1982,,False,False
+Belgrano,1983,,False,False
+Belgrano,1984,2.04926207831424,False,False
+Belgrano,1985,1.276324999593425,False,False
+Belgrano,1986,0.31939718247951393,False,False
+Belgrano,1987,0.9407790676076283,False,False
+Belgrano,1988,-3.6332757764744747,True,True
+Belgrano,1989,-1.2940884733363203,False,False
+Belgrano,1990,2.2790731701999944,False,False
+Belgrano,1991,1.2328637967615164,False,False
+Belgrano,1992,0.7455874843274646,False,False
+Belgrano,1993,0.5165165598971391,False,False
+Belgrano,1994,1.0021332781021963,False,False
+Belgrano,1995,0.881455784856596,False,False
+Belgrano,1996,-3.116962292154222,True,False
+Belgrano,1997,1.910323853480281,False,False
+Belgrano,1998,0.6535606765294719,False,False
+Belgrano,1999,-0.8465681917140534,False,False
+Belgrano,2000,1.109389351512294,False,False
+Belgrano,2001,0.6106321384408204,False,False
+Belgrano,2002,2.132301641001724,False,False
+Belgrano,2003,1.3331305704845438,False,False
+Belgrano,2004,1.121340840817759,False,False
+Belgrano,2005,-1.0116520539367277,False,False
+Belgrano,2006,1.919232460493016,False,False
+Belgrano,2007,-0.25454371598356196,False,False
+Belgrano,2008,-3.654930980957293,True,False
+Belgrano,2009,1.777529333122746,False,False
+Belgrano,2010,0.21652500926731005,False,False
+Belgrano,2011,-0.3854368087188214,False,False
+Belgrano,2012,0.5715643406271863,False,False
+Belgrano,2013,-0.2791556773789443,False,False
+Belgrano,2014,-0.373549470140569,False,False
+Belgrano,2015,-1.064171990754435,False,False
+Belgrano,2016,0.8940668496742064,False,False
+Belgrano,2017,-0.14824986333222034,False,False
+Belgrano,2018,1.5460413650478542,False,False
+Belgrano,2019,0.2728540621047242,False,False
+Belgrano,2020,-1.355343691370988,False,False
+Belgrano,2021,-2.6529316373577356,True,False
+Belgrano,2022,-8.998866427352398,True,True
+Belgrano,2023,0.49659480655445676,False,False
+Belgrano,2024,0.7638167059832073,False,False
+Capitan Sarmiento,1981,,False,False
+Capitan Sarmiento,1982,,False,False
+Capitan Sarmiento,1983,,False,False
+Capitan Sarmiento,1984,0.1816284103558865,False,False
+Capitan Sarmiento,1985,1.804359716023386,False,False
+Capitan Sarmiento,1986,-0.37444883874699997,False,False
+Capitan Sarmiento,1987,1.2204389323511557,False,False
+Capitan Sarmiento,1988,-3.3618852632651954,True,False
+Capitan Sarmiento,1989,1.065856531006876,False,False
+Capitan Sarmiento,1990,0.9222442967657526,False,False
+Capitan Sarmiento,1991,0.4487763263699329,False,False
+Capitan Sarmiento,1992,1.401525114513129,False,False
+Capitan Sarmiento,1993,0.9325809561897586,False,False
+Capitan Sarmiento,1994,-0.3242471852589409,False,False
+Capitan Sarmiento,1995,-1.0290390619128296,False,False
+Capitan Sarmiento,1996,3.149179395847198,False,False
+Capitan Sarmiento,1997,2.704861993451731,False,False
+Capitan Sarmiento,1998,0.3105754660017514,False,False
+Capitan Sarmiento,1999,-1.4618201396204347,False,False
+Capitan Sarmiento,2000,0.2204790294425214,False,False
+Capitan Sarmiento,2001,-0.18955979543013282,False,False
+Capitan Sarmiento,2002,0.38091744581906284,False,False
+Capitan Sarmiento,2003,1.937832312470855,False,False
+Capitan Sarmiento,2004,0.8489742148768327,False,False
+Capitan Sarmiento,2005,-0.9455944882296072,False,False
+Capitan Sarmiento,2006,2.2280014065614733,False,False
+Capitan Sarmiento,2007,-0.14438457513688668,False,False
+Capitan Sarmiento,2008,-3.747436935038341,True,False
+Capitan Sarmiento,2009,1.949358868961793,False,False
+Capitan Sarmiento,2010,-0.4904741103678934,False,False
+Capitan Sarmiento,2011,-0.7581986665295845,False,False
+Capitan Sarmiento,2012,0.9534323352467471,False,False
+Capitan Sarmiento,2013,0.32234522451926845,False,False
+Capitan Sarmiento,2014,0.7402116483259886,False,False
+Capitan Sarmiento,2015,0.008673524953493333,False,False
+Capitan Sarmiento,2016,1.085916789785472,False,False
+Capitan Sarmiento,2017,-1.8920576887692773,True,True
+Capitan Sarmiento,2018,2.0094978387374365,False,False
+Capitan Sarmiento,2019,-0.8977330316136692,False,False
+Capitan Sarmiento,2020,-0.36013047906561096,False,False
+Capitan Sarmiento,2021,-1.339801983182431,False,False
+Capitan Sarmiento,2022,-2.1832617894208775,True,True
+Capitan Sarmiento,2023,0.4980720238379007,False,False
+Capitan Sarmiento,2024,0.4624376330864573,False,False
+Carmen De Areco,1981,,False,False
+Carmen De Areco,1982,,False,False
+Carmen De Areco,1983,,False,False
+Carmen De Areco,1984,-0.9411665405998226,False,False
+Carmen De Areco,1985,0.0504676185885378,False,False
+Carmen De Areco,1986,-1.1069642783705156,False,False
+Carmen De Areco,1987,-0.40856200891161654,False,False
+Carmen De Areco,1988,-3.9996349739765065,True,False
+Carmen De Areco,1989,1.692455842750712,False,False
+Carmen De Areco,1990,2.550325034680089,False,False
+Carmen De Areco,1991,1.6877916060493847,False,False
+Carmen De Areco,1992,1.1739197776198098,False,False
+Carmen De Areco,1993,-0.8242521024829977,False,False
+Carmen De Areco,1994,1.35458344297623,False,False
+Carmen De Areco,1995,0.74175050336275,False,False
+Carmen De Areco,1996,3.033900315099768,False,False
+Carmen De Areco,1997,2.2522852611454325,False,False
+Carmen De Areco,1998,0.5712973551889982,False,False
+Carmen De Areco,1999,-1.6378143518297332,True,False
+Carmen De Areco,2000,0.13934871801822774,False,False
+Carmen De Areco,2001,0.2633156312804702,False,False
+Carmen De Areco,2002,1.1439513776733787,False,False
+Carmen De Areco,2003,0.9105393714780854,False,False
+Carmen De Areco,2004,1.0006307159252095,False,False
+Carmen De Areco,2005,-3.3158981774010448,True,False
+Carmen De Areco,2006,1.478877987989264,False,False
+Carmen De Areco,2007,-0.05447094558424619,False,False
+Carmen De Areco,2008,-2.7451540210758876,True,False
+Carmen De Areco,2009,1.4780122204633523,False,False
+Carmen De Areco,2010,-0.4088832547431412,False,False
+Carmen De Areco,2011,-0.5374229750846026,False,False
+Carmen De Areco,2012,1.0229071417249123,False,False
+Carmen De Areco,2013,0.8568981953034503,False,False
+Carmen De Areco,2014,0.6815886499457431,False,False
+Carmen De Areco,2015,0.2651570517527075,False,False
+Carmen De Areco,2016,0.5527108286827732,False,False
+Carmen De Areco,2017,-4.314964532753281,True,True
+Carmen De Areco,2018,0.6972282034097995,False,False
+Carmen De Areco,2019,-0.40125152400373515,False,False
+Carmen De Areco,2020,-2.269136309664257,True,True
+Carmen De Areco,2021,-2.7431883836606654,True,False
+Carmen De Areco,2022,-1.8008970032495506,True,True
+Carmen De Areco,2023,0.8648265150802041,False,False
+Carmen De Areco,2024,0.4850123070929145,False,False
+Caseros,1981,,False,False
+Caseros,1982,,False,False
+Caseros,1983,,False,False
+Caseros,1984,1.425603365678388,False,False
+Caseros,1985,1.3702361475850804,False,False
+Caseros,1986,-0.21073622653980828,False,False
+Caseros,1987,0.6899738782154291,False,False
+Caseros,1988,-2.6377904455105186,True,True
+Caseros,1989,-1.209898614253433,False,False
+Caseros,1990,0.6558837921195629,False,False
+Caseros,1991,2.2695569146295074,False,False
+Caseros,1992,0.9504095786046928,False,False
+Caseros,1993,0.7066113013548667,False,False
+Caseros,1994,0.9363821838346233,False,False
+Caseros,1995,-0.06963106238227912,False,False
+Caseros,1996,-3.6878655015828645,True,False
+Caseros,1997,4.268806672270936,False,False
+Caseros,1998,1.0164861349662067,False,False
+Caseros,1999,-1.1780508719103124,False,False
+Caseros,2000,-0.08388608708084176,False,False
+Caseros,2001,0.9576906678758736,False,False
+Caseros,2002,0.30303205933356697,False,False
+Caseros,2003,2.4168256406452024,False,False
+Caseros,2004,2.0369340799393605,False,False
+Caseros,2005,0.08140830768942973,False,False
+Caseros,2006,1.9812120210583366,False,False
+Caseros,2007,0.04028751493121327,False,False
+Caseros,2008,-1.772182495617665,True,False
+Caseros,2009,1.842296111797609,False,False
+Caseros,2010,0.1559563529204715,False,False
+Caseros,2011,-0.20144046598844412,False,False
+Caseros,2012,0.21506292884151357,False,False
+Caseros,2013,-0.37428334576712935,False,False
+Caseros,2014,-0.03253080223295071,False,False
+Caseros,2015,-0.9066014198259288,False,False
+Caseros,2016,-1.5171584991372606,True,False
+Caseros,2017,-3.474802368050015,True,True
+Caseros,2018,1.8029808533971463,False,False
+Caseros,2019,0.5078993831847903,False,False
+Caseros,2020,0.38245609711303974,False,False
+Caseros,2021,-2.3179195365317846,True,False
+Caseros,2022,-3.678572804441436,True,True
+Caseros,2023,0.8236319887825655,False,False
+Caseros,2024,0.6227461378599886,False,False
+Chacabuco,1981,,False,False
+Chacabuco,1982,,False,False
+Chacabuco,1983,,False,False
+Chacabuco,1984,0.4583069498226002,False,False
+Chacabuco,1985,-0.41671748487606497,False,False
+Chacabuco,1986,-1.2785689571948584,False,False
+Chacabuco,1987,2.7923291732155637,False,False
+Chacabuco,1988,-0.9368961281855678,False,False
+Chacabuco,1989,0.5220344976149534,False,False
+Chacabuco,1990,0.8379054765764923,False,False
+Chacabuco,1991,0.738848004224177,False,False
+Chacabuco,1992,-0.08331363753985546,False,False
+Chacabuco,1993,-3.5205674718804216,True,False
+Chacabuco,1994,1.7435263198827315,False,False
+Chacabuco,1995,1.042225711134011,False,False
+Chacabuco,1996,1.5559860156364351,False,False
+Chacabuco,1997,1.943549519147501,False,False
+Chacabuco,1998,0.6105207666328096,False,False
+Chacabuco,1999,-0.2001499827596858,False,False
+Chacabuco,2000,-0.12426069667317935,False,False
+Chacabuco,2001,-1.3885261453628206,False,False
+Chacabuco,2002,1.606923845959681,False,False
+Chacabuco,2003,1.4647181958747537,False,False
+Chacabuco,2004,1.5965434691705231,False,False
+Chacabuco,2005,-0.4496520737468274,False,False
+Chacabuco,2006,2.2156244028562693,False,False
+Chacabuco,2007,-0.1763681116701508,False,False
+Chacabuco,2008,-4.0344205544547,True,False
+Chacabuco,2009,1.0680507747136876,False,False
+Chacabuco,2010,0.5361444460702947,False,False
+Chacabuco,2011,-1.0372466440127914,False,False
+Chacabuco,2012,0.7941061243643874,False,False
+Chacabuco,2013,0.7951532857525395,False,False
+Chacabuco,2014,0.6741266219589819,False,False
+Chacabuco,2015,0.20081806090453122,False,False
+Chacabuco,2016,0.5412080731933906,False,False
+Chacabuco,2017,-4.973174794079485,True,True
+Chacabuco,2018,1.541257826291109,False,False
+Chacabuco,2019,0.14373576905417595,False,False
+Chacabuco,2020,-1.1393680306215608,False,False
+Chacabuco,2021,-2.5071602419548653,True,False
+Chacabuco,2022,-2.9296763460206763,True,True
+Chacabuco,2023,0.8318397589579656,False,False
+Chacabuco,2024,-0.03877378179348702,False,False
+Colon,1981,,False,False
+Colon,1982,,False,False
+Colon,1983,,False,False
+Colon,1984,1.4946961033670358,False,False
+Colon,1985,-0.10054652313322467,False,False
+Colon,1986,-1.7890023705357638,True,False
+Colon,1987,1.3508717487730724,False,False
+Colon,1988,-0.3658031896602425,False,False
+Colon,1989,-0.17092575768425589,False,False
+Colon,1990,2.8683228107831904,False,False
+Colon,1991,1.5044034793766345,False,False
+Colon,1992,0.93862963076255,False,False
+Colon,1993,0.6147171261025608,False,False
+Colon,1994,-0.2268512651288578,False,False
+Colon,1995,-2.816934607387754,True,False
+Colon,1996,1.2855285489707542,False,False
+Colon,1997,6.746536480143356,False,False
+Colon,1998,1.516403614909349,False,False
+Colon,1999,-0.3640003475118384,False,False
+Colon,2000,0.5355455121114734,False,False
+Colon,2001,-0.13426300380830125,False,False
+Colon,2002,0.652069094850212,False,False
+Colon,2003,0.9987327321500055,False,False
+Colon,2004,1.2581142418965892,False,False
+Colon,2005,-0.7745982246549332,False,False
+Colon,2006,2.4509805593487433,False,False
+Colon,2007,1.0704592253333463,False,False
+Colon,2008,-1.9485673481525734,True,False
+Colon,2009,2.42138156322338,False,False
+Colon,2010,-1.1429328828819318,False,False
+Colon,2011,-1.5109022182977787,True,False
+Colon,2012,0.8210772094195614,False,False
+Colon,2013,0.26273173429345115,False,False
+Colon,2014,0.7572871661588378,False,False
+Colon,2015,-0.28714912625450045,False,False
+Colon,2016,0.9753479636625192,False,False
+Colon,2017,-1.5943361703928605,True,True
+Colon,2018,1.7371681952448754,False,False
+Colon,2019,-0.395190205856347,False,False
+Colon,2020,-0.8054772285320365,False,False
+Colon,2021,-1.577091113646126,True,False
+Colon,2022,-2.6234238965856265,True,True
+Colon,2023,0.36221704823692386,False,False
+Colon,2024,0.21932000780317562,False,False
+General Arenales,1981,,False,False
+General Arenales,1982,,False,False
+General Arenales,1983,,False,False
+General Arenales,1984,0.20739033894608605,False,False
+General Arenales,1985,-1.7008401285415227,True,False
+General Arenales,1986,-3.8398602685150447,True,False
+General Arenales,1987,1.3692875379781946,False,False
+General Arenales,1988,1.080435221187321,False,False
+General Arenales,1989,0.905492972272549,False,False
+General Arenales,1990,1.4582030304407105,False,False
+General Arenales,1991,0.8314737961139016,False,False
+General Arenales,1992,1.2364778344285507,False,False
+General Arenales,1993,3.502363823068127,False,False
+General Arenales,1994,1.5881504806371927,False,False
+General Arenales,1995,0.5065321980506463,False,False
+General Arenales,1996,0.9156812234638704,False,False
+General Arenales,1997,5.726258014917063,False,False
+General Arenales,1998,0.809622236101034,False,False
+General Arenales,1999,-0.06291551601711887,False,False
+General Arenales,2000,-1.0460292011411636,False,False
+General Arenales,2001,0.8592071664660761,False,False
+General Arenales,2002,-0.5080109516054571,False,False
+General Arenales,2003,2.317048787531001,False,False
+General Arenales,2004,2.2004414032788073,False,False
+General Arenales,2005,-0.6625027010782095,False,False
+General Arenales,2006,2.7289081400768382,False,False
+General Arenales,2007,0.21056592529412474,False,False
+General Arenales,2008,-1.48275411635346,False,False
+General Arenales,2009,1.331268294390599,False,False
+General Arenales,2010,0.4211639625774788,False,False
+General Arenales,2011,-1.7295554364371597,True,False
+General Arenales,2012,0.5992693287367954,False,False
+General Arenales,2013,0.5989239204694573,False,False
+General Arenales,2014,0.8125696397387977,False,False
+General Arenales,2015,0.24272772214944022,False,False
+General Arenales,2016,0.2471208252860862,False,False
+General Arenales,2017,-3.551745150911208,True,True
+General Arenales,2018,0.26639771383306554,False,False
+General Arenales,2019,0.14530784390894483,False,False
+General Arenales,2020,-2.256304299271065,True,True
+General Arenales,2021,-3.121771059103237,True,False
+General Arenales,2022,-2.6046553304959574,True,True
+General Arenales,2023,0.9555076328783629,False,False
+General Arenales,2024,0.2597496477727589,False,False
+General Lopez,1981,,False,False
+General Lopez,1982,,False,False
+General Lopez,1983,,False,False
+General Lopez,1984,0.324535489617795,False,False
+General Lopez,1985,1.24133040593219,False,False
+General Lopez,1986,-0.3826111679091904,False,False
+General Lopez,1987,0.10801982027369458,False,False
+General Lopez,1988,-1.4874949707094958,False,False
+General Lopez,1989,-1.4564832243009151,False,False
+General Lopez,1990,1.1517451807606927,False,False
+General Lopez,1991,2.5126547528784298,False,False
+General Lopez,1992,1.2800158143365499,False,False
+General Lopez,1993,0.8923683835094728,False,False
+General Lopez,1994,0.7023212455599,False,False
+General Lopez,1995,0.30808605444465814,False,False
+General Lopez,1996,-10.888264218594273,True,False
+General Lopez,1997,7.738838332549828,False,False
+General Lopez,1998,1.232704403584977,False,False
+General Lopez,1999,0.9773073158596681,False,False
+General Lopez,2000,0.21170903885161374,False,False
+General Lopez,2001,0.6730328304688662,False,False
+General Lopez,2002,1.4722099736857712,False,False
+General Lopez,2003,1.8578873431607192,False,False
+General Lopez,2004,2.75318951280843,False,False
+General Lopez,2005,0.4448172973957767,False,False
+General Lopez,2006,3.536572626297683,False,False
+General Lopez,2007,-0.26954611035747783,False,False
+General Lopez,2008,-1.1616114419290549,False,False
+General Lopez,2009,1.118033988749895,False,False
+General Lopez,2010,-1.1512743816720308,False,False
+General Lopez,2011,-2.8407085696411167,True,False
+General Lopez,2012,1.1199213349386237,False,False
+General Lopez,2013,0.20639401351502165,False,False
+General Lopez,2014,0.7372349242804487,False,False
+General Lopez,2015,0.8675607352804419,False,False
+General Lopez,2016,0.5491191897705622,False,False
+General Lopez,2017,-2.837607784247102,True,True
+General Lopez,2018,1.487710567431656,False,False
+General Lopez,2019,0.20271036672278522,False,False
+General Lopez,2020,-0.15203277504208892,False,False
+General Lopez,2021,-1.3244080059381513,False,False
+General Lopez,2022,-4.562699619146387,True,True
+General Lopez,2023,0.14280821956717826,False,False
+General Lopez,2024,-0.19334367402284616,False,False
+General San Martin,1981,,False,False
+General San Martin,1982,,False,False
+General San Martin,1983,,False,False
+General San Martin,1984,3.4048222080263777,False,False
+General San Martin,1985,0.6935420188489804,False,False
+General San Martin,1986,-0.11318039960638508,False,False
+General San Martin,1987,0.4986717470377027,False,False
+General San Martin,1988,-2.0148383700922268,True,True
+General San Martin,1989,-1.1916795507967923,False,False
+General San Martin,1990,2.6349727574239092,False,False
+General San Martin,1991,1.1135977919576376,False,False
+General San Martin,1992,1.3430919128359062,False,False
+General San Martin,1993,0.5291695193239272,False,False
+General San Martin,1994,-1.1034153056739533,False,False
+General San Martin,1995,-2.1693128746799006,True,False
+General San Martin,1996,-1.1914328427607317,False,False
+General San Martin,1997,1.9393332625876765,False,False
+General San Martin,1998,0.19996279099864467,False,False
+General San Martin,1999,2.072239909823001,False,False
+General San Martin,2000,0.9161869428440399,False,False
+General San Martin,2001,1.1748435212215576,False,False
+General San Martin,2002,1.412913331219577,False,False
+General San Martin,2003,-0.6105646797438332,False,False
+General San Martin,2004,2.9103805749782277,False,False
+General San Martin,2005,-0.7659523200748057,False,False
+General San Martin,2006,1.957905194599526,False,False
+General San Martin,2007,-0.5558333569973305,False,False
+General San Martin,2008,0.7028463876110712,False,False
+General San Martin,2009,1.0739609855587358,False,False
+General San Martin,2010,-0.7787485876492851,False,False
+General San Martin,2011,-1.6013417130539485,True,False
+General San Martin,2012,0.062332011816859,False,False
+General San Martin,2013,0.8900901566020727,False,False
+General San Martin,2014,0.3395630066890465,False,False
+General San Martin,2015,0.8029838114449207,False,False
+General San Martin,2016,1.0287003272994992,False,False
+General San Martin,2017,-2.3172964880866274,True,True
+General San Martin,2018,1.499999999999999,False,False
+General San Martin,2019,0.6141091473370585,False,False
+General San Martin,2020,0.4350521649941467,False,False
+General San Martin,2021,-1.2311740225021843,False,False
+General San Martin,2022,-3.782377952918427,True,True
+General San Martin,2023,-0.40437580015561314,False,False
+General San Martin,2024,0.5908242784122208,False,False
+Iriondo,1981,,False,False
+Iriondo,1982,,False,False
+Iriondo,1983,,False,False
+Iriondo,1984,0.7337993857053429,False,False
+Iriondo,1985,2.04939015319192,False,False
+Iriondo,1986,0.18667411100545397,False,False
+Iriondo,1987,0.9891639025275747,False,False
+Iriondo,1988,-2.6047994501337026,True,True
+Iriondo,1989,-0.8473830411845533,False,False
+Iriondo,1990,1.6910772470455206,False,False
+Iriondo,1991,1.6960733725003287,False,False
+Iriondo,1992,0.9024181366367718,False,False
+Iriondo,1993,0.6313550010995681,False,False
+Iriondo,1994,1.3068126260285498,False,False
+Iriondo,1995,1.2489343158321222,False,False
+Iriondo,1996,-1.1548786913295286,False,False
+Iriondo,1997,2.3337411216152146,False,False
+Iriondo,1998,0.6195539207473397,False,False
+Iriondo,1999,-2.548594545180077,True,False
+Iriondo,2000,1.5791121475529764,False,False
+Iriondo,2001,0.5567937534774898,False,False
+Iriondo,2002,1.2855917572447708,False,False
+Iriondo,2003,1.1179360378703818,False,False
+Iriondo,2004,0.9733976558448838,False,False
+Iriondo,2005,-1.049344364594206,False,False
+Iriondo,2006,2.429029892722461,False,False
+Iriondo,2007,0.04609592169969006,False,False
+Iriondo,2008,-2.477880285724577,True,False
+Iriondo,2009,2.007311092188564,False,False
+Iriondo,2010,-0.31011956158909276,False,False
+Iriondo,2011,-0.945258496510409,False,False
+Iriondo,2012,0.22133979153992503,False,False
+Iriondo,2013,-0.5691594639598072,False,False
+Iriondo,2014,0.002735571155582935,False,False
+Iriondo,2015,-0.025132888031371828,False,False
+Iriondo,2016,1.1427131971241131,False,False
+Iriondo,2017,-0.6434730048628461,False,False
+Iriondo,2018,1.3598002073001698,False,False
+Iriondo,2019,0.6607018587137351,False,False
+Iriondo,2020,1.1533403252367336,False,False
+Iriondo,2021,-5.509542929421572,True,False
+Iriondo,2022,-5.489603842190672,True,True
+Iriondo,2023,0.4914215203403575,False,False
+Iriondo,2024,0.3480530700874731,False,False
+Juarez Celman,1981,,False,False
+Juarez Celman,1982,,False,False
+Juarez Celman,1983,,False,False
+Juarez Celman,1984,10.969655114602892,False,False
+Juarez Celman,1985,0.7902392351563468,False,False
+Juarez Celman,1986,0.2484465007135627,False,False
+Juarez Celman,1987,-1.220152176275639,False,False
+Juarez Celman,1988,-2.0240610435187256,True,True
+Juarez Celman,1989,-2.060930901381573,True,True
+Juarez Celman,1990,1.060817139632245,False,False
+Juarez Celman,1991,0.8556407797439324,False,False
+Juarez Celman,1992,1.2120072478954436,False,False
+Juarez Celman,1993,1.587319282043363,False,False
+Juarez Celman,1994,1.016298436434133,False,False
+Juarez Celman,1995,-2.1327319308497934,True,False
+Juarez Celman,1996,-2.860352253698113,True,False
+Juarez Celman,1997,0.8804031020864092,False,False
+Juarez Celman,1998,0.8693082090844745,False,False
+Juarez Celman,1999,1.4798261698355792,False,False
+Juarez Celman,2000,0.7504406815880809,False,False
+Juarez Celman,2001,1.3660019718417404,False,False
+Juarez Celman,2002,2.66432503860724,False,False
+Juarez Celman,2003,-0.19358332585955484,False,False
+Juarez Celman,2004,2.781602673430518,False,False
+Juarez Celman,2005,-1.5397624321105297,True,True
+Juarez Celman,2006,1.678454362138117,False,False
+Juarez Celman,2007,-0.41647488211611067,False,False
+Juarez Celman,2008,-0.8846517369293827,False,False
+Juarez Celman,2009,-0.22448541330652547,False,False
+Juarez Celman,2010,-1.206927373212873,False,False
+Juarez Celman,2011,-1.4244674701166025,False,False
+Juarez Celman,2012,1.4338933919549042,False,False
+Juarez Celman,2013,0.7813469512499391,False,False
+Juarez Celman,2014,0.9715882936201737,False,False
+Juarez Celman,2015,1.3441056109512526,False,False
+Juarez Celman,2016,0.31729485820145525,False,False
+Juarez Celman,2017,-3.5149794044778813,True,False
+Juarez Celman,2018,1.089830290159753,False,False
+Juarez Celman,2019,0.4094611989919778,False,False
+Juarez Celman,2020,2.2360679774997885,False,False
+Juarez Celman,2021,-0.20599916503466223,False,False
+Juarez Celman,2022,-1.8155950931219969,True,False
+Juarez Celman,2023,0.1667310043130185,False,False
+Juarez Celman,2024,0.10920364746273888,False,False
+Junin,1981,,False,False
+Junin,1982,,False,False
+Junin,1983,,False,False
+Junin,1984,0.3356879422288259,False,False
+Junin,1985,-1.38697947315936,False,False
+Junin,1986,1.034379840013937,False,False
+Junin,1987,2.219183405500259,False,False
+Junin,1988,-0.7745019981274416,False,False
+Junin,1989,0.8480851119792994,False,False
+Junin,1990,1.3992369408709016,False,False
+Junin,1991,1.2484841529850692,False,False
+Junin,1992,-1.2675047829795374,False,False
+Junin,1993,-1.2242012319284081,False,False
+Junin,1994,0.8658500590496773,False,False
+Junin,1995,1.7120738946414111,False,False
+Junin,1996,1.8982842702156433,False,False
+Junin,1997,3.0251763775402347,False,False
+Junin,1998,0.8461197303073421,False,False
+Junin,1999,0.10948599382162966,False,False
+Junin,2000,0.2868803919899637,False,False
+Junin,2001,-0.31004469714500466,False,False
+Junin,2002,2.0449776793225043,False,False
+Junin,2003,1.702004219007195,False,False
+Junin,2004,1.205524563700056,False,False
+Junin,2005,-1.4969103983674978,False,False
+Junin,2006,2.583547774112876,False,False
+Junin,2007,0.07065550005475525,False,False
+Junin,2008,-3.063487739770232,True,False
+Junin,2009,1.1669177959291284,False,False
+Junin,2010,0.4854473522354588,False,False
+Junin,2011,-1.0644622165278947,False,False
+Junin,2012,0.9735171419772752,False,False
+Junin,2013,0.6904937823839633,False,False
+Junin,2014,0.5500132192950895,False,False
+Junin,2015,0.3205233117526269,False,False
+Junin,2016,0.6766997378537011,False,False
+Junin,2017,-4.472995898465869,True,True
+Junin,2018,1.4000000000000012,False,False
+Junin,2019,0.47193990372426975,False,False
+Junin,2020,-2.390062069113454,True,True
+Junin,2021,-1.4580076006393154,False,False
+Junin,2022,-4.130960702456222,True,True
+Junin,2023,0.8316849100303131,False,False
+Junin,2024,0.37565806743711605,False,False
+Leandro N. Alem,1981,,False,False
+Leandro N. Alem,1982,,False,False
+Leandro N. Alem,1983,,False,False
+Leandro N. Alem,1984,-3.5680933602826466,True,True
+Leandro N. Alem,1985,0.0017070613885369727,False,False
+Leandro N. Alem,1986,-2.0287013415244766,True,False
+Leandro N. Alem,1987,2.104083773541129,False,False
+Leandro N. Alem,1988,-1.3062892219499034,False,False
+Leandro N. Alem,1989,0.07694923025652087,False,False
+Leandro N. Alem,1990,1.1075640758208631,False,False
+Leandro N. Alem,1991,3.0479074285208325,False,False
+Leandro N. Alem,1992,0.6364236306368686,False,False
+Leandro N. Alem,1993,0.20113853564590492,False,False
+Leandro N. Alem,1994,0.743315535699013,False,False
+Leandro N. Alem,1995,1.7435366486096715,False,False
+Leandro N. Alem,1996,1.1493396358192804,False,False
+Leandro N. Alem,1997,2.6667401386377,False,False
+Leandro N. Alem,1998,1.1744396967996247,False,False
+Leandro N. Alem,1999,0.1858400255986842,False,False
+Leandro N. Alem,2000,-1.0708250431609383,False,False
+Leandro N. Alem,2001,-1.2589879855386412,False,False
+Leandro N. Alem,2002,1.7403629926267474,False,False
+Leandro N. Alem,2003,1.0904224149387776,False,False
+Leandro N. Alem,2004,1.1739040217755252,False,False
+Leandro N. Alem,2005,-0.06310765586676576,False,False
+Leandro N. Alem,2006,0.8289354522689896,False,False
+Leandro N. Alem,2007,-0.8925849085269386,False,False
+Leandro N. Alem,2008,-5.160000000000007,True,False
+Leandro N. Alem,2009,1.9550788472539153,False,False
+Leandro N. Alem,2010,-0.10337297956534962,False,False
+Leandro N. Alem,2011,-2.3467519468135714,True,False
+Leandro N. Alem,2012,0.38542479101488863,False,False
+Leandro N. Alem,2013,0.8565841608781439,False,False
+Leandro N. Alem,2014,0.6986702124814388,False,False
+Leandro N. Alem,2015,1.0615490428186178,False,False
+Leandro N. Alem,2016,0.5131890156317497,False,False
+Leandro N. Alem,2017,-2.335717896773131,True,True
+Leandro N. Alem,2018,0.505525029603437,False,False
+Leandro N. Alem,2019,-0.2891382323927307,False,False
+Leandro N. Alem,2020,-1.0919716589878743,False,False
+Leandro N. Alem,2021,-1.6714003814085603,True,False
+Leandro N. Alem,2022,-3.6784693471681975,True,True
+Leandro N. Alem,2023,-0.1878221973723392,False,False
+Leandro N. Alem,2024,-0.051580708876135306,False,False
+Marcos Juarez,1981,,False,False
+Marcos Juarez,1982,,False,False
+Marcos Juarez,1983,,False,False
+Marcos Juarez,1984,1.7537009349846264,False,False
+Marcos Juarez,1985,0.6910861724372841,False,False
+Marcos Juarez,1986,0.8076517967334076,False,False
+Marcos Juarez,1987,0.6337927474357108,False,False
+Marcos Juarez,1988,-2.9507209631362348,True,True
+Marcos Juarez,1989,-1.3957946775549082,False,False
+Marcos Juarez,1990,1.6062951520289235,False,False
+Marcos Juarez,1991,0.856272692977733,False,False
+Marcos Juarez,1992,0.8127396273409072,False,False
+Marcos Juarez,1993,0.8199982545468137,False,False
+Marcos Juarez,1994,0.40002363860041373,False,False
+Marcos Juarez,1995,5.249346716135626,False,False
+Marcos Juarez,1996,1.3329760189797577,False,False
+Marcos Juarez,1997,4.44201138306252,False,False
+Marcos Juarez,1998,1.1745012098284617,False,False
+Marcos Juarez,1999,0.7817562677371086,False,False
+Marcos Juarez,2000,2.0435999065459667,False,False
+Marcos Juarez,2001,1.4060874570940882,False,False
+Marcos Juarez,2002,2.3681656834815064,False,False
+Marcos Juarez,2003,0.4020776399250384,False,False
+Marcos Juarez,2004,0.9990329741536054,False,False
+Marcos Juarez,2005,-1.105180090384829,False,False
+Marcos Juarez,2006,4.250799681589423,False,False
+Marcos Juarez,2007,-0.543810836639779,False,False
+Marcos Juarez,2008,-0.9429541672723839,False,False
+Marcos Juarez,2009,1.747968926828174,False,False
+Marcos Juarez,2010,-0.33299616942003996,False,False
+Marcos Juarez,2011,-2.1987218974723954,True,False
+Marcos Juarez,2012,0.3477756245747552,False,False
+Marcos Juarez,2013,0.21317434800970134,False,False
+Marcos Juarez,2014,0.024734946913342284,False,False
+Marcos Juarez,2015,-0.07844706721964562,False,False
+Marcos Juarez,2016,0.7680245771797111,False,False
+Marcos Juarez,2017,-1.6696193775766364,True,True
+Marcos Juarez,2018,2.8074576010722248,False,False
+Marcos Juarez,2019,0.4407412773535271,False,False
+Marcos Juarez,2020,0.5000000000000003,False,False
+Marcos Juarez,2021,0.6374552583116773,False,False
+Marcos Juarez,2022,-6.392417669630461,True,True
+Marcos Juarez,2023,0.598482340209756,False,False
+Marcos Juarez,2024,0.4281898531689648,False,False
+Pergamino,1981,,False,False
+Pergamino,1982,,False,False
+Pergamino,1983,,False,False
+Pergamino,1984,0.8896927324661662,False,False
+Pergamino,1985,0.6660942901681345,False,False
+Pergamino,1986,-1.0647094291542731,False,False
+Pergamino,1987,0.898035423130768,False,False
+Pergamino,1988,-1.7662200932170895,True,True
+Pergamino,1989,0.8434328998973375,False,False
+Pergamino,1990,2.7954467820136712,False,False
+Pergamino,1991,1.1333949442111568,False,False
+Pergamino,1992,0.7644359769953248,False,False
+Pergamino,1993,0.35904467459237505,False,False
+Pergamino,1994,-1.8449184615026315,True,False
+Pergamino,1995,-0.38422281221287835,False,False
+Pergamino,1996,3.374029642764896,False,False
+Pergamino,1997,3.465164180222817,False,False
+Pergamino,1998,1.058101820165317,False,False
+Pergamino,1999,-0.9235935685990037,False,False
+Pergamino,2000,0.1862725173190647,False,False
+Pergamino,2001,-0.36130748879663216,False,False
+Pergamino,2002,0.851967833413186,False,False
+Pergamino,2003,1.420596682178427,False,False
+Pergamino,2004,1.3284317647698132,False,False
+Pergamino,2005,-0.6390421546141368,False,False
+Pergamino,2006,1.6825777726943407,False,False
+Pergamino,2007,0.8527745514442662,False,False
+Pergamino,2008,-2.5539105744099206,True,False
+Pergamino,2009,1.954087141591874,False,False
+Pergamino,2010,-0.931234344386744,False,False
+Pergamino,2011,-1.3286046758433898,False,False
+Pergamino,2012,0.9148079081272391,False,False
+Pergamino,2013,0.30845424050594095,False,False
+Pergamino,2014,0.8645323768510952,False,False
+Pergamino,2015,-0.13983016936774098,False,False
+Pergamino,2016,0.9378071759165681,False,False
+Pergamino,2017,-1.804262542369959,True,True
+Pergamino,2018,2.220904298284974,False,False
+Pergamino,2019,-0.3911847104719283,False,False
+Pergamino,2020,-0.7475319302283773,False,False
+Pergamino,2021,-1.3275136002331527,False,False
+Pergamino,2022,-2.4665167210817858,True,True
+Pergamino,2023,0.37689103960383846,False,False
+Pergamino,2024,0.30312369264747785,False,False
+Ramallo,1981,,False,False
+Ramallo,1982,,False,False
+Ramallo,1983,,False,False
+Ramallo,1984,1.909929737536159,False,False
+Ramallo,1985,1.039397786716023,False,False
+Ramallo,1986,-0.07601452818710641,False,False
+Ramallo,1987,0.8402561079959276,False,False
+Ramallo,1988,-0.9404961057663743,False,False
+Ramallo,1989,0.22475645467377742,False,False
+Ramallo,1990,1.3176513682325564,False,False
+Ramallo,1991,3.227197127335001,False,False
+Ramallo,1992,1.368819000710355,False,False
+Ramallo,1993,1.2628083578446283,False,False
+Ramallo,1994,-0.5728359070190151,False,False
+Ramallo,1995,-1.9280691155899954,True,False
+Ramallo,1996,0.7363113204451045,False,False
+Ramallo,1997,2.818283781373034,False,False
+Ramallo,1998,0.8196657082660128,False,False
+Ramallo,1999,-0.8759204038344127,False,False
+Ramallo,2000,0.11419575160846517,False,False
+Ramallo,2001,-0.17770193391517056,False,False
+Ramallo,2002,0.7056095943207186,False,False
+Ramallo,2003,1.5620621290782672,False,False
+Ramallo,2004,1.8261072686796238,False,False
+Ramallo,2005,-0.607088822691707,False,False
+Ramallo,2006,1.6569012004421253,False,False
+Ramallo,2007,-0.30427367398928457,False,False
+Ramallo,2008,-3.9570745849368727,True,False
+Ramallo,2009,1.8482112599503469,False,False
+Ramallo,2010,-0.49445862738475554,False,False
+Ramallo,2011,-0.6385552096650821,False,False
+Ramallo,2012,0.8975526623667205,False,False
+Ramallo,2013,0.4078123151867742,False,False
+Ramallo,2014,0.8734638886553827,False,False
+Ramallo,2015,0.010508326769550151,False,False
+Ramallo,2016,1.0136060675992287,False,False
+Ramallo,2017,-1.9728381574473415,True,True
+Ramallo,2018,1.803339269334864,False,False
+Ramallo,2019,-0.1865249566255371,False,False
+Ramallo,2020,-0.49566649996526607,False,False
+Ramallo,2021,-1.7843854887765034,True,False
+Ramallo,2022,-2.2291072385570736,True,True
+Ramallo,2023,0.5418787316770071,False,False
+Ramallo,2024,0.28584631775567093,False,False
+Rojas,1981,,False,False
+Rojas,1982,,False,False
+Rojas,1983,,False,False
+Rojas,1984,1.8060205525501742,False,False
+Rojas,1985,0.27090922905936393,False,False
+Rojas,1986,-7.30268463399897,True,False
+Rojas,1987,0.5191487481580247,False,False
+Rojas,1988,-0.6234723292251451,False,False
+Rojas,1989,0.9068971353578185,False,False
+Rojas,1990,2.1643770649051532,False,False
+Rojas,1991,1.2002670404294569,False,False
+Rojas,1992,0.7188512946995368,False,False
+Rojas,1993,1.529539020404267,False,False
+Rojas,1994,1.766484910416506,False,False
+Rojas,1995,1.3059824521315482,False,False
+Rojas,1996,2.2151681940707713,False,False
+Rojas,1997,4.3975899975758574,False,False
+Rojas,1998,1.1285176798811376,False,False
+Rojas,1999,-0.8867931498499143,False,False
+Rojas,2000,0.36573954767821376,False,False
+Rojas,2001,0.9067734913385114,False,False
+Rojas,2002,1.2718572734356646,False,False
+Rojas,2003,0.6985306855379505,False,False
+Rojas,2004,1.1559742175129606,False,False
+Rojas,2005,-3.2147321698668128,True,False
+Rojas,2006,1.8366045000524833,False,False
+Rojas,2007,0.3583267478886095,False,False
+Rojas,2008,-2.0664352343791155,True,False
+Rojas,2009,1.6434086196183202,False,False
+Rojas,2010,0.6126626693723759,False,False
+Rojas,2011,-1.3065316246503342,False,False
+Rojas,2012,0.710308850830277,False,False
+Rojas,2013,0.5888810982050792,False,False
+Rojas,2014,0.7824655381238272,False,False
+Rojas,2015,0.5218661440244238,False,False
+Rojas,2016,0.27451070171511593,False,False
+Rojas,2017,-3.779149006471523,True,True
+Rojas,2018,0.7179581586177377,False,False
+Rojas,2019,-0.2734343708098652,False,False
+Rojas,2020,-2.297506046001535,True,True
+Rojas,2021,-1.1573827732089887,False,False
+Rojas,2022,-4.871190553584043,True,True
+Rojas,2023,1.1713746416253041,False,False
+Rojas,2024,-0.04425905397725761,False,False
+Rosario,1981,,False,False
+Rosario,1982,,False,False
+Rosario,1983,,False,False
+Rosario,1984,0.24282730959758625,False,False
+Rosario,1985,2.274331049309732,False,False
+Rosario,1986,0.29652619371678535,False,False
+Rosario,1987,1.1466511466765639,False,False
+Rosario,1988,-2.1140095210544416,True,True
+Rosario,1989,-0.8604070536963366,False,False
+Rosario,1990,0.8288899781034907,False,False
+Rosario,1991,2.245358337492697,False,False
+Rosario,1992,1.0348641161779384,False,False
+Rosario,1993,0.5567481360691123,False,False
+Rosario,1994,0.8523404860960868,False,False
+Rosario,1995,-0.47763242324546634,False,False
+Rosario,1996,-4.721169880997404,True,False
+Rosario,1997,2.439867874846626,False,False
+Rosario,1998,0.8755809604659823,False,False
+Rosario,1999,-0.9399888307629403,False,False
+Rosario,2000,0.41621219968045126,False,False
+Rosario,2001,1.2392539556639095,False,False
+Rosario,2002,0.15976053865353426,False,False
+Rosario,2003,1.7419407635297122,False,False
+Rosario,2004,1.7787989095280328,False,False
+Rosario,2005,-1.905932319593971,True,True
+Rosario,2006,1.3210590348779616,False,False
+Rosario,2007,0.5261793137376933,False,False
+Rosario,2008,-2.0889540017201083,True,False
+Rosario,2009,1.2070751177421033,False,False
+Rosario,2010,0.4120499682927932,False,False
+Rosario,2011,0.3350525742374973,False,False
+Rosario,2012,0.35077815939027135,False,False
+Rosario,2013,0.41391511380434537,False,False
+Rosario,2014,0.3000149800464663,False,False
+Rosario,2015,-1.3969130569417285,False,False
+Rosario,2016,-3.361103230395247,True,False
+Rosario,2017,-3.1980107453341664,True,True
+Rosario,2018,1.6347454352396324,False,False
+Rosario,2019,-1.5965643050452998,True,False
+Rosario,2020,0.11796266967479706,False,False
+Rosario,2021,-3.247773209741995,True,True
+Rosario,2022,-2.260451512363612,True,True
+Rosario,2023,0.8200691156971172,False,False
+Rosario,2024,0.911952940342014,False,False
+Salto,1981,,False,False
+Salto,1982,,False,False
+Salto,1983,,False,False
+Salto,1984,-0.5809263866473809,False,False
+Salto,1985,-0.9049500935841853,False,False
+Salto,1986,-1.8346359963231105,True,False
+Salto,1987,2.3482386693904407,False,False
+Salto,1988,-3.347230680657291,True,True
+Salto,1989,0.9391075443573104,False,False
+Salto,1990,2.7587005353770713,False,False
+Salto,1991,0.03864566987366515,False,False
+Salto,1992,0.015880370506743943,False,False
+Salto,1993,0.7162376618777468,False,False
+Salto,1994,-0.153881507466265,False,False
+Salto,1995,0.22900889826241844,False,False
+Salto,1996,5.384555898554589,False,False
+Salto,1997,3.636849168157269,False,False
+Salto,1998,1.2216718631714827,False,False
+Salto,1999,-1.3591326683721874,False,False
+Salto,2000,0.12852778000874093,False,False
+Salto,2001,0.32784094567863153,False,False
+Salto,2002,0.3769537202164669,False,False
+Salto,2003,1.2689257126759486,False,False
+Salto,2004,1.2546072224662146,False,False
+Salto,2005,-0.7580700394400047,False,False
+Salto,2006,2.183454613323325,False,False
+Salto,2007,0.6354380478103607,False,False
+Salto,2008,-2.865751442173729,True,False
+Salto,2009,2.017773125096514,False,False
+Salto,2010,-0.8881096758930469,False,False
+Salto,2011,-1.237165990949506,False,False
+Salto,2012,0.904728528706303,False,False
+Salto,2013,0.35604933381246917,False,False
+Salto,2014,0.760022259810504,False,False
+Salto,2015,-0.3359233814588744,False,False
+Salto,2016,0.9072404004904939,False,False
+Salto,2017,-1.6418593136230215,True,True
+Salto,2018,2.0478679141397262,False,False
+Salto,2019,-0.27064754680115183,False,False
+Salto,2020,-0.7627700713964738,False,False
+Salto,2021,-1.3327356748437706,False,False
+Salto,2022,-2.255909765414039,True,True
+Salto,2023,0.33537744652025486,False,False
+Salto,2024,0.3576119730492899,False,False
+San Lorenzo,1981,,False,False
+San Lorenzo,1982,,False,False
+San Lorenzo,1983,,False,False
+San Lorenzo,1984,0.29884841377601584,False,False
+San Lorenzo,1985,1.6509764507357203,False,False
+San Lorenzo,1986,0.11787726732207432,False,False
+San Lorenzo,1987,0.8158839256738557,False,False
+San Lorenzo,1988,-2.6867025867505876,True,True
+San Lorenzo,1989,-0.9928390633566645,False,False
+San Lorenzo,1990,0.9220777064258898,False,False
+San Lorenzo,1991,2.1298279633239865,False,False
+San Lorenzo,1992,1.2538703079320053,False,False
+San Lorenzo,1993,0.5274005404204102,False,False
+San Lorenzo,1994,0.9989230247067646,False,False
+San Lorenzo,1995,-1.1940894819590346,False,False
+San Lorenzo,1996,-2.1699901121516305,True,False
+San Lorenzo,1997,2.61407827191389,False,False
+San Lorenzo,1998,1.6723077585414732,False,False
+San Lorenzo,1999,-1.3175474072961557,False,False
+San Lorenzo,2000,0.34994352664541106,False,False
+San Lorenzo,2001,1.3463009518711988,False,False
+San Lorenzo,2002,-0.020274542721585187,False,False
+San Lorenzo,2003,1.190724180519601,False,False
+San Lorenzo,2004,1.5057334554643556,False,False
+San Lorenzo,2005,-0.7731231593275407,False,False
+San Lorenzo,2006,2.408490357213379,False,False
+San Lorenzo,2007,0.5743687784360056,False,False
+San Lorenzo,2008,-3.298660398313008,True,False
+San Lorenzo,2009,1.1664618129733197,False,False
+San Lorenzo,2010,0.2133536634765708,False,False
+San Lorenzo,2011,0.121812339578664,False,False
+San Lorenzo,2012,0.30464770082204123,False,False
+San Lorenzo,2013,0.09632733647436553,False,False
+San Lorenzo,2014,0.20306305055288,False,False
+San Lorenzo,2015,-0.5549593873170765,False,False
+San Lorenzo,2016,-1.2198538757822206,False,False
+San Lorenzo,2017,-4.041451884327417,True,True
+San Lorenzo,2018,1.7757786547057293,False,False
+San Lorenzo,2019,-1.4454233651990056,False,False
+San Lorenzo,2020,0.36490022459988125,False,False
+San Lorenzo,2021,-3.179844814370394,True,False
+San Lorenzo,2022,-2.5489417619027415,True,True
+San Lorenzo,2023,0.8990892281152914,False,False
+San Lorenzo,2024,0.6975307860501844,False,False
+San Nicolas,1981,,False,False
+San Nicolas,1982,,False,False
+San Nicolas,1983,,False,False
+San Nicolas,1984,1.0575920097691536,False,False
+San Nicolas,1985,1.156561322397112,False,False
+San Nicolas,1986,0.5790283054124005,False,False
+San Nicolas,1987,0.936644277505669,False,False
+San Nicolas,1988,-1.1134949406984485,False,False
+San Nicolas,1989,-1.4204767728473096,False,False
+San Nicolas,1990,-0.6077080131524367,False,False
+San Nicolas,1991,5.103517633388491,False,False
+San Nicolas,1992,1.3360565857105924,False,False
+San Nicolas,1993,1.36900737048824,False,False
+San Nicolas,1994,0.003963222475734887,False,False
+San Nicolas,1995,-0.6255107414850531,False,False
+San Nicolas,1996,0.9064359037308318,False,False
+San Nicolas,1997,3.8313614579610276,False,False
+San Nicolas,1998,0.24792743130645506,False,False
+San Nicolas,1999,-1.0217017611499224,False,False
+San Nicolas,2000,0.4721766386860413,False,False
+San Nicolas,2001,-0.28906207770404985,False,False
+San Nicolas,2002,0.9665587111639646,False,False
+San Nicolas,2003,1.4114768496650152,False,False
+San Nicolas,2004,1.5452169802855094,False,False
+San Nicolas,2005,-0.9449111825230676,False,False
+San Nicolas,2006,1.3992297616851626,False,False
+San Nicolas,2007,-1.028296695359055,False,False
+San Nicolas,2008,-3.1600911974391277,True,False
+San Nicolas,2009,1.6803439421586124,False,False
+San Nicolas,2010,-0.40693305223969184,False,False
+San Nicolas,2011,-0.543607950402357,False,False
+San Nicolas,2012,1.1255661308309381,False,False
+San Nicolas,2013,0.5634272485218113,False,False
+San Nicolas,2014,1.1762189039482742,False,False
+San Nicolas,2015,-0.11324891258224565,False,False
+San Nicolas,2016,0.9103585242672966,False,False
+San Nicolas,2017,-1.6723331346378143,True,True
+San Nicolas,2018,1.9032225559720986,False,False
+San Nicolas,2019,-0.13483997249264834,False,False
+San Nicolas,2020,-0.6306664038890526,False,False
+San Nicolas,2021,-1.8995466314154263,True,False
+San Nicolas,2022,-2.578968618787487,True,True
+San Nicolas,2023,0.2642495914321015,False,False
+San Nicolas,2024,0.29380744105588963,False,False
+San Pedro,1981,,False,False
+San Pedro,1982,,False,False
+San Pedro,1983,,False,False
+San Pedro,1984,0.6943154607739619,False,False
+San Pedro,1985,2.040595315337195,False,False
+San Pedro,1986,0.14212104899094508,False,False
+San Pedro,1987,0.5594226045987888,False,False
+San Pedro,1988,-1.4622692814429765,False,False
+San Pedro,1989,-0.6931560085371964,False,False
+San Pedro,1990,2.5741121809370657,False,False
+San Pedro,1991,1.4145281491711093,False,False
+San Pedro,1992,1.499948192335992,False,False
+San Pedro,1993,0.8131288303121732,False,False
+San Pedro,1994,-0.593117454915612,False,False
+San Pedro,1995,-2.41920179816789,True,False
+San Pedro,1996,1.2005496576483403,False,False
+San Pedro,1997,4.155148908721944,False,False
+San Pedro,1998,0.7209411375596039,False,False
+San Pedro,1999,-0.9890673168348025,False,False
+San Pedro,2000,0.2801875927324928,False,False
+San Pedro,2001,0.16078638202752923,False,False
+San Pedro,2002,0.8229489513626719,False,False
+San Pedro,2003,1.1921126763952878,False,False
+San Pedro,2004,1.1692620973054033,False,False
+San Pedro,2005,-1.0599828091357288,False,False
+San Pedro,2006,2.140615618566611,False,False
+San Pedro,2007,-1.4749378643089046,False,False
+San Pedro,2008,-2.968951638109321,True,False
+San Pedro,2009,1.712630787574475,False,False
+San Pedro,2010,-0.41951951259942,False,False
+San Pedro,2011,-0.6030936840837837,False,False
+San Pedro,2012,1.0703109727952944,False,False
+San Pedro,2013,0.569891787947434,False,False
+San Pedro,2014,0.8550893606984511,False,False
+San Pedro,2015,-0.11608111362056224,False,False
+San Pedro,2016,0.9347244229979952,False,False
+San Pedro,2017,-2.1215165597199657,True,True
+San Pedro,2018,1.8295677415214053,False,False
+San Pedro,2019,-0.2494352719099279,False,False
+San Pedro,2020,-0.31770816417085257,False,False
+San Pedro,2021,-1.748526537869895,True,False
+San Pedro,2022,-2.2458411264735023,True,True
+San Pedro,2023,0.5119332581231899,False,False
+San Pedro,2024,0.4411979723536398,False,False
+Union,1981,,False,False
+Union,1982,,False,False
+Union,1983,,False,False
+Union,1984,2.1361959960016157,False,False
+Union,1985,1.191689758841537,False,False
+Union,1986,0.9375354460928812,False,False
+Union,1987,1.311000495858126,False,False
+Union,1988,-2.47504526687712,True,True
+Union,1989,-1.2749673580798937,False,False
+Union,1990,1.0118493922107121,False,False
+Union,1991,0.5925964018386392,False,False
+Union,1992,1.014591178394019,False,False
+Union,1993,0.9234631636502744,False,False
+Union,1994,-0.3437231760796755,False,False
+Union,1995,-0.7029732595911944,False,False
+Union,1996,-0.11836105531674895,False,False
+Union,1997,4.640125388080845,False,False
+Union,1998,1.1829452550528872,False,False
+Union,1999,1.5734689451732295,False,False
+Union,2000,1.762961845284297,False,False
+Union,2001,1.4689799934669703,False,False
+Union,2002,2.0778152996859154,False,False
+Union,2003,0.46905327034598965,False,False
+Union,2004,0.9749776667711426,False,False
+Union,2005,-2.198519090452407,True,True
+Union,2006,2.9344941482497235,False,False
+Union,2007,-0.2642970305147884,False,False
+Union,2008,-0.7485635061373849,False,False
+Union,2009,1.6275769175423187,False,False
+Union,2010,-0.4919362564496859,False,False
+Union,2011,-2.6415917605891557,True,False
+Union,2012,0.4271318021871308,False,False
+Union,2013,0.2659785413494931,False,False
+Union,2014,0.11210091527869416,False,False
+Union,2015,0.2949047921437067,False,False
+Union,2016,0.770425339264537,False,False
+Union,2017,-2.368746272632344,True,False
+Union,2018,1.9452356170498806,False,False
+Union,2019,0.606091526731327,False,False
+Union,2020,0.4339664137338598,False,False
+Union,2021,-0.43133109281375415,False,False
+Union,2022,-7.736730887843909,True,True
+Union,2023,0.44358322755716584,False,False
+Union,2024,0.430412823330942,False,False
+Villa Constitucion,1981,,False,False
+Villa Constitucion,1982,,False,False
+Villa Constitucion,1983,,False,False
+Villa Constitucion,1984,0.3172030463647616,False,False
+Villa Constitucion,1985,2.7977191699756245,False,False
+Villa Constitucion,1986,-0.01105267429469715,False,False
+Villa Constitucion,1987,0.8856115576404294,False,False
+Villa Constitucion,1988,-2.467690829497585,True,True
+Villa Constitucion,1989,-1.1297289853948365,False,False
+Villa Constitucion,1990,0.5608367973708401,False,False
+Villa Constitucion,1991,2.4542005820527697,False,False
+Villa Constitucion,1992,0.9611733521627833,False,False
+Villa Constitucion,1993,0.7386332470061264,False,False
+Villa Constitucion,1994,1.135337032232098,False,False
+Villa Constitucion,1995,0.4502203228289038,False,False
+Villa Constitucion,1996,0.9792216526954539,False,False
+Villa Constitucion,1997,6.0915713796318505,False,False
+Villa Constitucion,1998,1.1698310470099302,False,False
+Villa Constitucion,1999,-2.0289860522025664,True,False
+Villa Constitucion,2000,-0.33978488671917634,False,False
+Villa Constitucion,2001,0.36926396321682897,False,False
+Villa Constitucion,2002,0.23996462137962152,False,False
+Villa Constitucion,2003,2.2724561854350047,False,False
+Villa Constitucion,2004,1.9318509445886767,False,False
+Villa Constitucion,2005,-1.1888313505161088,False,False
+Villa Constitucion,2006,2.108874871644615,False,False
+Villa Constitucion,2007,-0.21096506509995597,False,False
+Villa Constitucion,2008,-0.37174695651329576,False,False
+Villa Constitucion,2009,1.1657531468773774,False,False
+Villa Constitucion,2010,0.39127472370646066,False,False
+Villa Constitucion,2011,-0.8122827304656423,False,False
+Villa Constitucion,2012,0.25448609812514694,False,False
+Villa Constitucion,2013,-0.03693062531978267,False,False
+Villa Constitucion,2014,0.6728286738864683,False,False
+Villa Constitucion,2015,0.15920948276144153,False,False
+Villa Constitucion,2016,-0.6597567673232296,False,False
+Villa Constitucion,2017,-3.120877649093834,True,True
+Villa Constitucion,2018,1.834194931632928,False,False
+Villa Constitucion,2019,-1.3337838445055148,False,False
+Villa Constitucion,2020,0.21947755850938566,False,False
+Villa Constitucion,2021,-2.7144561066029813,True,True
+Villa Constitucion,2022,-3.2060947085484277,True,True
+Villa Constitucion,2023,0.8146045161739235,False,False
+Villa Constitucion,2024,1.0130696098914718,False,False
