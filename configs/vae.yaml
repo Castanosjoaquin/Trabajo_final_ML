@@ -1,0 +1,15 @@
+model: vae
+name: vae_v1
+cultivo: ambos
+backend: wandb
+
+hidden_dims: [64, 32]
+latent_dim: 8
+beta: 1.0
+score_mode: recon_error   # recon_error | recon_prob | neg_elbo
+n_mc_samples: 20
+lr: 0.001
+max_epochs: 200
+patience: 15
+batch_size: 64
+random_state: 42

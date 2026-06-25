@@ -1,0 +1,10 @@
+model: iforest
+name: iforest_base
+cultivo: ambos
+backend: wandb
+
+n_estimators: 100
+max_samples: auto
+max_features: 1.0
+contamination: auto
+random_state: 42

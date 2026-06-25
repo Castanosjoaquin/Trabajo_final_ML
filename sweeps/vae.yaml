@@ -1,0 +1,37 @@
+# W&B Bayesian sweep para VAE.
+# Uso:
+#   wandb sweep sweeps/vae.yaml         -> imprime SWEEP_ID
+#   python train.py --sweep SWEEP_ID --cultivo soja --count 20
+program: train.py
+method: bayes
+metric:
+  name: val_pr_auc_mean
+  goal: maximize
+parameters:
+  model_type:
+    value: vae
+  hidden_dims:
+    values:
+      - [64, 32]
+      - [128, 64]
+      - [32, 16]
+  latent_dim:
+    values: [4, 8, 16]
+  beta:
+    distribution: log_uniform_values
+    min: 0.1
+    max: 10.0
+  score_mode:
+    values: [recon_error, recon_prob, neg_elbo]
+  lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.01
+  max_epochs:
+    value: 200
+  patience:
+    value: 15
+  batch_size:
+    values: [32, 64]
+  n_seeds:
+    value: 3
