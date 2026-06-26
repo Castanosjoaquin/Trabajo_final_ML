@@ -50,7 +50,9 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
     sc_test = detector.score_samples(dataset.X_test)
 
     # --- Calibrar umbral en val, evaluar ---
-    thr = ev.calibrate_threshold(sc_val, dataset.y_val)
+    thr = ev.calibrate_threshold(sc_val, dataset.y_val,
+                                 mode=cfg.threshold_mode,
+                                 contamination=cfg.eval_contamination)
     val_m = ev.evaluate_split(sc_val, dataset.y_val, thr["threshold"])
     test_m = ev.evaluate_split(sc_test, dataset.y_test, thr["threshold"])
     strat = ev.stratified_recall(sc_test, dataset.y_test, thr["threshold"],
@@ -80,6 +82,16 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
         if roc is not None:
             roc = roc.assign(curve="roc", split=split, x=roc["fpr"], y=roc["tpr"])
             curve_frames.append(roc[["curve", "split", "x", "y"]])
+    # --- Curva de loss de entrenamiento (solo modelos con historial: AE/DAE/VAE) ---
+    history = getattr(detector, "history_", None)
+    if history:
+        hist = pd.DataFrame(history)
+        for split, col in [("train", "train_loss"), ("val", "val_loss")]:
+            if col in hist.columns:
+                curve_frames.append(pd.DataFrame(
+                    {"curve": "loss", "split": split,
+                     "x": hist["epoch"], "y": hist[col]}))
+
     curves_df = (pd.concat(curve_frames, ignore_index=True) if curve_frames
                  else pd.DataFrame(columns=["curve", "split", "x", "y"]))
 
@@ -113,3 +125,67 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
         config=full_config, summary=summary,
         scores=scores_df, curves=curves_df, embeddings=emb_df, sweep=sweep_df,
     )
+
+
+# Métricas sobre las que se agrega media/desvío entre semillas.
+_AGG_KEYS = ["val_pr_auc", "val_roc_auc", "val_f1",
+            "test_pr_auc", "test_roc_auc", "test_f1", "test_precision_at_k"]
+
+
+def run_model_multiseed(model_name: str, detector_factory: Callable[[int], AnomalyDetector],
+                        dataset: CropDataset, cfg: ExperimentConfig,
+                        n_seeds: int = 5, base_seed: int = 42,
+                        emb_methods: List[str] = ("umap", "tsne"),
+                        sweep_factory: Optional[Callable] = None,
+                        sweep_grids: Optional[Dict] = None) -> RunResult:
+    """Corre el detector con `n_seeds` semillas y agrega media/desvío de las
+    métricas. Devuelve UN RunResult representativo (semilla mediana por
+    val_pr_auc — la métrica de selección, nunca toca labels de test) con los
+    campos `*_mean` / `*_std` añadidos al summary. Resuelve la alta varianza de
+    AE/VAE en n≈750: una sola semilla no es representativa.
+
+    detector_factory(seed) -> AnomalyDetector  (con ese random_state).
+    """
+    if n_seeds <= 1:
+        res = run_model(model_name, detector_factory(base_seed), dataset, cfg,
+                        emb_methods, sweep_factory, sweep_grids)
+        res.summary["n_seeds"] = 1
+        return res
+
+    # --- Pasada liviana por semilla: solo métricas (sin embeddings/curvas) ---
+    per_seed: List[Dict] = []
+    for i in range(n_seeds):
+        seed = base_seed + i
+        det = detector_factory(seed).fit(dataset.X_train)
+        sc_val = det.score_samples(dataset.X_val)
+        sc_test = det.score_samples(dataset.X_test)
+        thr = ev.calibrate_threshold(sc_val, dataset.y_val,
+                                     mode=cfg.threshold_mode,
+                                     contamination=cfg.eval_contamination)
+        val_m = ev.evaluate_split(sc_val, dataset.y_val, thr["threshold"])
+        test_m = ev.evaluate_split(sc_test, dataset.y_test, thr["threshold"])
+        flat = {f"val_{k}": v for k, v in val_m.items()}
+        flat.update({f"test_{k}": v for k, v in test_m.items()})
+        per_seed.append({"seed": seed, "flat": flat})
+
+    # --- Agregar media/desvío ---
+    agg: Dict[str, float] = {"n_seeds": n_seeds,
+                             "seeds": [s["seed"] for s in per_seed]}
+    for key in _AGG_KEYS:
+        vals = np.array([s["flat"].get(key, np.nan) for s in per_seed], dtype=float)
+        vals = vals[~np.isnan(vals)]
+        if len(vals):
+            agg[f"{key}_mean"] = float(np.mean(vals))
+            agg[f"{key}_std"] = float(np.std(vals))
+
+    # --- Semilla representativa: mediana por val_pr_auc (no usa test) ---
+    val_prs = [s["flat"].get("val_pr_auc", np.nan) for s in per_seed]
+    order = np.argsort(np.nan_to_num(val_prs, nan=-np.inf))
+    rep = per_seed[int(order[len(order) // 2])]["seed"]
+
+    # --- Run completo (scores/curvas/embeddings) en la semilla representativa ---
+    result = run_model(model_name, detector_factory(rep), dataset, cfg,
+                       emb_methods, sweep_factory, sweep_grids)
+    result.summary.update(agg)
+    result.summary["representative_seed"] = int(rep)
+    return result

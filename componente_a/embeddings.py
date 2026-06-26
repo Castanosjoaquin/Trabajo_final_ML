@@ -59,4 +59,6 @@ def build_embedding_table(X: np.ndarray, meta: pd.DataFrame, scores: np.ndarray,
         df["score"] = scores
         df["split"] = split
         frames.append(df)
+    if not frames:
+        return pd.DataFrame(columns=list(meta.columns) + ["method", "dim1", "dim2", "score", "split"])
     return pd.concat(frames, ignore_index=True)

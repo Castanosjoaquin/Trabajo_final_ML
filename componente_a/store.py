@@ -233,8 +233,50 @@ class WandbBackend(ResultsStore):
                  "created_at": r.created_at} for r in api.runs(path)]
 
     def load_run(self, run_id: str) -> RunResult:
-        raise NotImplementedError(
-            "Lectura desde W&B aún no implementada; usar LocalBackend por ahora."
+        wandb = self._require_wandb()
+        api = wandb.Api()
+        path = f"{self.entity + '/' if self.entity else ''}{self.project}/{run_id}"
+        run = api.run(path)
+
+        import json
+
+        config  = json.loads(json.dumps(dict(run.config), default=str))
+        summary = json.loads(json.dumps(
+            {k: v for k, v in run.summary.items() if not k.startswith("_")},
+            default=str,
+        ))
+
+        def _load_table(key: str) -> pd.DataFrame:
+            art_name = f"run-{run_id}-{key}:latest"
+            try:
+                art_path = f"{self.entity + '/' if self.entity else ''}{self.project}/{art_name}"
+                art = api.artifact(art_path)
+                tbl = art.get(key)
+                return pd.DataFrame(tbl.data, columns=tbl.columns).copy()
+            except Exception:
+                return pd.DataFrame()
+
+        scores     = _load_table("scores")
+        embeddings = _load_table("embeddings")
+        curves     = _load_table("curves")
+
+        if curves.empty:
+            curves = pd.DataFrame(columns=["curve", "split", "x", "y"])
+
+        sweep_df = _load_table("sweep")
+        sweep = sweep_df if not sweep_df.empty else None
+
+        return RunResult(
+            run_id=run_id,
+            model_name=run.name,
+            cultivo=config.get("cultivo", run.group or ""),
+            config=config,
+            summary=summary,
+            scores=scores,
+            curves=curves,
+            embeddings=embeddings,
+            sweep=sweep,
+            created_at=run.created_at,
         )
 
 

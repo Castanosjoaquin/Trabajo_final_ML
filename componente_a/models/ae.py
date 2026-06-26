@@ -15,23 +15,29 @@ from .base import AnomalyDetector
 from .trainer import train_ae
 
 
-def _build_mlp(sizes: List[int]) -> nn.Sequential:
-    """MLP con ReLU entre capas (sin activación en la última)."""
+def _build_mlp(sizes: List[int], dropout: float = 0.0,
+               use_batch_norm: bool = False) -> nn.Sequential:
+    """MLP con orden Linear → BN → ReLU → Dropout entre capas ocultas."""
     layers: List[nn.Module] = []
     for i in range(len(sizes) - 1):
         layers.append(nn.Linear(sizes[i], sizes[i + 1]))
         if i < len(sizes) - 2:
+            if use_batch_norm:
+                layers.append(nn.BatchNorm1d(sizes[i + 1]))
             layers.append(nn.ReLU())
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
     return nn.Sequential(*layers)
 
 
 class _AENet(nn.Module):
-    def __init__(self, n_features: int, hidden_dims: Tuple[int, ...], latent_dim: int):
+    def __init__(self, n_features: int, hidden_dims: Tuple[int, ...], latent_dim: int,
+                 dropout: float = 0.0, use_batch_norm: bool = False):
         super().__init__()
         enc_sizes = [n_features] + list(hidden_dims) + [latent_dim]
         dec_sizes = [latent_dim] + list(reversed(hidden_dims)) + [n_features]
-        self.encoder = _build_mlp(enc_sizes)
-        self.decoder = _build_mlp(dec_sizes)
+        self.encoder = _build_mlp(enc_sizes, dropout, use_batch_norm)
+        self.decoder = _build_mlp(dec_sizes, dropout, use_batch_norm)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.decoder(self.encoder(x))
@@ -69,6 +75,10 @@ class AEDetector(AnomalyDetector):
         hidden_dims: Tuple[int, ...] = (64, 32),
         latent_dim: int = 8,
         lr: float = 1e-3,
+        weight_decay: float = 0.0,
+        dropout: float = 0.0,
+        use_batch_norm: bool = False,
+        grad_clip_norm: float = 0.0,
         max_epochs: int = 200,
         patience: int = 15,
         batch_size: int = 64,
@@ -77,6 +87,10 @@ class AEDetector(AnomalyDetector):
         self.hidden_dims = tuple(hidden_dims)
         self.latent_dim = latent_dim
         self.lr = lr
+        self.weight_decay = weight_decay
+        self.dropout = dropout
+        self.use_batch_norm = use_batch_norm
+        self.grad_clip_norm = grad_clip_norm
         self.max_epochs = max_epochs
         self.patience = patience
         self.batch_size = batch_size
@@ -85,11 +99,14 @@ class AEDetector(AnomalyDetector):
 
     def fit(self, X: np.ndarray, wandb_run=None) -> "AEDetector":
         torch.manual_seed(self.random_state)
-        self._net = _AENet(X.shape[1], self.hidden_dims, self.latent_dim)
+        self._net = _AENet(X.shape[1], self.hidden_dims, self.latent_dim,
+                           self.dropout, self.use_batch_norm)
         X_t = torch.tensor(X, dtype=torch.float32)
-        train_ae(self._net, X_t, lr=self.lr, max_epochs=self.max_epochs,
-                 patience=self.patience, batch_size=self.batch_size,
-                 wandb_run=wandb_run)
+        self.history_ = train_ae(self._net, X_t, lr=self.lr,
+                                 weight_decay=self.weight_decay,
+                                 grad_clip_norm=self.grad_clip_norm,
+                                 max_epochs=self.max_epochs, patience=self.patience,
+                                 batch_size=self.batch_size, wandb_run=wandb_run)
         return self
 
     def score_samples(self, X: np.ndarray) -> np.ndarray:
@@ -108,6 +125,10 @@ class AEDetector(AnomalyDetector):
             "hidden_dims": list(self.hidden_dims),
             "latent_dim": self.latent_dim,
             "lr": self.lr,
+            "weight_decay": self.weight_decay,
+            "dropout": self.dropout,
+            "use_batch_norm": self.use_batch_norm,
+            "grad_clip_norm": self.grad_clip_norm,
             "max_epochs": self.max_epochs,
             "patience": self.patience,
             "batch_size": self.batch_size,
@@ -131,6 +152,10 @@ class DenoisingAEDetector(AnomalyDetector):
         corruption: float = 0.1,
         noise_type: str = "salt_pepper",
         lr: float = 1e-3,
+        weight_decay: float = 0.0,
+        dropout: float = 0.0,
+        use_batch_norm: bool = False,
+        grad_clip_norm: float = 0.0,
         max_epochs: int = 200,
         patience: int = 15,
         batch_size: int = 64,
@@ -141,6 +166,10 @@ class DenoisingAEDetector(AnomalyDetector):
         self.corruption = corruption
         self.noise_type = noise_type
         self.lr = lr
+        self.weight_decay = weight_decay
+        self.dropout = dropout
+        self.use_batch_norm = use_batch_norm
+        self.grad_clip_norm = grad_clip_norm
         self.max_epochs = max_epochs
         self.patience = patience
         self.batch_size = batch_size
@@ -156,11 +185,15 @@ class DenoisingAEDetector(AnomalyDetector):
 
     def fit(self, X: np.ndarray, wandb_run=None) -> "DenoisingAEDetector":
         torch.manual_seed(self.random_state)
-        self._net = _AENet(X.shape[1], self.hidden_dims, self.latent_dim)
+        self._net = _AENet(X.shape[1], self.hidden_dims, self.latent_dim,
+                           self.dropout, self.use_batch_norm)
         X_t = torch.tensor(X, dtype=torch.float32)
-        train_ae(self._net, X_t, lr=self.lr, max_epochs=self.max_epochs,
-                 patience=self.patience, batch_size=self.batch_size,
-                 noise_fn=self._noise_fn, wandb_run=wandb_run)
+        self.history_ = train_ae(self._net, X_t, lr=self.lr,
+                                 weight_decay=self.weight_decay,
+                                 grad_clip_norm=self.grad_clip_norm,
+                                 max_epochs=self.max_epochs, patience=self.patience,
+                                 batch_size=self.batch_size, noise_fn=self._noise_fn,
+                                 wandb_run=wandb_run)
         return self
 
     def score_samples(self, X: np.ndarray) -> np.ndarray:
@@ -182,6 +215,10 @@ class DenoisingAEDetector(AnomalyDetector):
             "corruption": self.corruption,
             "noise_type": self.noise_type,
             "lr": self.lr,
+            "weight_decay": self.weight_decay,
+            "dropout": self.dropout,
+            "use_batch_norm": self.use_batch_norm,
+            "grad_clip_norm": self.grad_clip_norm,
             "max_epochs": self.max_epochs,
             "patience": self.patience,
             "batch_size": self.batch_size,

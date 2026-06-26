@@ -7,7 +7,10 @@ __pycache__/
 *.pyc
 .DS_Store
 wandb/
+artifacts/
 docs/*.pdf
 docs/kingma_welling_2013.md
 docs/sakurada_yairi_2014.md
 docs/an_cho_2015.md
+data/raw/
+

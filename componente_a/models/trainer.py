@@ -1,7 +1,7 @@
 """Loop de entrenamiento compartido para AE, DAE y VAE."""
 from __future__ import annotations
 
-from typing import Callable, Optional
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import torch
@@ -13,19 +13,25 @@ def train_ae(
     X_tensor: torch.Tensor,
     *,
     lr: float = 1e-3,
+    weight_decay: float = 0.0,
     max_epochs: int = 200,
     patience: int = 15,
     batch_size: int = 64,
+    grad_clip_norm: float = 0.0,
     noise_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     wandb_run=None,
     device: str = "cpu",
-) -> torch.nn.Module:
+) -> List[Dict[str, float]]:
     """Entrena model.loss(x_in, x_target) con early stopping en val_loss.
 
     X_tensor: datos ya normalizados (solo rows normales del split de entrenamiento).
     noise_fn: callable(batch) -> batch_corrupted; usado para DAE.
               El target siempre es el batch limpio.
     wandb_run: si está activo, loguea train_loss/val_loss/epoch por epoch.
+
+    El modelo se modifica in-place (carga el mejor estado). Devuelve el
+    historial de loss por epoch [{epoch, train_loss, val_loss}, ...] para
+    poder graficar las curvas de entrenamiento.
     """
     model = model.to(device)
     X = X_tensor.to(device)
@@ -36,10 +42,11 @@ def train_ae(
     # Split temporal: últimas 15% filas como val interno (preserva orden)
     X_tr, X_val = X[:n_tr], X[n_tr:]
 
-    optimizer = Adam(model.parameters(), lr=lr)
+    optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     best_val = float("inf")
     patience_left = patience
     best_state: Optional[dict] = None
+    history: List[Dict[str, float]] = []
 
     for epoch in range(max_epochs):
         model.train()
@@ -51,12 +58,18 @@ def train_ae(
             optimizer.zero_grad()
             loss = model.loss(batch_in, batch)
             loss.backward()
+            if grad_clip_norm > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip_norm)
             optimizer.step()
             epoch_losses.append(loss.item())
 
         model.eval()
         with torch.no_grad():
             val_loss = model.loss(X_val, X_val).item()
+
+        history.append({"epoch": epoch,
+                        "train_loss": float(np.mean(epoch_losses)),
+                        "val_loss": float(val_loss)})
 
         if wandb_run is not None:
             try:
@@ -80,4 +93,4 @@ def train_ae(
         model.load_state_dict(best_state)
         model.to(device)
     model.eval()
-    return model
+    return history

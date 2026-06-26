@@ -51,6 +51,10 @@ class ExperimentConfig:
     rolling_window: int = 5              # ventana para z_rinde
     z_thresh: float = -1.5              # umbral de etiqueta anómala
 
+    # Evaluación: operating point para F1/precision/recall
+    threshold_mode: str = "contamination"   # 'contamination' | 'f1'
+    eval_contamination: float = 0.10         # fracción marcada como anómala
+
     # Split temporal (sobre campania_inicio, entero)
     train_end: int = 2017                # train: 1981/82–2017/18
     val_start: int = 2018                # val: 2018/19–2020/21

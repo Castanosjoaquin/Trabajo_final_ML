@@ -17,17 +17,36 @@ from sklearn.metrics import (average_precision_score, roc_auc_score,
 
 
 def calibrate_threshold(scores_val: np.ndarray, y_val: np.ndarray,
+                        mode: str = "contamination",
+                        contamination: float = 0.10,
                         fallback_pct: float = 85.0) -> Dict:
-    """Elige el umbral que maximiza F1 en validación. Si val no tiene
-    anómalos reales, cae al percentil `fallback_pct` de los scores."""
+    """Elige el umbral de decisión sobre los scores de validación.
+
+    mode='contamination' (default): umbral = cuantil (1-contamination) de los
+        scores de val → se marca aprox. la fracción `contamination` como anómala.
+        Operating point ESTABLE e independiente de las pocas anomalías de val,
+        evita la degeneración del max-F1 (que con val chico calibra un umbral
+        tan bajo que en test marca TODO → recall=1, precision=tasa base).
+    mode='f1': umbral que maximiza F1 en val (sensible al ruido de val chico;
+        se mantiene solo por comparación / retrocompatibilidad).
+
+    Devuelve threshold + diagnósticos. `calibrated` indica si pudo usar labels.
+    """
+    if mode == "contamination":
+        thr = float(np.quantile(scores_val, 1.0 - contamination))
+        return {"threshold": thr, "mode": "contamination",
+                "contamination": float(contamination),
+                "f1_val": np.nan, "calibrated": bool(y_val.sum() > 0)}
+
+    # mode == "f1"
     if y_val.sum() > 0:
         prec, rec, thr = precision_recall_curve(y_val, scores_val)
         f1s = 2 * prec[:-1] * rec[:-1] / (prec[:-1] + rec[:-1] + 1e-9)
         i = int(np.argmax(f1s))
-        return {"threshold": float(thr[i]), "f1_val": float(f1s[i]),
-                "calibrated": True}
+        return {"threshold": float(thr[i]), "mode": "f1",
+                "f1_val": float(f1s[i]), "calibrated": True}
     return {"threshold": float(np.percentile(scores_val, fallback_pct)),
-            "f1_val": np.nan, "calibrated": False}
+            "mode": "f1", "f1_val": np.nan, "calibrated": False}
 
 
 def evaluate_split(scores: np.ndarray, y_true: np.ndarray,

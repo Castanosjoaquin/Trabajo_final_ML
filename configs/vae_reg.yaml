@@ -1,12 +1,12 @@
 model: vae
-name: vae_1capa
+name: vae_reg
 cultivo: ambos
-backend: wandb
+backend: local
+panel_path: data/processed/panel_union.parquet
 
-# Arquitectura de 1 capa: encoder 61->(mu_z,logvar_z) 8, decoder 8->(mu_x,logvar_x) 61.
-# Sin capas ocultas intermedias. Decoder Gaussiano (mantiene mu y logvar por feature).
-hidden_dims: []
-latent_dim: 8
+# VAE regularizado para n~750: bottleneck más chico + weight decay.
+hidden_dims: [32, 16]
+latent_dim: 4
 beta: 1.0
 score_mode: recon_error   # recon_error | recon_prob | neg_elbo
 n_mc_samples: 20

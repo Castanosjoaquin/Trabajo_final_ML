@@ -119,6 +119,28 @@ def plot_curve(ax, curves_df, curve, split="test"):
         ax.set_xlabel("Recall"); ax.set_ylabel("Precision")
 
 
+def plot_loss(ax, curves_df):
+    """Curvas de loss de entrenamiento (train vs val por epoch). Vacío para
+    modelos sin entrenamiento iterativo (iforest, pca)."""
+    sub = curves_df[curves_df["curve"] == "loss"]
+    if sub.empty:
+        ax.text(0.5, 0.5, "sin curva de loss\n(modelo no iterativo)",
+                ha="center", va="center", fontsize=8)
+        ax.set_xticks([]); ax.set_yticks([])
+        return
+    for split, color in [("train", "steelblue"), ("val", "tomato")]:
+        s = sub[sub["split"] == split].sort_values("x")
+        if len(s):
+            ax.plot(s["x"], s["y"], color=color, label=split)
+    # marca la epoch de menor val_loss (donde quedó el early stopping)
+    v = sub[sub["split"] == "val"].sort_values("x")
+    if len(v):
+        best = v.loc[v["y"].idxmin()]
+        ax.axvline(best["x"], color="gray", ls=":", alpha=0.7,
+                   label=f"best (ep {int(best['x'])})")
+    ax.set_xlabel("Epoch"); ax.set_ylabel("Loss"); ax.legend(fontsize=8)
+
+
 def plot_score_dist(ax, scores_df, threshold):
     test = scores_df[scores_df["split"] == "test"]
     for lab, color in [(0, "steelblue"), (1, "tomato")]:
@@ -183,6 +205,11 @@ def render_column(run, other_run, metric_key):
     fig, axs = plt.subplots(1, 2, figsize=(8, 3.2))
     plot_curve(axs[0], run["curves"], "pr"); axs[0].set_title("PR (test)")
     plot_curve(axs[1], run["curves"], "roc"); axs[1].set_title("ROC (test)")
+    fig.tight_layout(); st.pyplot(fig); plt.close(fig)
+
+    # Curva de loss de entrenamiento (train vs val)
+    fig, ax = plt.subplots(figsize=(8, 3.0))
+    plot_loss(ax, run["curves"]); ax.set_title("Loss de entrenamiento")
     fig.tight_layout(); st.pyplot(fig); plt.close(fig)
 
     # Distribución score + proyección 2D

@@ -1,0 +1,22 @@
+model: ae
+name: ae_reg
+cultivo: ambos
+backend: local
+panel_path: data/processed/panel_union.parquet
+
+# AE regularizado para n~750: bottleneck más chico + weight decay + dropout.
+# Reduce la varianza entre semillas y el sobreajuste a la capacidad [64,32,8].
+hidden_dims: [32, 16]
+latent_dim: 4
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+max_epochs: 200
+patience: 15
+batch_size: 64
+
+# Evaluación robusta
+n_seeds: 10
+threshold_mode: contamination   # contamination | f1
+eval_contamination: 0.10
+random_state: 42
