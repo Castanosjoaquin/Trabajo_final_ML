@@ -1,0 +1,15 @@
+model: iforest
+name: iforest_v9_mf02_ms128
+cultivo: ambos
+backend: local
+
+# Tuning: combo de los dos ejes nuevos — max_features=0.2 + max_samples=128.
+n_estimators: 200
+max_samples: 128
+max_features: 0.2
+contamination: auto
+random_state: 42
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10

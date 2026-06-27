@@ -1,0 +1,27 @@
+model: vae
+name: vae_v8_reconprob_reg
+cultivo: ambos
+backend: local
+
+# HIPÓTESIS 5 — el score principiado (recon_prob) + máxima reducción de
+# varianza (dropout 0.15, wd 0.001, batch norm, grad clip, 50 muestras MC).
+# Combina la mejor apuesta de score con el ataque directo al problema
+# diagnosticado (varianza de AE/VAE). beta 0.5 = punto medio.
+hidden_dims: [64, 32]
+latent_dim: 16
+beta: 0.5
+score_mode: recon_prob
+n_mc_samples: 50
+lr: 0.0005
+weight_decay: 0.001
+dropout: 0.15
+use_batch_norm: true
+grad_clip_norm: 1.0
+max_epochs: 400
+patience: 50
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

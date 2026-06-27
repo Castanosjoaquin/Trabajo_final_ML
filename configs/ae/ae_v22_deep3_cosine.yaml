@@ -1,0 +1,24 @@
+model: ae
+name: ae_v22_deep3_cosine
+cultivo: ambos
+backend: local
+
+# [128, 64, 32] + cosine. v10 era esta arquitectura pero sin cosine (PR-AUC=0.351).
+# Con cosine LR puede recuperar los 0.02 que perdía por falta de schedule.
+hidden_dims: [128, 64, 32]
+latent_dim: 16
+activation: relu
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+lr_schedule: cosine
+max_epochs: 300
+patience: 40
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

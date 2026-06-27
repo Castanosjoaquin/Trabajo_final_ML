@@ -74,11 +74,20 @@ class LocalBackend(ResultsStore):
         self.runs_dir = runs_dir
         os.makedirs(runs_dir, exist_ok=True)
 
+    def _model_type(self, config: Dict) -> str:
+        return config.get("model_type") or config.get("model", "other")
+
     def _dir(self, run_id: str) -> str:
+        """Busca run_id en cualquier subcarpeta de modelo; fallback a raíz."""
+        for entry in os.listdir(self.runs_dir):
+            candidate = os.path.join(self.runs_dir, entry, run_id)
+            if os.path.isdir(candidate):
+                return candidate
         return os.path.join(self.runs_dir, run_id)
 
     def save(self, result: RunResult) -> str:
-        d = self._dir(result.run_id)
+        model_type = self._model_type(result.config)
+        d = os.path.join(self.runs_dir, model_type, result.run_id)
         os.makedirs(d, exist_ok=True)
         meta = {"run_id": result.run_id, "model_name": result.model_name,
                 "cultivo": result.cultivo, "created_at": result.created_at}
@@ -99,11 +108,15 @@ class LocalBackend(ResultsStore):
         runs = []
         if not os.path.isdir(self.runs_dir):
             return runs
-        for run_id in sorted(os.listdir(self.runs_dir)):
-            meta_path = os.path.join(self._dir(run_id), "meta.json")
-            if os.path.exists(meta_path):
-                with open(meta_path) as f:
-                    runs.append(json.load(f))
+        for model_type in sorted(os.listdir(self.runs_dir)):
+            type_dir = os.path.join(self.runs_dir, model_type)
+            if not os.path.isdir(type_dir):
+                continue
+            for run_id in sorted(os.listdir(type_dir)):
+                meta_path = os.path.join(type_dir, run_id, "meta.json")
+                if os.path.exists(meta_path):
+                    with open(meta_path) as f:
+                        runs.append(json.load(f))
         return runs
 
     def load_run(self, run_id: str) -> RunResult:

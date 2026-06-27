@@ -1,0 +1,23 @@
+model: ae
+name: ae_v21_batch_small
+cultivo: ambos
+backend: local
+
+# v11 con batch_size=32. Gradiente más ruidoso → mejor generalización en algunos casos.
+hidden_dims: [128, 64]
+latent_dim: 16
+activation: relu
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+lr_schedule: cosine
+max_epochs: 300
+patience: 40
+batch_size: 32
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

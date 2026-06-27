@@ -10,6 +10,8 @@ modelos :
 - deep insolation forest
 - internal Contrastive Learning
 
+- usar un regresor logisto o un clasificador que lo que haga es que en cada interacion prediga, los que predicio mal lo guarda, si ve que siempre predice mal las mismas esas son anomalas
+
 
 experimentos: 
 - ver como afeta el sacar ndvi o no 
@@ -23,6 +25,8 @@ experimentos:
 - probar clustering (dbescan, gmm, kmenas, usar DAGMM directamente( mezcla ae con gmm))  ¿existen tipos distintos de anomalías?
 - ¿Qué tan temprano detecta anomalías? esta analizarla por que por como tenemos los datos tendriamos que ver
 - analises de sensebilidad, perturbarlo 
+
+- probar agrupar en x regiones tipo chunks para ver como es el performance
 
 
 

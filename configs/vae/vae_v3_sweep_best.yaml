@@ -1,0 +1,26 @@
+model: vae
+name: vae_v3_sweep_best
+cultivo: ambos
+backend: local
+
+# Mejor config encontrada por W&B sweep (VAE):
+# 1 capa, latent=16, beta=0.148, score=neg_elbo, patience=30.
+# Patrón top-5: latent grande, beta bajo (<1), score=neg_elbo.
+hidden_dims: []
+latent_dim: 16
+beta: 0.148
+score_mode: neg_elbo
+n_mc_samples: 20
+lr: 0.00035
+weight_decay: 0.001
+dropout: 0.1
+use_batch_norm: false
+grad_clip_norm: 1.0
+batch_size: 64
+max_epochs: 300
+patience: 30
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

@@ -4,7 +4,7 @@ Referencia: Sakurada & Yairi (2014) — error de reconstrucción como score.
 """
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
@@ -15,16 +15,29 @@ from .base import AnomalyDetector
 from .trainer import train_ae
 
 
+_ACTIVATIONS = {
+    "relu":       nn.ReLU,
+    "leaky_relu": lambda: nn.LeakyReLU(0.2),
+    "elu":        nn.ELU,
+    "gelu":       nn.GELU,
+    "tanh":       nn.Tanh,
+}
+
+
 def _build_mlp(sizes: List[int], dropout: float = 0.0,
-               use_batch_norm: bool = False) -> nn.Sequential:
-    """MLP con orden Linear → BN → ReLU → Dropout entre capas ocultas."""
+               use_batch_norm: bool = False,
+               activation: str = "relu") -> nn.Sequential:
+    """MLP con orden Linear → BN → Activation → Dropout entre capas ocultas."""
+    act_fn = _ACTIVATIONS.get(activation)
+    if act_fn is None:
+        raise ValueError(f"Activación desconocida: {activation!r}. Opciones: {list(_ACTIVATIONS)}")
     layers: List[nn.Module] = []
     for i in range(len(sizes) - 1):
         layers.append(nn.Linear(sizes[i], sizes[i + 1]))
         if i < len(sizes) - 2:
             if use_batch_norm:
                 layers.append(nn.BatchNorm1d(sizes[i + 1]))
-            layers.append(nn.ReLU())
+            layers.append(act_fn())
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
     return nn.Sequential(*layers)
@@ -32,12 +45,13 @@ def _build_mlp(sizes: List[int], dropout: float = 0.0,
 
 class _AENet(nn.Module):
     def __init__(self, n_features: int, hidden_dims: Tuple[int, ...], latent_dim: int,
-                 dropout: float = 0.0, use_batch_norm: bool = False):
+                 dropout: float = 0.0, use_batch_norm: bool = False,
+                 activation: str = "relu"):
         super().__init__()
         enc_sizes = [n_features] + list(hidden_dims) + [latent_dim]
         dec_sizes = [latent_dim] + list(reversed(hidden_dims)) + [n_features]
-        self.encoder = _build_mlp(enc_sizes, dropout, use_batch_norm)
-        self.decoder = _build_mlp(dec_sizes, dropout, use_batch_norm)
+        self.encoder = _build_mlp(enc_sizes, dropout, use_batch_norm, activation)
+        self.decoder = _build_mlp(dec_sizes, dropout, use_batch_norm, activation)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.decoder(self.encoder(x))
@@ -65,6 +79,30 @@ def _gaussian_noise(x: torch.Tensor, std: float) -> torch.Tensor:
     return x + torch.randn_like(x) * std
 
 
+def _aggregate_recon_error(sq_err: torch.Tensor, score_mode: str,
+                           top_k: int) -> torch.Tensor:
+    """Agrega el error de reconstrucción por-feature a un score por-muestra.
+
+    `sq_err`: (n, d) errores cuadráticos por feature.
+    - 'mse'  : media sobre features (Sakurada & Yairi 2014). Diluye la señal si
+               pocas features reconstruyen muy mal entre muchas que reconstruyen
+               bien.
+    - 'max'  : máximo error por feature — sensible a una sola feature muy mal
+               reconstruida (ranking idéntico al máximo error absoluto).
+    - 'topk' : suma de los top_k errores más altos — señal concentrada, sin
+               diluirse en las features bien reconstruidas.
+    """
+    if score_mode == "mse":
+        return sq_err.mean(dim=1)
+    if score_mode == "max":
+        return sq_err.max(dim=1).values
+    if score_mode == "topk":
+        k = min(top_k, sq_err.shape[1])
+        return sq_err.topk(k, dim=1).values.sum(dim=1)
+    raise ValueError(
+        f"score_mode desconocido: {score_mode!r}. Opciones: 'mse', 'max', 'topk'")
+
+
 class AEDetector(AnomalyDetector):
     """Autoencoder: score = MSE de reconstrucción (Sakurada & Yairi 2014)."""
 
@@ -79,9 +117,13 @@ class AEDetector(AnomalyDetector):
         dropout: float = 0.0,
         use_batch_norm: bool = False,
         grad_clip_norm: float = 0.0,
+        activation: str = "relu",
+        lr_schedule: Optional[str] = None,
         max_epochs: int = 200,
         patience: int = 15,
         batch_size: int = 64,
+        score_mode: str = "mse",
+        top_k: int = 5,
         random_state: int = 42,
     ):
         self.hidden_dims = tuple(hidden_dims)
@@ -91,20 +133,25 @@ class AEDetector(AnomalyDetector):
         self.dropout = dropout
         self.use_batch_norm = use_batch_norm
         self.grad_clip_norm = grad_clip_norm
+        self.activation = activation
+        self.lr_schedule = lr_schedule
         self.max_epochs = max_epochs
         self.patience = patience
         self.batch_size = batch_size
+        self.score_mode = score_mode
+        self.top_k = top_k
         self.random_state = random_state
         self._net: _AENet | None = None
 
     def fit(self, X: np.ndarray, wandb_run=None) -> "AEDetector":
         torch.manual_seed(self.random_state)
         self._net = _AENet(X.shape[1], self.hidden_dims, self.latent_dim,
-                           self.dropout, self.use_batch_norm)
+                           self.dropout, self.use_batch_norm, self.activation)
         X_t = torch.tensor(X, dtype=torch.float32)
         self.history_ = train_ae(self._net, X_t, lr=self.lr,
                                  weight_decay=self.weight_decay,
                                  grad_clip_norm=self.grad_clip_norm,
+                                 lr_schedule=self.lr_schedule,
                                  max_epochs=self.max_epochs, patience=self.patience,
                                  batch_size=self.batch_size, wandb_run=wandb_run)
         return self
@@ -116,8 +163,22 @@ class AEDetector(AnomalyDetector):
         X_t = torch.tensor(X, dtype=torch.float32)
         with torch.no_grad():
             recon = self._net(X_t)
-            scores = F.mse_loss(recon, X_t, reduction="none").mean(dim=1)
+            sq_err = (recon - X_t) ** 2
+            scores = _aggregate_recon_error(sq_err, self.score_mode, self.top_k)
         return scores.numpy()
+
+    def encode(self, X: np.ndarray) -> np.ndarray:
+        """Representación latente (salida del encoder) de cada muestra.
+
+        La usa el detector híbrido AE+IForest para correr el bosque sobre el
+        espacio latente en vez del espacio original de features."""
+        if self._net is None:
+            raise RuntimeError("Llamá fit() primero.")
+        self._net.eval()
+        X_t = torch.tensor(X, dtype=torch.float32)
+        with torch.no_grad():
+            z = self._net.encoder(X_t)
+        return z.numpy()
 
     def get_config(self) -> Dict:
         return {
@@ -129,9 +190,13 @@ class AEDetector(AnomalyDetector):
             "dropout": self.dropout,
             "use_batch_norm": self.use_batch_norm,
             "grad_clip_norm": self.grad_clip_norm,
+            "activation": self.activation,
+            "lr_schedule": self.lr_schedule,
             "max_epochs": self.max_epochs,
             "patience": self.patience,
             "batch_size": self.batch_size,
+            "score_mode": self.score_mode,
+            "top_k": self.top_k,
             "random_state": self.random_state,
         }
 
@@ -156,9 +221,13 @@ class DenoisingAEDetector(AnomalyDetector):
         dropout: float = 0.0,
         use_batch_norm: bool = False,
         grad_clip_norm: float = 0.0,
+        activation: str = "relu",
+        lr_schedule: Optional[str] = None,
         max_epochs: int = 200,
         patience: int = 15,
         batch_size: int = 64,
+        score_mode: str = "mse",
+        top_k: int = 5,
         random_state: int = 42,
     ):
         self.hidden_dims = tuple(hidden_dims)
@@ -170,9 +239,13 @@ class DenoisingAEDetector(AnomalyDetector):
         self.dropout = dropout
         self.use_batch_norm = use_batch_norm
         self.grad_clip_norm = grad_clip_norm
+        self.activation = activation
+        self.lr_schedule = lr_schedule
         self.max_epochs = max_epochs
         self.patience = patience
         self.batch_size = batch_size
+        self.score_mode = score_mode
+        self.top_k = top_k
         self.random_state = random_state
         self._net: _AENet | None = None
 
@@ -186,11 +259,12 @@ class DenoisingAEDetector(AnomalyDetector):
     def fit(self, X: np.ndarray, wandb_run=None) -> "DenoisingAEDetector":
         torch.manual_seed(self.random_state)
         self._net = _AENet(X.shape[1], self.hidden_dims, self.latent_dim,
-                           self.dropout, self.use_batch_norm)
+                           self.dropout, self.use_batch_norm, self.activation)
         X_t = torch.tensor(X, dtype=torch.float32)
         self.history_ = train_ae(self._net, X_t, lr=self.lr,
                                  weight_decay=self.weight_decay,
                                  grad_clip_norm=self.grad_clip_norm,
+                                 lr_schedule=self.lr_schedule,
                                  max_epochs=self.max_epochs, patience=self.patience,
                                  batch_size=self.batch_size, noise_fn=self._noise_fn,
                                  wandb_run=wandb_run)
@@ -204,8 +278,19 @@ class DenoisingAEDetector(AnomalyDetector):
         X_t = torch.tensor(X, dtype=torch.float32)
         with torch.no_grad():
             recon = self._net(X_t)
-            scores = F.mse_loss(recon, X_t, reduction="none").mean(dim=1)
+            sq_err = (recon - X_t) ** 2
+            scores = _aggregate_recon_error(sq_err, self.score_mode, self.top_k)
         return scores.numpy()
+
+    def encode(self, X: np.ndarray) -> np.ndarray:
+        """Representación latente (salida del encoder) de cada muestra."""
+        if self._net is None:
+            raise RuntimeError("Llamá fit() primero.")
+        self._net.eval()
+        X_t = torch.tensor(X, dtype=torch.float32)
+        with torch.no_grad():
+            z = self._net.encoder(X_t)
+        return z.numpy()
 
     def get_config(self) -> Dict:
         return {
@@ -219,8 +304,12 @@ class DenoisingAEDetector(AnomalyDetector):
             "dropout": self.dropout,
             "use_batch_norm": self.use_batch_norm,
             "grad_clip_norm": self.grad_clip_norm,
+            "activation": self.activation,
+            "lr_schedule": self.lr_schedule,
             "max_epochs": self.max_epochs,
             "patience": self.patience,
             "batch_size": self.batch_size,
+            "score_mode": self.score_mode,
+            "top_k": self.top_k,
             "random_state": self.random_state,
         }

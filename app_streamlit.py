@@ -26,6 +26,7 @@ st.set_page_config(page_title="Componente A — Comparador", layout="wide")
 METRICS = {
     "test_pr_auc": "PR-AUC (test) ↑",
     "test_roc_auc": "ROC-AUC (test) ↑",
+    "test_recall_at_contamination": "Recall@contam (test) ↑",
     "test_f1": "F1 anómala (test) ↑",
     "test_precision_at_k": "Precision@k (test) ↑",
     "val_pr_auc": "PR-AUC (val) ↑",
@@ -90,7 +91,7 @@ sel_b = st.sidebar.selectbox("Modelo B (derecha)", opts,
 metric_key = st.sidebar.selectbox("Métrica destacada", list(METRICS.keys()),
                                   format_func=lambda k: METRICS[k])
 proj_method = st.sidebar.radio("Proyección 2D", ["umap", "tsne"], horizontal=True)
-color_by = st.sidebar.radio("Colorear por", ["label", "score"], horizontal=True)
+color_by = st.sidebar.radio("Colorear por", ["label", "error"], horizontal=True)
 
 run_a = _load_run(backend, runs_dir, labels[sel_a])
 run_b = _load_run(backend, runs_dir, labels[sel_b])
@@ -102,7 +103,8 @@ KNOWN_EVENTS = ["2008/09", "2017/18", "2022/23"]  # para contraste cualitativo
 # Helpers de ploteo
 # -----------------------------------------------------------------------------
 def _metric_val(run, key):
-    v = run["summary"].get(key)
+    # Para runs multi-seed, preferir el valor promedio (_mean) sobre el seed representativo
+    v = run["summary"].get(key + "_mean", run["summary"].get(key))
     return float(v) if v is not None and not (isinstance(v, float) and np.isnan(v)) else None
 
 
@@ -150,7 +152,7 @@ def plot_score_dist(ax, scores_df, threshold):
                     label="normal" if lab == 0 else "anómala")
     if threshold is not None:
         ax.axvline(threshold, color="black", ls=":", label="umbral")
-    ax.set_xlabel("Score"); ax.set_ylabel("Densidad"); ax.legend(fontsize=8)
+    ax.set_xlabel("Error MSE"); ax.set_ylabel("Densidad"); ax.legend(fontsize=8)
 
 
 def plot_projection(ax, emb_df, method, color_by):
@@ -165,7 +167,7 @@ def plot_projection(ax, emb_df, method, color_by):
         ax.legend(fontsize=8)
     else:
         sc = ax.scatter(sub["dim1"], sub["dim2"], s=18, alpha=0.8,
-                        c=sub["score"], cmap="YlOrRd")
+                        c=sub["score"], cmap="YlOrRd")  # columna interna sigue siendo "score"
         plt.colorbar(sc, ax=ax, shrink=0.8)
     ax.set_xlabel(f"{method.upper()} 1"); ax.set_ylabel(f"{method.upper()} 2")
 
@@ -214,20 +216,20 @@ def render_column(run, other_run, metric_key):
 
     # Distribución score + proyección 2D
     fig, axs = plt.subplots(1, 2, figsize=(8, 3.2))
-    plot_score_dist(axs[0], run["scores"], thr); axs[0].set_title("Score (test)")
+    plot_score_dist(axs[0], run["scores"], thr); axs[0].set_title("Error MSE (test)")
     plot_projection(axs[1], run["embeddings"], proj_method, color_by)
     axs[1].set_title(f"{proj_method.upper()} ({color_by})")
     fig.tight_layout(); st.pyplot(fig); plt.close(fig)
 
     # Heatmap depto × campaña
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    plot_heatmap(ax, run["scores"]); ax.set_title("Score depto × campaña (test)")
+    plot_heatmap(ax, run["scores"]); ax.set_title("Error MSE depto × campaña (test)")
     fig.tight_layout(); st.pyplot(fig); plt.close(fig)
 
     # Top-10 con marca de eventos conocidos
     test = run["scores"][run["scores"]["split"] == "test"].copy()
     top = test.sort_values("score", ascending=False).head(10)
-    top = top[["departamento", "campania", "z_rinde", "anomalia", "score"]]
+    top = top[["departamento", "campania", "z_rinde", "anomalia", "score"]].rename(columns={"score": "error_mse"})
     top["evento_conocido"] = top["campania"].isin(KNOWN_EVENTS)
     st.markdown("**Top-10 por score (test)**")
     st.dataframe(top, hide_index=True, width='stretch')

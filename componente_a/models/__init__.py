@@ -8,6 +8,7 @@ from .base import AnomalyDetector
 from .baselines import IsolationForestDetector, PCAReconDetector
 from .ae import AEDetector, DenoisingAEDetector
 from .vae import VAEDetector
+from .hybrid import AEIForestDetector
 
 __all__ = [
     "AnomalyDetector",
@@ -16,4 +17,5 @@ __all__ = [
     "AEDetector",
     "DenoisingAEDetector",
     "VAEDetector",
+    "AEIForestDetector",
 ]

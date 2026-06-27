@@ -1,0 +1,24 @@
+model: vae
+name: vae_v14_reconprob_beta1p5
+cultivo: ambos
+backend: local
+
+# Refinamiento de v4: beta=1.5 en limpio (un poco MÁS de peso al KL que v4).
+# Cubre el lado opuesto a v13. beta=4 (v6) fue malo, pero 1.5 puede ser el
+# punto donde un latente algo más regularizado todavía ayuda.
+hidden_dims: [64, 32]
+latent_dim: 16
+beta: 1.5
+score_mode: recon_prob
+n_mc_samples: 50
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 300
+patience: 30
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

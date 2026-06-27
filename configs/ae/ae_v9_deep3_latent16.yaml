@@ -1,0 +1,22 @@
+model: ae
+name: ae_v9_deep3_latent16
+cultivo: ambos
+backend: local
+
+# 3 capas ocultas progresivas: 54->128->64->32->16->32->64->128->54.
+# Compresión gradual inspirada en Sakurada & Yairi (arquitectura hourglass).
+# Latent=16 (ratio ~0.30) para no colapsar la representación.
+hidden_dims: [128, 64, 32]
+latent_dim: 16
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: false
+max_epochs: 300
+patience: 25
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

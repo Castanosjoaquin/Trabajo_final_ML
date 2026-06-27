@@ -53,8 +53,10 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
     thr = ev.calibrate_threshold(sc_val, dataset.y_val,
                                  mode=cfg.threshold_mode,
                                  contamination=cfg.eval_contamination)
-    val_m = ev.evaluate_split(sc_val, dataset.y_val, thr["threshold"])
-    test_m = ev.evaluate_split(sc_test, dataset.y_test, thr["threshold"])
+    val_m = ev.evaluate_split(sc_val, dataset.y_val, thr["threshold"],
+                              contamination=cfg.eval_contamination)
+    test_m = ev.evaluate_split(sc_test, dataset.y_test, thr["threshold"],
+                               contamination=cfg.eval_contamination)
     strat = ev.stratified_recall(sc_test, dataset.y_test, thr["threshold"],
                                  dataset.X_test, dataset.feature_cols)
 
@@ -129,7 +131,8 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
 
 # Métricas sobre las que se agrega media/desvío entre semillas.
 _AGG_KEYS = ["val_pr_auc", "val_roc_auc", "val_f1",
-            "test_pr_auc", "test_roc_auc", "test_f1", "test_precision_at_k"]
+            "test_pr_auc", "test_roc_auc", "test_f1",
+            "test_precision_at_k", "test_recall_at_contamination"]
 
 
 def run_model_multiseed(model_name: str, detector_factory: Callable[[int], AnomalyDetector],

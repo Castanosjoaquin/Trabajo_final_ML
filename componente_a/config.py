@@ -11,7 +11,7 @@ from dataclasses import dataclass, field, asdict
 from typing import List
 
 # --- Rutas ---
-PANEL_PATH = "data/processed/panel_nucleo.parquet"
+PANEL_PATH = "data/processed/panel_union.parquet"
 RUNS_DIR = "runs"  # raíz de los run-dirs locales (mirror del esquema W&B)
 
 # --- Proyecto W&B (usado cuando se active WandbBackend) ---

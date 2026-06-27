@@ -1,0 +1,25 @@
+model: dae
+name: dae_v2_sweep_best
+cultivo: ambos
+backend: local
+
+# Mejor config encontrada por W&B sweep (AE/DAE):
+# 1 capa, latent=12, batch_norm=True, dropout=0.1, lr=0.00855.
+# Patrón consistente en top-5: 1 capa + batch norm + patience alta.
+hidden_dims: []
+latent_dim: 12
+corruption: 0.1
+noise_type: salt_pepper
+lr: 0.00855
+weight_decay: 0.00001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+batch_size: 32
+max_epochs: 300
+patience: 30
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

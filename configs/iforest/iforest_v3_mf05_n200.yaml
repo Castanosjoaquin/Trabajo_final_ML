@@ -1,0 +1,15 @@
+model: iforest
+name: iforest_v3_mf05_n200
+cultivo: ambos
+backend: local
+
+# Tuning: max_features=0.5 (~27 de 54 features por árbol), 200 árboles.
+n_estimators: 200
+max_samples: auto
+max_features: 0.5
+contamination: auto
+random_state: 42
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10

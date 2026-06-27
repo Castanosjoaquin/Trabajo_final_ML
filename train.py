@@ -1,9 +1,9 @@
 """Entrypoint único de entrenamiento — Componente A.
 
 Uso básico:
-    python train.py configs/ae.yaml
-    python train.py configs/ae.yaml --cultivo soja --name run_prueba
-    python train.py configs/vae.yaml --backend local   # override backend
+    python train.py configs/ae/ae_v1_1capa.yaml
+    python train.py configs/ae/ae_v1_1capa.yaml --cultivo soja --name run_prueba
+    python train.py configs/vae/vae_v1_1capa.yaml --backend local
 
 W&B Sweeps (búsqueda de hiperparámetros):
     wandb sweep sweeps/ae.yaml          # crea sweep → imprime SWEEP_ID
@@ -22,7 +22,7 @@ from componente_a.config import (
 )
 from componente_a import data as cdata
 from componente_a.models import (
-    AEDetector, DenoisingAEDetector, IsolationForestDetector,
+    AEDetector, AEIForestDetector, DenoisingAEDetector, IsolationForestDetector,
     PCAReconDetector, VAEDetector,
 )
 from componente_a.runner import run_model, run_model_multiseed
@@ -66,9 +66,33 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
             dropout=cfg.get("dropout", 0.0),
             use_batch_norm=bool(cfg.get("use_batch_norm", False)),
             grad_clip_norm=cfg.get("grad_clip_norm", 0.0),
+            activation=cfg.get("activation", "relu"),
+            lr_schedule=cfg.get("lr_schedule", None),
             max_epochs=cfg.get("max_epochs", 200),
             patience=cfg.get("patience", 15),
             batch_size=cfg.get("batch_size", 64),
+            score_mode=cfg.get("score_mode", "mse"),
+            top_k=cfg.get("top_k", 5),
+            random_state=rs,
+        )
+    if model == "ae_iforest":
+        return AEIForestDetector(
+            hidden_dims=tuple(cfg.get("hidden_dims", [64, 32])),
+            latent_dim=cfg.get("latent_dim", 8),
+            lr=cfg.get("lr", 1e-3),
+            weight_decay=cfg.get("weight_decay", 0.0),
+            dropout=cfg.get("dropout", 0.0),
+            use_batch_norm=bool(cfg.get("use_batch_norm", False)),
+            grad_clip_norm=cfg.get("grad_clip_norm", 0.0),
+            activation=cfg.get("activation", "relu"),
+            lr_schedule=cfg.get("lr_schedule", None),
+            max_epochs=cfg.get("max_epochs", 200),
+            patience=cfg.get("patience", 15),
+            batch_size=cfg.get("batch_size", 64),
+            n_estimators=cfg.get("n_estimators", 100),
+            max_samples=cfg.get("max_samples", "auto"),
+            max_features=cfg.get("max_features", 1.0),
+            contamination=cfg.get("contamination", "auto"),
             random_state=rs,
         )
     if model == "dae":
@@ -82,9 +106,13 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
             dropout=cfg.get("dropout", 0.0),
             use_batch_norm=bool(cfg.get("use_batch_norm", False)),
             grad_clip_norm=cfg.get("grad_clip_norm", 0.0),
+            activation=cfg.get("activation", "relu"),
+            lr_schedule=cfg.get("lr_schedule", None),
             max_epochs=cfg.get("max_epochs", 200),
             patience=cfg.get("patience", 15),
             batch_size=cfg.get("batch_size", 64),
+            score_mode=cfg.get("score_mode", "mse"),
+            top_k=cfg.get("top_k", 5),
             random_state=rs,
         )
     if model == "vae":
@@ -106,7 +134,7 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
         )
     raise ValueError(
         f"Modelo desconocido: {model!r}. "
-        "Opciones: iforest, pca_recon, ae, dae, vae"
+        "Opciones: iforest, pca_recon, ae, ae_iforest, dae, vae"
     )
 
 
@@ -259,9 +287,9 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 ejemplos:
-  python train.py configs/ae.yaml
-  python train.py configs/ae.yaml --cultivo soja --name ae_test
-  python train.py configs/vae.yaml --backend local
+  python train.py configs/ae/ae_v1_1capa.yaml
+  python train.py configs/ae/ae_v1_1capa.yaml --cultivo soja --name ae_test
+  python train.py configs/vae/vae_v1_1capa.yaml --backend local
 
   wandb sweep sweeps/ae.yaml              # crea sweep → imprime SWEEP_ID
   python train.py --sweep SWEEP_ID --cultivo soja --count 20

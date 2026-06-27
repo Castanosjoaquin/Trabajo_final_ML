@@ -1,0 +1,24 @@
+model: ae
+name: ae_v14_leaky_cosine
+cultivo: ambos
+backend: local
+
+# Arquitectura ganadora (v11) con LeakyReLU(0.2).
+# Pendiente negativa pequeña evita neuronas muertas manteniendo sparsity.
+hidden_dims: [128, 64]
+latent_dim: 16
+activation: leaky_relu
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+lr_schedule: cosine
+max_epochs: 300
+patience: 40
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

@@ -50,12 +50,17 @@ def calibrate_threshold(scores_val: np.ndarray, y_val: np.ndarray,
 
 
 def evaluate_split(scores: np.ndarray, y_true: np.ndarray,
-                   threshold: float) -> Dict:
-    """Métricas de un split. NaN si no hay anómalos reales (no definidas)."""
+                   threshold: float, contamination: float = 0.10) -> Dict:
+    """Métricas de un split. NaN si no hay anómalos reales (no definidas).
+
+    recall_at_contamination: de los top-(contamination*n) por score,
+        ¿qué fracción de las anomalías reales está incluida?
+        Responde directamente "¿cuántas anomalías capturo si uso el prior?"
+    """
     out = {"n": int(len(y_true)), "n_anomalias": int(y_true.sum())}
     if y_true.sum() == 0:
         out.update({"pr_auc": np.nan, "roc_auc": np.nan, "f1": np.nan,
-                    "precision_at_k": np.nan})
+                    "precision_at_k": np.nan, "recall_at_contamination": np.nan})
         return out
     out["pr_auc"] = float(average_precision_score(y_true, scores))
     out["roc_auc"] = float(roc_auc_score(y_true, scores))
@@ -65,6 +70,10 @@ def evaluate_split(scores: np.ndarray, y_true: np.ndarray,
     top_k = np.argsort(scores)[::-1][:k]
     out["precision_at_k"] = float(y_true[top_k].sum() / k)
     out["k"] = k
+    # Recall al usar el prior de contaminación como presupuesto de alertas
+    k_cont = max(1, int(len(y_true) * contamination))
+    top_k_cont = np.argsort(scores)[::-1][:k_cont]
+    out["recall_at_contamination"] = float(y_true[top_k_cont].sum() / y_true.sum())
     return out
 
 
