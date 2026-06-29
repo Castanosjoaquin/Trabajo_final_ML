@@ -60,13 +60,115 @@ def load_run_table() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def latest_run(name: str, cultivo: str | None = None) -> str | None:
-    """run_id de la corrida más reciente que matchea `name` (y cultivo)."""
+# Umbral que separa las dos eras: el panel se limpió el 2026-06-28.
+CLEAN_DATE = "2026-06-28"
+
+
+def latest_run(name: str, cultivo: str | None = None, era: str | None = None) -> str | None:
+    """run_id de la corrida más reciente que matchea `name` (y cultivo).
+    era='dirty' (panel original, antes de limpiar) | 'clean' (panel limpio) | None."""
     df = load_run_table()
     m = df[df["name"] == name]
     if cultivo:
         m = m[m["cultivo"] == cultivo]
+    if era == "dirty":
+        m = m[m["created"] < CLEAN_DATE]
+    elif era == "clean":
+        m = m[m["created"] >= CLEAN_DATE]
     return m.sort_values("created")["run_id"].iloc[-1] if len(m) else None
+
+
+def top_runs(model_type, cultivo, n=5, era="dirty") -> pd.DataFrame:
+    """Top-N corridas de un model_type por PR-AUC (para mostrar la búsqueda de HP)."""
+    df = load_run_table()
+    m = df[(df["model_type"] == model_type) & (df["cultivo"] == cultivo)]
+    if era == "dirty":
+        m = m[m["created"] < CLEAN_DATE]
+    elif era == "clean":
+        m = m[m["created"] >= CLEAN_DATE]
+    m = m.drop_duplicates("name").sort_values("pr_auc", ascending=False).head(n)
+    return m[["name", "pr_auc", "pr_std", "roc", "rec_k", "n_seeds"]].reset_index(drop=True)
+
+
+def compare_table(names_labels, cultivo, era=None) -> pd.DataFrame:
+    """Tabla comparativa: filas=modelos, columnas=métricas de test 'media±std'."""
+    rows = []
+    for name, label in names_labels:
+        rid = latest_run(name, cultivo, era=era)
+        if not rid:
+            rows.append({"modelo": label, **{lab: "—" for _, lab in _METRICS}})
+            continue
+        s = load_run(rid).summary
+        r = {"modelo": label}
+        for key, lab in _METRICS:
+            mean = s.get(f"test_{key}_mean", s.get(f"test_{key}"))
+            std = s.get(f"test_{key}_std")
+            if mean is None or mean != mean:
+                r[lab] = "—"
+            elif std is not None:
+                r[lab] = f"{mean:.3f}±{std:.3f}"
+            else:
+                r[lab] = f"{mean:.3f}"
+        rows.append(r)
+    return pd.DataFrame(rows)
+
+
+def plot_compare(names_labels, cultivo, metric="pr_auc", era=None, baseline=None, title=None):
+    """Barras horizontales comparando modelos en `metric` con ±std, + línea baseline."""
+    lab = dict(_METRICS).get(metric, metric)
+    rows = []
+    for name, label in names_labels:
+        rid = latest_run(name, cultivo, era=era)
+        if not rid:
+            continue
+        s = load_run(rid).summary
+        v = s.get(f"test_{metric}_mean", s.get(f"test_{metric}"))
+        e = s.get(f"test_{metric}_std", 0.0)
+        if v is not None and v == v:
+            rows.append((label, float(v), float(e or 0.0)))
+    d = pd.DataFrame(rows, columns=["model", "value", "std"]).sort_values("value")
+    fig, ax = plt.subplots(figsize=(7, max(2, 0.55 * len(d))))
+    colors = ["#C44E52" if "IForest" in m or "baseline" in m.lower() else "#4C72B0" for m in d["model"]]
+    ax.barh(d["model"], d["value"], xerr=d["std"], capsize=4, color=colors, alpha=0.85)
+    for i, (v, e) in enumerate(zip(d["value"], d["std"])):
+        ax.text(v + e + 0.005, i, f"{v:.3f}±{e:.3f}", va="center", fontsize=8)
+    if baseline is not None:
+        ax.axvline(baseline, ls="--", color="gray", lw=1, label=f"baseline ({baseline:.3f})")
+        ax.legend(fontsize=8)
+    ax.set_xlabel(f"{lab} (test)")
+    ax.set_title(title or f"Comparación — {lab} ({cultivo})")
+    ax.grid(axis="x", alpha=0.3); fig.tight_layout(); return fig
+
+
+def plot_loss_multi(names_labels, cultivo, era=None):
+    """Superpone las curvas de loss (val) de varios modelos."""
+    fig, ax = plt.subplots(figsize=(6.5, 4))
+    for name, label in names_labels:
+        rid = latest_run(name, cultivo, era=era)
+        if not rid:
+            continue
+        cur = load_run(rid).curves
+        d = cur[(cur["curve"] == "loss") & (cur["split"] == "val")].sort_values("x")
+        if not d.empty:
+            ax.plot(d["x"], d["y"], label=label, lw=1.6)
+    ax.set_xlabel("época"); ax.set_ylabel("val loss")
+    ax.set_title(f"Curvas de loss (validación) — {cultivo}")
+    ax.legend(fontsize=8); ax.grid(alpha=0.3); fig.tight_layout(); return fig
+
+
+def tbl_journey() -> pd.DataFrame:
+    """La espina del recorrido: progresión de modelos con su era (soja, PR-AUC)."""
+    return pd.DataFrame([
+        ("IForest (baseline)",                 0.42, "exploración"),
+        ("AE (mejor de 24 variantes)",         0.38, "exploración"),
+        ("DAE (denoising)",                    0.41, "exploración"),
+        ("Híbrido AE-latente + IForest",       0.31, "exploración"),
+        ("VAE recon_prob (single)",            0.44, "exploración ← salto del score"),
+        ("— LIMPIEZA DE DATOS (+0.09…0.14) —", np.nan, "punto de quiebre"),
+        ("IForest (limpio)",                   0.51, "panel limpio"),
+        ("VAE recon_prob single (limpio)",     0.56, "panel limpio"),
+        ("VAE seed-ensemble (FINAL)",          0.59, "panel limpio ★"),
+    ], columns=["modelo", "soja_PR_AUC", "era"])
 
 
 def load_run(run_id: str):

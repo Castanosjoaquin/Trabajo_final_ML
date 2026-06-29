@@ -1,38 +1,45 @@
-# experiments/ — Notebooks de los experimentos
+# experiments/ — El recorrido de los experimentos (notebooks)
 
-Notebooks que reconstruyen y documentan todos los experimentos del Componente A,
-**leyendo de los runs ya guardados en `../runs/`** (no re-entrenan nada). Vienen
-ya ejecutados (con tablas y gráficos embebidos), así que se pueden leer directo.
+Notebooks que cuentan, **en orden cronológico**, el viaje de modelos del Componente A.
+Leen de los runs guardados en `../runs/` (no re-entrenan) y vienen ya ejecutados, con
+tablas y gráficos embebidos.
 
 | notebook | contenido |
 |---|---|
-| `00_overview.ipynb` | El problema, la etiqueta, el leaderboard final y el índice |
-| `01_modelos_base_y_tuning.ipynb` | AE / DAE / VAE base + búsqueda de hiperparámetros (recon_prob vs MSE) |
-| `02_ensembles.ipynb` | Seed-ensemble del VAE, AE/DAE ensembles, heterogéneo (resuelve la varianza) |
-| `03_hibridos_y_scoring.ipynb` | AE-latente + IForest, scoring max/top-k, tuning IForest |
-| `04_features_nuevas.ipynb` | Limpieza de datos, NDVI, ERA5 (suelo/heladas), agronómicas |
-| `05_modernos_y_techo.ipynb` | Comparación con deepod (DeepSVDD/ICL/NeuTraL/GOAD) + techo estructural |
+| `00_intro_problema_y_baseline` | El problema, la etiqueta `z_rinde`, la metodología de evaluación y el **baseline IForest** (el listón). Sin spoiler del final. |
+| `01_modelos_de_reconstruccion` | El recorrido: **AE** (top-5 de 24 variantes) → **DAE** → **híbrido AE+IForest** → **VAE** (el salto del `recon_prob`). Siempre vs baseline. |
+| `02_ensembles_y_modelo_final` | Cómo atacamos la varianza con el **seed-ensemble** hasta el modelo final; + la idea de **Dataset Cartography** (qué es y cómo funciona). |
+| `03_limpieza_de_datos_y_features` | El **punto de quiebre** (limpieza de datos, +0.09–0.14) y las features nuevas (NDVI, ERA5 suelo/heladas, agro). |
+| `04_modernos_y_techo_estructural` | Benchmark contra métodos **modernos** (deepod) + el **techo estructural** + comparación final de todos los modelos. |
 
-## Cómo usarlos
+Cada modelo se muestra con **todas sus métricas** (PR-AUC, ROC-AUC, F1, Precision@k,
+Recall@contam) **con desvío estándar**, curvas de loss y gráficos comparativos.
+
+## Las dos eras (para entender los números)
+El recorrido tiene dos etapas, y eso es parte de la historia:
+1. **Exploración** (NB 1): sobre el panel **original**. Importa la comparación *relativa*.
+2. **Modelos finales** (NB 2–4): sobre el panel **limpio** (NB 3 explica la limpieza, que
+   subió a todos +0.09–0.14). El leaderboard final es sobre datos limpios.
+
+`explib.py` selecciona la era correcta con el parámetro `era='dirty'|'clean'`.
+
+## Uso
 
 ```bash
-# leerlos: abrir en Jupyter / VS Code
+# leer:
 .venv/bin/jupyter notebook experiments/
 
-# regenerarlos (si cambian los runs o las tablas):
+# regenerar (si cambian los runs o las tablas):
 .venv/bin/python experiments/_build_notebooks.py
 .venv/bin/jupyter nbconvert --to notebook --execute --inplace experiments/*.ipynb
 ```
 
-## Estructura
-
-- **`explib.py`** — motor: carga los runs guardados (`load_run_table`, `latest_run`,
-  `load_run`), helpers de ploteo (`plot_pr_curves`, `plot_score_hist`,
-  `barh_leaderboard`) y las **tablas de resultados validadas** (panel limpio) como
-  fuente única (`tbl_leaderboard`, `tbl_baselines`, `tbl_ensembles`, `tbl_hybrids`,
-  `tbl_features`, `tbl_modern`).
+## Estructura interna
+- **`explib.py`** — motor: carga de runs (`load_run_table`, `top_runs`, `latest_run` con
+  `era`), tablas comparativas (`compare_table`, `run_metrics`), plots (`plot_all_metrics`,
+  `plot_loss`, `plot_compare`, `plot_pr_curves`, `plot_leaderboard_compare`), y las tablas
+  curadas (`tbl_journey`, `tbl_features`, `tbl_modern`, `tbl_leaderboard`).
 - **`_build_notebooks.py`** — generador de los `.ipynb` (narrativa + llamadas a `explib`).
 
-Las tablas de números viven en `explib.py` (validadas, panel limpio); los gráficos
-se cargan en vivo desde `runs/`. Algunos paneles del notebook 05 esperan los
-artefactos de `analyze_errors.py` en `../analysis/` (si no están, lo avisan).
+Algunos paneles (data map, heatmap de errores) esperan los PNG de `analyze_datamap.py` /
+`analyze_errors.py` en `../analysis/`; si no están, el notebook lo avisa.
