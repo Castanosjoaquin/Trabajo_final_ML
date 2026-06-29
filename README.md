@@ -39,6 +39,9 @@ Trabajo_final_ML/
 │   ├── hybrid/           # AE-latente + Isolation Forest (híbrido)
 │   │   ├── ae_iforest_v1.yaml
 │   │   └── ae_iforest_v2_latent16.yaml
+│   ├── ensemble/         # Ensembles (seed-ensemble VAE + hetero VAE+IForest)
+│   │   ├── vae_seedens_v1.yaml
+│   │   └── vae_iforest_ens_v1.yaml
 │   └── iforest/          # Isolation Forest (baseline + tuning)
 │       ├── iforest_v1_base.yaml
 │       └── ...           # grilla max_features / n_estimators
@@ -252,8 +255,10 @@ random_state: 42
 model: vae
 # (mismos campos de arquitectura y optimización que AE, más:)
 beta: 1.0                      # peso del término KL (< 1 prioriza reconstrucción)
-score_mode: neg_elbo           # recon_error | recon_prob | neg_elbo
-n_mc_samples: 20               # muestras Monte Carlo para score estocástico
+score_mode: recon_prob         # recon_error | recon_prob | neg_elbo
+n_mc_samples: 50               # muestras Monte Carlo para score estocástico
+decoder_dist: gaussian         # gaussian | student_t (colas pesadas, robusto a outliers)
+student_t_df: 4.0              # grados de libertad ν (solo si decoder_dist=student_t)
 ```
 
 ### Isolation Forest
@@ -285,35 +290,98 @@ max_features: 1.0        # el latente ya es de baja dimensión
 contamination: auto
 ```
 
+### Ensemble (seed-ensemble y heterogéneo)
+
+Combina los scores normalizados (z-score per-miembro) de varios detectores.
+Dos formas: `base` + `n_members` (N copias con semillas distintas → baja la
+varianza) o `members` (modelos distintos → combina señales complementarias).
+
+```yaml
+model: ensemble
+normalize: zscore        # zscore | rank
+combine: mean            # mean | max
+# A) seed-ensemble: N copias del mismo modelo con semillas distintas
+n_members: 10
+base: { model: vae, score_mode: recon_prob, latent_dim: 16, ... }
+# B) hetero-ensemble (alternativa a base/n_members): lista de modelos
+# members:
+#   - { model: vae, score_mode: recon_prob, ... }
+#   - { model: iforest, max_features: 0.3, ... }
+```
+
+### Features agronómicas (flag de experimento)
+
+Bandera a nivel experimento (no del modelo) — aplica a cualquier `model`.
+Anexa features de dominio derivadas de la ventana crítica del cultivo
+(precip, estrés térmico, balance hídrico Hargreaves) a la matriz X.
+
+```yaml
+use_agro_features: true   # default false; per-cultivo (Dic–Feb soja / Nov–Ene maíz)
+```
+
 ---
 
 ## Resultados actuales (soja, test)
 
-Evaluación multi-seed (10 semillas, media±std, panel_union). **PR-AUC es la
-métrica principal** (libre de umbral; ver nota sobre F1 degenerado más abajo).
+Evaluación multi-seed (media±std, **panel limpio** — dedup + clave provincia,
+ver `data.py`). **PR-AUC es la métrica principal** (libre de umbral).
 
+**Soja (test):**
 | Modelo | PR-AUC | ROC-AUC | Rec@k | seeds |
 |--------|--------|---------|-------|-------|
-| **vae_v15_reconprob_deep** (recon_prob, β=1, lat=16, [128,64]) — mejor soja | **0.441 ±0.023** | **0.671** | **0.240** | 10 |
-| **vae_v4_reconprob_lat16 ⭐ recomendado** (recon_prob, β=1, lat=16, [64,32]) | 0.435 ±0.031 | 0.667 | 0.237 | 10 |
-| iforest_v2_mf03_n200 (mf=0.3, n=200) | 0.416 ±0.021 | 0.663 | 0.227 | 10 |
-| iforest_v6_mf02_n200 (mf=0.2) | 0.409 ±0.023 | 0.653 | 0.234 | 10 |
-| vae_v9_negelbo_lat16_bn (neg_elbo, β=0.148) | 0.370 ±0.031 | 0.636 | 0.181 | 10 |
-| ae_score_max (lat=16, score=max) | 0.329 ±0.002 | 0.606 | 0.191 | 10 |
-| ae_iforest_v2_latent16 (híbrido AE+IForest) | 0.307 ±0.062 | 0.548 | 0.162 | 10 |
+| **vae_seedens_v1 ⭐ recomendado** (seed-ens ×10 de vae_v4) | **0.592 ±0.010** | 0.738 | **0.297** | 3×10 |
+| vae_seedens_deep (seed-ens ×10 de vae_v15) | 0.585 ±0.007 | **0.749** | 0.296 | 3×10 |
+| vae_v4_reconprob_lat16 (single) | 0.559 ±0.035 | 0.719 | 0.279 | 10 |
+| iforest_v2_era5 (IForest + ERA5 suelo/heladas) | 0.542 ±0.029 | 0.719 | 0.282 | 10 |
+| iforest_v2_mf03_n200 (sin ERA5) | 0.511 ±0.031 | 0.688 | 0.266 | 10 |
 
-> **Estado:** el **VAE con `score_mode=recon_prob`** (probabilístico, An & Cho
-> 2015) es el mejor modelo del Componente A — supera al IForest tuneado en
-> PR-AUC, ROC-AUC y Rec@k. El score probabilístico pondera el error de cada
-> feature por su varianza esperada (no lo promedia plano) y funciona mejor
-> **sin** regularización pesada (BN/dropout la degradan). `vae_v4` (lat=16,
-> [64,32]) es el todoterreno: gana soja **y** maiz. `vae_v15` (más capacidad,
-> [128,64]) es el mejor en soja y, con ±0.023, gana al IForest incluso en
-> mean−std (0.418 > 0.416) — aunque en maiz roza por debajo del baseline.
-> Negativos útiles: subir `n_mc_samples` no baja la varianza (viene del
-> entrenamiento, no del MC); `latent`>16 y `beta`≠[1,1.5] la empeoran. El tuning
-> de `max_features` (0.3–0.5) hace al IForest un baseline fuerte; el híbrido
-> AE-latente+IForest y los scorings max/top-k del AE no superan a ninguno.
+**Maíz (test):**
+| Modelo | PR-AUC | ROC-AUC | Rec@k | seeds |
+|--------|--------|---------|-------|-------|
+| **vae_seedens_v1 ⭐** | **0.508 ±0.005** | 0.679 | 0.246 | 3×10 |
+| vae_seedens_deep | 0.500 ±0.003 | 0.669 | 0.237 | 3×10 |
+| iforest_v2_era5 | 0.504 ±0.019 | 0.656 | 0.251 | 10 |
+| iforest_v2_mf03_n200 (sin ERA5) | 0.492 ±0.030 | 0.648 | 0.244 | 10 |
+
+> **Estado:** el mejor modelo del Componente A es el **seed-ensemble del VAE
+> `recon_prob`** (`vae_seedens_v1`): soja 0.592, maíz 0.508. La mayor mejora del
+> proyecto fue la **limpieza de datos** (dedup 25% + clave provincia: +0.09–0.14 a
+> todos). El seed-ensemble resuelve la varianza (±0.006 vs ±0.035 del single) vía
+> promedio de scores normalizados de 10 semillas; el score probabilístico (An &
+> Cho 2015) funciona mejor sin regularización pesada.
+>
+> **Ninguna feature satelital/extra supera al base con el VAE.** ERA5-Land
+> (humedad de suelo + heladas) ayuda **modestamente al IForest** (soja +0.031) pero
+> **perjudica al VAE** (maíz −0.024, dilución del recon_prob), y el IForest+ERA5
+> (0.542) sigue debajo del VAE base. (Lección de método: un primer resultado
+> ERA5 de 0.642 resultó ser un ARTEFACTO — `frost_days`=0 en el norte sin heladas
+> daba varianza-cero por depto y la normalización tiraba el 34% de los
+> departamentos → test set sesgado. Se corrigió con fallback a std global en
+> `_normalize_per_depto`; con test sets emparejados el efecto real es el de
+> arriba.) Ablaciones NDVI / Student-t / agro / híbrido: ver abajo.
+
+**Ablaciones (no superan al seed-ensemble, útiles para justificar el modelo final):**
+
+- **VAE decoder Student-t** (`vae_studentt_*`): neutro-negativo. ν=4 empata soja
+  PR-AUC (0.435) con mejor ROC pero no baja la varianza; ν=8 peor. Las colas
+  pesadas ayudan con train *contaminado*, pero el pipeline ya excluye filas
+  anómalas + años problemáticos → train curado, sin nada que robustecer.
+- **Features agronómicas** (`use_agro_features`: ventana crítica Dic–Feb soja /
+  Nov–Ene maíz + balance hídrico Hargreaves): **ayudan al IForest, perjudican al
+  VAE**. `iforest_v2_agro` sube PR-AUC (soja 0.416→0.421, maiz 0.366→0.372),
+  ROC, Rec@k y baja varianza; `vae_v4_agro` empeora (el VAE debe reconstruir más
+  features → más varianza). El `recall_clima_adverso` del IForest sube con agro
+  (soja 0.97→0.99) — la señal de dominio afina lo climático —, pero el
+  `recall_otros` (anomalías sin firma climática) sigue bajo: **el techo
+  estructural clima→rinde persiste**.
+- **NDVI** (`use_ndvi`: `ndvi_anomalia_pct`, único NDVI con señal temporal — las
+  otras 3 columnas son estáticas por depto): **no aporta**. Experimento de 3 vías
+  con control de período (`train_start`) porque NDVI solo existe 2002+. Soja: VAE
+  full 0.435 → control 2002 0.352 → +NDVI 0.344; IForest 0.416 → 0.380 → 0.383.
+  El recorte a 2002+ duele (−0.03 a −0.08, el VAE el más golpeado); el efecto
+  marginal de NDVI vs su control es ≈0 (dentro del ruido). Refuerza el techo
+  estructural: si ni el verdor de la planta marca esas anomalías de rinde, o el
+  clima ya las captura o son ruido de etiqueta.
 
 ---
 

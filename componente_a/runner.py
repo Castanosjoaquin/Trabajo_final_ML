@@ -60,16 +60,24 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
     strat = ev.stratified_recall(sc_test, dataset.y_test, thr["threshold"],
                                  dataset.X_test, dataset.feature_cols)
 
+    # --- Desacuerdo del ensemble (si el detector lo expone): incertidumbre
+    #     epistémica por muestra, para la filosofía "consistentemente difícil". ---
+    has_std = hasattr(detector, "score_std")
+    std_val = detector.score_std(dataset.X_val) if has_std else None
+    std_test = detector.score_std(dataset.X_test) if has_std else None
+
     # --- Tabla de scores (val + test) ---
-    def _scored(meta, scores, split, y):
+    def _scored(meta, scores, split, y, std=None):
         df = meta.copy()
         df["split"] = split
         df["score"] = scores
         df["y_pred"] = (scores >= thr["threshold"]).astype(int)
+        if std is not None:
+            df["score_std"] = std
         return df
     scores_df = pd.concat([
-        _scored(dataset.meta_val, sc_val, "val", dataset.y_val),
-        _scored(dataset.meta_test, sc_test, "test", dataset.y_test),
+        _scored(dataset.meta_val, sc_val, "val", dataset.y_val, std_val),
+        _scored(dataset.meta_test, sc_test, "test", dataset.y_test, std_test),
     ], ignore_index=True)
 
     # --- Curvas (PR + ROC) en formato largo ---

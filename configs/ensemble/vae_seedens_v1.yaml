@@ -1,0 +1,31 @@
+model: ensemble
+name: vae_seedens_v1
+cultivo: ambos
+backend: local
+
+# SEED-ENSEMBLE del ganador vae_v4 (recon_prob, lat16, limpio): promedia los
+# scores de 10 VAEs con semillas distintas. Ataca la VARIANZA entre semillas
+# (problema #1) — el desvío del ensemble debería colapsar vs el VAE single.
+# n_seeds: 3 entrena 3 ensembles (sets de semillas 42.., 43.., 44..) para
+# REPORTAR la varianza del ensemble; subir n_members/n_seeds = más costo.
+normalize: zscore        # zscore | rank
+combine: mean            # mean | max
+n_members: 10
+base:
+  model: vae
+  hidden_dims: [64, 32]
+  latent_dim: 16
+  beta: 1.0
+  score_mode: recon_prob
+  n_mc_samples: 50
+  lr: 0.001
+  weight_decay: 0.0001
+  dropout: 0.0
+  max_epochs: 300
+  patience: 30
+  batch_size: 64
+
+n_seeds: 3
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

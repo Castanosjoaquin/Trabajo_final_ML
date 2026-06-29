@@ -22,8 +22,8 @@ from componente_a.config import (
 )
 from componente_a import data as cdata
 from componente_a.models import (
-    AEDetector, AEIForestDetector, DenoisingAEDetector, IsolationForestDetector,
-    PCAReconDetector, VAEDetector,
+    AEDetector, AEIForestDetector, DenoisingAEDetector, EnsembleDetector,
+    IsolationForestDetector, PCAReconDetector, VAEDetector,
 )
 from componente_a.runner import run_model, run_model_multiseed
 from componente_a.store import get_store
@@ -44,6 +44,33 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
     model = cfg["model"]
     rs = cfg.get("random_state", 42) if seed is None else seed
 
+    if model == "ensemble":
+        # Construye los miembros recursivamente con el mismo build_detector.
+        # - Seed-ensemble: 'base' (un config de modelo) + 'n_members' → N copias
+        #   con semillas rs, rs+1, … (baja la varianza promediando scores).
+        # - Hetero-ensemble: 'members' = lista de configs de modelos distintos.
+        normalize = cfg.get("normalize", "zscore")
+        combine = cfg.get("combine", "mean")
+        if cfg.get("members"):
+            members = [build_detector(mc, rs) for mc in cfg["members"]]
+        elif cfg.get("base"):
+            n_members = int(cfg.get("n_members", 10))
+            members = [build_detector(cfg["base"], rs + i) for i in range(n_members)]
+        else:
+            raise ValueError(
+                "ensemble necesita 'base'+'n_members' (seed-ensemble) "
+                "o 'members' (hetero-ensemble)")
+        return EnsembleDetector(members, normalize=normalize, combine=combine)
+    if model == "deepod":
+        from componente_a.models import DeepODDetector
+        return DeepODDetector(
+            algo=cfg.get("algo", "icl"),
+            epochs=cfg.get("epochs", 50),
+            batch_size=cfg.get("batch_size", 64),
+            lr=cfg.get("lr", 1e-3),
+            random_state=rs,
+            **cfg.get("extra", {}),
+        )
     if model == "iforest":
         return IsolationForestDetector(
             n_estimators=cfg.get("n_estimators", 100),
@@ -122,6 +149,8 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
             beta=cfg.get("beta", 1.0),
             score_mode=cfg.get("score_mode", "recon_error"),
             n_mc_samples=cfg.get("n_mc_samples", 20),
+            decoder_dist=cfg.get("decoder_dist", "gaussian"),
+            student_t_df=cfg.get("student_t_df", 4.0),
             lr=cfg.get("lr", 1e-3),
             weight_decay=cfg.get("weight_decay", 0.0),
             dropout=cfg.get("dropout", 0.0),
@@ -160,6 +189,9 @@ def cmd_train(args) -> None:
     exp_cfg = ExperimentConfig(
         panel_path=cfg.get("panel_path", PANEL_PATH),
         use_ndvi=cfg.get("use_ndvi", False),
+        use_agro_features=cfg.get("use_agro_features", False),
+        use_era5_features=cfg.get("use_era5_features", False),
+        train_start=cfg.get("train_start", None),
         rolling_window=cfg.get("rolling_window", 5),
         z_thresh=cfg.get("z_thresh", -1.5),
         threshold_mode=cfg.get("threshold_mode", "contamination"),

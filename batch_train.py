@@ -48,6 +48,9 @@ def _run_single(task: Tuple[str, str, bool]) -> Dict:
     exp_cfg = ExperimentConfig(
         panel_path=cfg.get("panel_path") or PANEL_PATH,
         use_ndvi=cfg.get("use_ndvi", False),
+        use_agro_features=cfg.get("use_agro_features", False),
+        use_era5_features=cfg.get("use_era5_features", False),
+        train_start=cfg.get("train_start", None),
         rolling_window=cfg.get("rolling_window", 5),
         z_thresh=cfg.get("z_thresh", -1.5),
         threshold_mode=cfg.get("threshold_mode", "contamination"),

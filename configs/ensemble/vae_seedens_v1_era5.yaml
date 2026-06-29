@@ -1,0 +1,33 @@
+model: ensemble
+name: vae_seedens_v1_era5
+cultivo: ambos
+backend: local
+
+# EXPERIMENTO ERA5 sobre el modelo SOTA (seed-ensemble vae_v4): agrega humedad de
+# suelo (estado inicial / inercia) + días de helada. A diferencia del NDVI, estas
+# features son INFORMACIÓN NUEVA (estado y eventos que el promedio mensual NO ve).
+# Comparar vs vae_seedens_v1 (panel base limpio, soja 0.592 / maíz 0.508).
+panel_path: data/processed/panel_union_era5.parquet
+use_era5_features: true
+
+normalize: zscore
+combine: mean
+n_members: 10
+base:
+  model: vae
+  hidden_dims: [64, 32]
+  latent_dim: 16
+  beta: 1.0
+  score_mode: recon_prob
+  n_mc_samples: 50
+  lr: 0.001
+  weight_decay: 0.0001
+  dropout: 0.0
+  max_epochs: 300
+  patience: 30
+  batch_size: 64
+
+n_seeds: 3
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

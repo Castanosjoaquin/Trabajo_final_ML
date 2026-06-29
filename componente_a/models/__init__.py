@@ -9,6 +9,8 @@ from .baselines import IsolationForestDetector, PCAReconDetector
 from .ae import AEDetector, DenoisingAEDetector
 from .vae import VAEDetector
 from .hybrid import AEIForestDetector
+from .deep_baselines import DeepODDetector
+from .ensemble import EnsembleDetector
 
 __all__ = [
     "AnomalyDetector",
@@ -18,4 +20,6 @@ __all__ = [
     "DenoisingAEDetector",
     "VAEDetector",
     "AEIForestDetector",
+    "DeepODDetector",
+    "EnsembleDetector",
 ]

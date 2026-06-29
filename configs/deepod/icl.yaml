@@ -1,0 +1,14 @@
+model: deepod
+algo: icl
+name: deepod_icl
+cultivo: ambos
+backend: local
+
+epochs: 100
+batch_size: 64
+lr: 0.001
+
+n_seeds: 5
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

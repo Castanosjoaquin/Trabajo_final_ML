@@ -1,0 +1,22 @@
+model: iforest
+name: iforest_v2_ndvilargo
+cultivo: ambos
+backend: local
+
+# NDVI-AVHRR sobre el IFOREST (no el VAE): el IForest submuestrea features
+# (mf=0.3) → tolera/aprovecha columnas extra, a diferencia del VAE que se diluye.
+# Las features agro ya habían ayudado al IForest; este test ve si el NDVI de
+# historia completa hace lo mismo. Comparar vs iforest_v2_mf03_n200 (panel base
+# limpio, soja 0.511 / maíz 0.492).
+panel_path: data/processed/panel_union_ndvi.parquet
+use_ndvi: true
+
+n_estimators: 200
+max_samples: auto
+max_features: 0.3
+contamination: auto
+random_state: 42
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10

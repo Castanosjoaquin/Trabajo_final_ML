@@ -21,6 +21,7 @@ def train_ae(
     grad_clip_norm: float = 0.0,
     lr_schedule: Optional[str] = None,
     noise_fn: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+    track_per_sample: bool = False,
     wandb_run=None,
     device: str = "cpu",
 ) -> List[Dict[str, float]]:
@@ -32,6 +33,10 @@ def train_ae(
     lr_schedule: None | 'cosine' | 'plateau'
       - cosine: CosineAnnealingLR, decae lr de lr_max a lr/100 en max_epochs.
       - plateau: ReduceLROnPlateau(factor=0.5, patience=patience//3).
+    track_per_sample: si True, registra el error de reconstrucción por muestra
+      sobre TODO X en cada época (dinámica de entrenamiento / Dataset Cartography,
+      Swayamdipta et al. 2020) y lo deja en `model.per_sample_history_`
+      (matriz n_epochs × n). Requiere que el modelo exponga per_sample_error(x).
     wandb_run: si está activo, loguea train_loss/val_loss/epoch por epoch.
     """
     model = model.to(device)
@@ -56,6 +61,8 @@ def train_ae(
     patience_left = patience
     best_state: Optional[dict] = None
     history: List[Dict[str, float]] = []
+    track = track_per_sample and hasattr(model, "per_sample_error")
+    per_sample_hist: List[np.ndarray] = []
 
     for epoch in range(max_epochs):
         model.train()
@@ -75,6 +82,9 @@ def train_ae(
         model.eval()
         with torch.no_grad():
             val_loss = model.loss(X_val, X_val).item()
+            # Error por muestra sobre TODO X (eval, determinista) → data map.
+            if track:
+                per_sample_hist.append(model.per_sample_error(X).cpu().numpy())
 
         current_lr = optimizer.param_groups[0]["lr"]
         history.append({"epoch": epoch,
@@ -108,4 +118,6 @@ def train_ae(
         model.load_state_dict(best_state)
         model.to(device)
     model.eval()
+    if track and per_sample_hist:
+        model.per_sample_history_ = np.vstack(per_sample_hist)  # (n_epochs, n)
     return history

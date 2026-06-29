@@ -30,10 +30,14 @@ class _VAENet(nn.Module):
         beta: float = 1.0,
         dropout: float = 0.0,
         use_batch_norm: bool = False,
+        decoder_dist: str = "gaussian",
+        student_t_df: float = 4.0,
     ):
         super().__init__()
         self.latent_dim = latent_dim
         self.beta = beta
+        self.decoder_dist = decoder_dist
+        self.nu = float(student_t_df)
 
         def _block(in_dim: int, out_dim: int) -> List[nn.Module]:
             layers: List[nn.Module] = [nn.Linear(in_dim, out_dim)]
@@ -90,11 +94,35 @@ class _VAENet(nn.Module):
         mu_x, logvar_x = self.decode(z)
         return mu_x, logvar_x, mu_z, logvar_z
 
+    def per_sample_error(self, x: torch.Tensor) -> torch.Tensor:
+        """Error de reconstrucción por muestra (MSE de mu_x, determinista en
+        eval). Lo usa el tracking de dinámica de entrenamiento (data map)."""
+        mu_x, _, _, _ = self.forward(x)
+        return ((mu_x - x) ** 2).mean(dim=1)
+
+    def log_prob(self, x: torch.Tensor, mu_x: torch.Tensor,
+                 logvar_x: torch.Tensor) -> torch.Tensor:
+        """log densidad p(x|z) por elemento (n, d) según el decoder.
+
+        - gaussian: log N(x; mu_x, σ²) con σ² = exp(logvar_x).
+        - student_t: log t_ν(x; mu_x, σ) — colas pesadas, robusto a outliers.
+          σ = exp(0.5·logvar_x); se usa log1p para estabilidad numérica.
+        """
+        log_sigma = 0.5 * logvar_x
+        if self.decoder_dist == "gaussian":
+            return -0.5 * (logvar_x + (x - mu_x).pow(2) / logvar_x.exp() + _LOG2PI)
+        if self.decoder_dist == "student_t":
+            nu = self.nu
+            z2 = ((x - mu_x) * torch.exp(-log_sigma)).pow(2)
+            c = (math.lgamma((nu + 1) / 2) - math.lgamma(nu / 2)
+                 - 0.5 * math.log(nu * math.pi))
+            return c - log_sigma - 0.5 * (nu + 1) * torch.log1p(z2 / nu)
+        raise ValueError(f"decoder_dist desconocido: {self.decoder_dist!r}")
+
     def loss(self, x_in: torch.Tensor, x_target: torch.Tensor) -> torch.Tensor:
         """ELBO negativo (loss a minimizar): recon_loss + beta * KL."""
         mu_x, logvar_x, mu_z, logvar_z = self.forward(x_in)
-        recon = 0.5 * (logvar_x + (x_target - mu_x).pow(2) / logvar_x.exp())
-        recon = recon.sum(dim=1).mean()
+        recon = -self.log_prob(x_target, mu_x, logvar_x).sum(dim=1).mean()
         kl = 0.5 * (mu_z.pow(2) + logvar_z.exp() - 1.0 - logvar_z).sum(dim=1).mean()
         return recon + self.beta * kl
 
@@ -109,8 +137,7 @@ def _mc_recon_prob(net: _VAENet, x: torch.Tensor, n_samples: int) -> torch.Tenso
     with torch.no_grad():
         for _ in range(n_samples):
             mu_x, logvar_x, _, _ = net(x)
-            log_px_z = -0.5 * (logvar_x + (x - mu_x).pow(2) / logvar_x.exp() + _LOG2PI)
-            log_px_z_acc += log_px_z.sum(dim=1)
+            log_px_z_acc += net.log_prob(x, mu_x, logvar_x).sum(dim=1)
     net.eval()
     return -(log_px_z_acc / n_samples)
 
@@ -134,6 +161,8 @@ class VAEDetector(AnomalyDetector):
         beta: float = 1.0,
         score_mode: str = "recon_error",
         n_mc_samples: int = 20,
+        decoder_dist: str = "gaussian",
+        student_t_df: float = 4.0,
         lr: float = 1e-3,
         weight_decay: float = 0.0,
         dropout: float = 0.0,
@@ -142,15 +171,20 @@ class VAEDetector(AnomalyDetector):
         max_epochs: int = 200,
         patience: int = 15,
         batch_size: int = 64,
+        track_datamap: bool = False,
         random_state: int = 42,
     ):
         assert score_mode in ("recon_error", "recon_prob", "neg_elbo"), \
             f"score_mode debe ser 'recon_error', 'recon_prob' o 'neg_elbo'; got {score_mode!r}"
+        assert decoder_dist in ("gaussian", "student_t"), \
+            f"decoder_dist debe ser 'gaussian' o 'student_t'; got {decoder_dist!r}"
         self.hidden_dims = tuple(hidden_dims)
         self.latent_dim = latent_dim
         self.beta = beta
         self.score_mode = score_mode
         self.n_mc_samples = n_mc_samples
+        self.decoder_dist = decoder_dist
+        self.student_t_df = student_t_df
         self.lr = lr
         self.weight_decay = weight_decay
         self.dropout = dropout
@@ -159,19 +193,25 @@ class VAEDetector(AnomalyDetector):
         self.max_epochs = max_epochs
         self.patience = patience
         self.batch_size = batch_size
+        self.track_datamap = track_datamap
         self.random_state = random_state
         self._net: _VAENet | None = None
+        self.per_sample_error_: np.ndarray | None = None  # (n_epochs, n) si track_datamap
 
     def fit(self, X: np.ndarray, wandb_run=None) -> "VAEDetector":
         torch.manual_seed(self.random_state)
         self._net = _VAENet(X.shape[1], self.hidden_dims, self.latent_dim,
-                            self.beta, self.dropout, self.use_batch_norm)
+                            self.beta, self.dropout, self.use_batch_norm,
+                            self.decoder_dist, self.student_t_df)
         X_t = torch.tensor(X, dtype=torch.float32)
         self.history_ = train_ae(self._net, X_t, lr=self.lr,
                                  weight_decay=self.weight_decay,
                                  grad_clip_norm=self.grad_clip_norm,
                                  max_epochs=self.max_epochs, patience=self.patience,
-                                 batch_size=self.batch_size, wandb_run=wandb_run)
+                                 batch_size=self.batch_size,
+                                 track_per_sample=self.track_datamap,
+                                 wandb_run=wandb_run)
+        self.per_sample_error_ = getattr(self._net, "per_sample_history_", None)
         return self
 
     def score_samples(self, X: np.ndarray) -> np.ndarray:
@@ -187,9 +227,7 @@ class VAEDetector(AnomalyDetector):
                 scores = _mc_recon_prob(self._net, X_t, self.n_mc_samples)
             elif self.score_mode == "neg_elbo":
                 mu_x, logvar_x, mu_z, logvar_z = self._net(X_t)
-                recon = 0.5 * (
-                    logvar_x + (X_t - mu_x).pow(2) / logvar_x.exp() + _LOG2PI
-                ).sum(dim=1)
+                recon = -self._net.log_prob(X_t, mu_x, logvar_x).sum(dim=1)
                 kl = 0.5 * (
                     mu_z.pow(2) + logvar_z.exp() - 1.0 - logvar_z
                 ).sum(dim=1)
@@ -204,6 +242,8 @@ class VAEDetector(AnomalyDetector):
             "beta": self.beta,
             "score_mode": self.score_mode,
             "n_mc_samples": self.n_mc_samples,
+            "decoder_dist": self.decoder_dist,
+            "student_t_df": self.student_t_df,
             "lr": self.lr,
             "weight_decay": self.weight_decay,
             "dropout": self.dropout,

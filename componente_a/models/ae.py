@@ -59,6 +59,12 @@ class _AENet(nn.Module):
     def loss(self, x_in: torch.Tensor, x_target: torch.Tensor) -> torch.Tensor:
         return F.mse_loss(self.forward(x_in), x_target)
 
+    def per_sample_error(self, x: torch.Tensor) -> torch.Tensor:
+        """Error de reconstrucción por muestra (MSE por fila). Lo usa el tracking
+        de dinámica de entrenamiento (data map)."""
+        recon = self.forward(x)
+        return ((recon - x) ** 2).mean(dim=1)
+
 
 def _salt_pepper_noise(x: torch.Tensor, corruption: float) -> torch.Tensor:
     """Salt-and-pepper noise para datos z-scored.
