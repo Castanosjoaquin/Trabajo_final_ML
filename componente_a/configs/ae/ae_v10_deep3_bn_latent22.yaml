@@ -1,0 +1,21 @@
+model: ae
+name: ae_v10_deep3_bn_latent22
+cultivo: ambos
+
+# 3 capas + BatchNorm + latent=22: combina profundidad máxima con latent grande.
+# Apunta a la combinación ganadora: deep + BN + latent amplio.
+hidden_dims: [128, 64, 32]
+latent_dim: 22
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+max_epochs: 300
+patience: 25
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

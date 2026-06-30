@@ -1,0 +1,29 @@
+model: vae
+name: vae_v4_2002
+cultivo: ambos
+
+# EXPERIMENTO NDVI (3 vías) — brazo CONTROL "2002+ SIN NDVI".
+# Idéntico a vae_v4_ndvi pero use_ndvi: false. Aísla el efecto de NDVI del
+# efecto del recorte de datos: si vae_v4_ndvi > vae_v4_2002, NDVI ayuda de
+# verdad; si vae_v4_2002 < vae_v4 (full history), el recorte a 16 campañas
+# duele. Las tres patas: vae_v4 (todo, sin NDVI) / vae_v4_2002 (2002+, sin
+# NDVI) / vae_v4_ndvi (2002+, con NDVI).
+use_ndvi: false
+train_start: 2002
+
+hidden_dims: [64, 32]
+latent_dim: 16
+beta: 1.0
+score_mode: recon_prob
+n_mc_samples: 50
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 300
+patience: 30
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

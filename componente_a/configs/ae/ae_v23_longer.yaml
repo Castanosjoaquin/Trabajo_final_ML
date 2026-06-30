@@ -1,0 +1,22 @@
+model: ae
+name: ae_v23_longer
+cultivo: ambos
+
+# v11 con más paciencia y más épocas. Puede que el modelo corte antes de converger.
+hidden_dims: [128, 64]
+latent_dim: 16
+activation: relu
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+lr_schedule: cosine
+max_epochs: 500
+patience: 60
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

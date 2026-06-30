@@ -1,0 +1,10 @@
+# Componente A — comparador de modelos
+pandas>=1.5
+pyarrow>=10
+numpy>=1.23
+scikit-learn>=1.2
+matplotlib>=3.6
+streamlit>=1.30
+umap-learn>=0.5
+# Deep learning (AE / VAE)
+torch>=2.0

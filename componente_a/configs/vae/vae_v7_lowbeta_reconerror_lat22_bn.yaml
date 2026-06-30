@@ -1,0 +1,26 @@
+model: vae
+name: vae_v7_lowbeta_reconerror_lat22_bn
+cultivo: ambos
+
+# HIPÓTESIS 4 — portar la mejor receta del AE (arquitectura ancha [128,64],
+# latent 22, batch norm, grad clip, regularización suave) al VAE con beta bajo
+# y score por error de reconstrucción (mu_x). Test directo de si la capacidad
+# extra del AE ganador se traslada al marco variacional.
+hidden_dims: [128, 64]
+latent_dim: 22
+beta: 0.3
+score_mode: recon_error
+n_mc_samples: 20
+lr: 0.0005
+weight_decay: 0.0005
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+max_epochs: 400
+patience: 50
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

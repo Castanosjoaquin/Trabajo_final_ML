@@ -1,0 +1,23 @@
+model: vae
+name: vae_v12_reconprob_lat12
+cultivo: ambos
+
+# Refinamiento de v4: aísla el efecto del latente (12 vs 16). Bottleneck más
+# ajustado → fuerza al VAE a comprimir más, lo que puede agudizar el p(x|z) en
+# anomalías. Cubre el lado opuesto a v11.
+hidden_dims: [64, 32]
+latent_dim: 12
+beta: 1.0
+score_mode: recon_prob
+n_mc_samples: 50
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 300
+patience: 30
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

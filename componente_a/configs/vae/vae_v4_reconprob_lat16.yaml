@@ -1,0 +1,25 @@
+model: vae
+name: vae_v4_reconprob_lat16
+cultivo: ambos
+
+# HIPÓTESIS 1 — el score probabilístico (An & Cho 2015, Algorithm 4).
+# recon_prob = -E_z~q[log p(x|z)] vía Monte Carlo: pondera el error de cada
+# feature por la varianza que el decoder le asigna, en vez del MSE plano. Es la
+# versión PRINCIPIADA de lo que max/top-k intentaron crudamente en el AE (y que
+# allí no ayudó). Latent 16 = patrón ganador del sweep (latent grande).
+hidden_dims: [64, 32]
+latent_dim: 16
+beta: 1.0
+score_mode: recon_prob
+n_mc_samples: 50          # más muestras MC = menos varianza del score
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 300
+patience: 30
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

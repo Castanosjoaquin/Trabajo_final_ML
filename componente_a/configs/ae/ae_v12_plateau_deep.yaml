@@ -1,0 +1,23 @@
+model: ae
+name: ae_v12_plateau_deep
+cultivo: ambos
+
+# Misma arquitectura que v11 pero con ReduceLROnPlateau en lugar de cosine.
+# Plateau es más adaptativo: solo reduce lr cuando val_loss se estanca.
+# Útil para comparar qué schedule funciona mejor en este dataset.
+hidden_dims: [128, 64]
+latent_dim: 16
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.1
+use_batch_norm: true
+grad_clip_norm: 1.0
+lr_schedule: plateau
+max_epochs: 300
+patience: 40
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

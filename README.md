@@ -10,8 +10,12 @@ Modelo no supervisado: se entrena solo con años normales y puntúa por error de
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements_componente_a.txt
+pip install -r componente_a/requirements.txt
 ```
+
+> **Directorio de trabajo:** todo el Componente A vive bajo `componente_a/` y los
+> comandos de abajo se ejecutan **desde ahí** (`cd componente_a`). El venv queda en
+> la raíz del repo (`.venv/`), así que se activa antes de entrar.
 
 ---
 
@@ -20,59 +24,47 @@ pip install -r requirements_componente_a.txt
 ```
 Trabajo_final_ML/
 │
-├── train.py              # Entrena UN config YAML (también agente de W&B sweeps)
-├── batch_train.py        # Entrena VARIOS configs en secuencia, tabla resumen
-├── app_streamlit.py      # App de comparación de modelos (comparador lado a lado)
-├── arch_sweep.py         # Barrido rápido de arquitecturas hardcodeadas
+├── data/                     # Datos COMPARTIDOS (ambos componentes)
+│   └── processed/panel_union.parquet   # Dataset principal del Componente A
+├── data_sources/             # Extracción + MERGE satelital COMPARTIDO (Earth Engine)
+│   ├── extract_avhrr_ndvi.py / merge_avhrr_ndvi.py   # NDVI-AVHRR 1981+
+│   └── extract_era5.py / merge_era5.py               # ERA5-Land: suelo + heladas
 │
-├── configs/              # Configs YAML separados por modelo
-│   ├── ae/               # Autoencoder
-│   │   ├── ae_v1_1capa.yaml
-│   │   ├── ae_v11_cosine_deep.yaml   ← mejor AE hasta ahora
-│   │   └── ...           # (17 configs en total)
-│   ├── vae/              # Variational Autoencoder
-│   │   ├── vae_v1_1capa.yaml
-│   │   └── ...
-│   ├── dae/              # Denoising Autoencoder
-│   │   ├── dae_v1_base.yaml
-│   │   └── ...
-│   ├── hybrid/           # AE-latente + Isolation Forest (híbrido)
-│   │   ├── ae_iforest_v1.yaml
-│   │   └── ae_iforest_v2_latent16.yaml
-│   ├── ensemble/         # Ensembles (seed-ensemble VAE + hetero VAE+IForest)
-│   │   ├── vae_seedens_v1.yaml
-│   │   └── vae_iforest_ens_v1.yaml
-│   └── iforest/          # Isolation Forest (baseline + tuning)
-│       ├── iforest_v1_base.yaml
-│       └── ...           # grilla max_features / n_estimators
+├── componente_a/             # TODO el Componente A (se corre desde acá)
+│   │
+│   ├── src/                  # Código fuente (paquete Python `src`)
+│   │   ├── config.py         #   Rutas, splits temporales, lista de features
+│   │   ├── data.py           #   Carga panel, etiqueta proxy, splits, normalización
+│   │   ├── evaluate.py       #   Métricas: PR-AUC, ROC-AUC, Recall@k, F1, Precision@k
+│   │   ├── runner.py         #   Orquestador: fit → score → evaluar → RunResult
+│   │   ├── store.py          #   Persistencia: run-dirs locales en disco
+│   │   ├── embeddings.py     #   Proyecciones 2D con UMAP y t-SNE
+│   │   └── models/
+│   │       ├── base.py       #   Interfaz AnomalyDetector (fit/score_samples/get_config)
+│   │       ├── ae.py         #   AEDetector + DenoisingAEDetector (subclase)
+│   │       ├── vae.py        #   VAEDetector
+│   │       ├── baselines.py  #   IsolationForestDetector, PCAReconDetector
+│   │       ├── hybrid.py     #   AEIForestDetector (AE-latente + IForest)
+│   │       ├── ensemble.py   #   EnsembleDetector (seed-ensemble / hetero)
+│   │       ├── deep_baselines.py  # DeepODDetector (métodos modernos, deepod)
+│   │       └── trainer.py    #   Loop Adam + early stopping + LR schedule
+│   │
+│   ├── training/             # ENTRENAMIENTO
+│   │   ├── train.py          #   Entrena UN config YAML
+│   │   └── batch_train.py    #   Entrena VARIOS configs en paralelo, tabla resumen
+│   │
+│   ├── analyze_errors.py / analyze_labels.py / analyze_datamap.py  # Análisis (→ analysis/)
+│   ├── app_streamlit.py      # App de comparación de modelos (lado a lado)
+│   ├── experiments/          # Notebooks didácticos del recorrido completo
+│   ├── eda/                  # EDA + construcción del panel
+│   │
+│   ├── configs/              # Configs YAML por modelo (ae/ vae/ dae/ hybrid/ ensemble/ iforest/ deepod/)
+│   ├── runs/                 # Resultados guardados localmente, por modelo (gitignored)
+│   ├── analysis/             # Salidas de los analyze_*.py (gitignored)
+│   └── requirements.txt
 │
-├── runs/                 # Resultados guardados localmente (por modelo)
-│   ├── ae/
-│   ├── vae/
-│   ├── dae/
-│   ├── ae_iforest/
-│   └── isolation_forest/
-│
-├── componente_a/         # Código fuente
-│   ├── config.py         # Rutas, splits temporales, lista de features
-│   ├── data.py           # Carga panel, etiqueta proxy, splits, normalización
-│   ├── evaluate.py       # Métricas: PR-AUC, ROC-AUC, Recall@k, F1, Precision@k
-│   ├── runner.py         # Orquestador: fit → score → evaluar → RunResult
-│   ├── store.py          # Persistencia: LocalBackend (disco) / WandbBackend
-│   ├── embeddings.py     # Proyecciones 2D con UMAP y t-SNE
-│   └── models/
-│       ├── ae.py         # AEDetector, DenoisingAEDetector
-│       ├── vae.py        # VAEDetector
-│       ├── baselines.py  # IsolationForestDetector, PCAReconDetector
-│       ├── trainer.py    # Loop Adam + early stopping + LR schedule
-│       └── base.py       # Interfaz AnomalyDetector
-│
-├── data/
-│   └── processed/
-│       └── panel_union.parquet   # Dataset principal (28683 filas, 54 features)
-│
-├── docs/                 # Papers de referencia
-└── sweeps/               # Configs de W&B sweeps
+├── docs/                     # Papers de referencia + PDF del proyecto
+└── README.md
 ```
 
 ---
@@ -111,16 +103,13 @@ Entrena **un solo config** para uno o ambos cultivos.
 
 ```bash
 # Correr un config (ambos cultivos)
-python train.py configs/ae/ae_v11_cosine_deep.yaml
+python training/train.py configs/ae/ae_v11_cosine_deep.yaml
 
 # Solo un cultivo
-python train.py configs/ae/ae_v11_cosine_deep.yaml --cultivo soja
+python training/train.py configs/ae/ae_v11_cosine_deep.yaml --cultivo soja
 
 # Override del nombre de la run
-python train.py configs/ae/ae_v11_cosine_deep.yaml --name mi_experimento
-
-# Guardar en W&B en lugar de local
-python train.py configs/ae/ae_v11_cosine_deep.yaml --backend wandb
+python training/train.py configs/ae/ae_v11_cosine_deep.yaml --name mi_experimento
 ```
 
 **Flags disponibles:**
@@ -129,8 +118,6 @@ python train.py configs/ae/ae_v11_cosine_deep.yaml --backend wandb
 |------|-------------|---------|
 | `--cultivo` | `soja`, `maiz` o `ambos` | valor del YAML |
 | `--name` | Nombre de la run (override) | valor del YAML |
-| `--backend` | `local` o `wandb` | valor del YAML |
-| `--count` | Máximo de runs para W&B sweep agent | 20 |
 
 ---
 
@@ -140,19 +127,19 @@ Entrena **varios configs** en secuencia y muestra una tabla resumen comparativa 
 
 ```bash
 # Correr todos los AE (ambos cultivos)
-python batch_train.py configs/ae/*.yaml
+python training/batch_train.py configs/ae/*.yaml
 
-# Solo soja, sin embeddings (más rápido, la app no mostrará proyecciones)
-python batch_train.py configs/ae/*.yaml --cultivo soja --skip-emb
+# Solo soja
+python training/batch_train.py configs/ae/*.yaml --cultivo soja
 
 # Paralelo: 4 configs corriendo al mismo tiempo (recomendado para exploración)
-python batch_train.py configs/ae/*.yaml --cultivo soja --skip-emb --workers 4
+python training/batch_train.py configs/ae/*.yaml --cultivo soja --workers 4
 
 # Comparar AE vs iforest en soja
-python batch_train.py configs/ae/ae_v11_cosine_deep.yaml configs/iforest/iforest_v1_base.yaml --cultivo soja
+python training/batch_train.py configs/ae/ae_v11_cosine_deep.yaml configs/iforest/iforest_v1_base.yaml --cultivo soja
 
 # Correr todos los modelos
-python batch_train.py configs/ae/*.yaml configs/vae/*.yaml configs/dae/*.yaml configs/iforest/*.yaml
+python training/batch_train.py configs/ae/*.yaml configs/vae/*.yaml configs/dae/*.yaml configs/iforest/*.yaml
 ```
 
 **Flags disponibles:**
@@ -160,7 +147,6 @@ python batch_train.py configs/ae/*.yaml configs/vae/*.yaml configs/dae/*.yaml co
 | Flag | Descripción | Default |
 |------|-------------|---------|
 | `--cultivo` | `soja`, `maiz` o `ambos` | `ambos` |
-| `--skip-emb` | Omite UMAP/t-SNE (la app no mostrará proyecciones para esas runs) | False |
 | `--workers` | Procesos en paralelo. Cada worker entrena un par (config, cultivo). | 1 (secuencial) |
 
 **Salida de ejemplo:**
@@ -177,9 +163,11 @@ ae_v11_cosine_deep             soja       0.3741 0.0291   0.6596  0.4800  0.4354
 ============================================================================================
 ```
 
-> **Nota sobre `--skip-emb`**: las proyecciones UMAP/t-SNE son lentas (~1-2 min por run).
-> Usá `--skip-emb` para exploración rápida de arquitecturas. Para la run final que querés ver
-> en la app, corré **sin** `--skip-emb`.
+> **Proyecciones 2D:** ya **no** se calculan al entrenar (eran lentas, ~1-2 min/run).
+> Se computan **on-demand** la primera vez que la app o un notebook las pide
+> (`src.embeddings.compute_embeddings(run_id)`) y se cachean en el run-dir. No
+> necesitan el modelo entrenado: dependen solo de las features y de los scores ya
+> guardados.
 
 ---
 
@@ -192,7 +180,6 @@ streamlit run app_streamlit.py
 ```
 
 **Uso de la sidebar:**
-- **Backend de resultados**: `local` (disco) o `wandb` (cloud)
 - **Runs dir**: directorio raíz de runs (default: `runs/`)
 - **🔄 Recargar runs**: limpia el caché si acabás de correr nuevos modelos
 - **Cultivo**: filtrá por `soja` o `maiz`
@@ -201,8 +188,8 @@ streamlit run app_streamlit.py
 - **Proyección 2D**: UMAP o t-SNE
 - **Colorear por**: etiqueta real (normal/anómala) o score continuo
 
-> **Importante**: si corriste runs con `--skip-emb`, la proyección 2D mostrará "sin proyección".
-> Para ver la app con proyecciones completas corrí los modelos sin ese flag.
+> **Proyección 2D on-demand**: la primera vez que abrís un run, la app computa UMAP/t-SNE
+> (~1-2 min) y lo cachea en el run-dir; las siguientes veces es instantáneo.
 
 ---
 
@@ -216,8 +203,6 @@ Todos los campos tienen defaults razonables; solo sobreescribí lo que cambiás.
 model: ae           # ae | dae | vae | iforest | ae_iforest
 name: ae_v11        # nombre de la run (aparece en la app)
 cultivo: ambos      # soja | maiz | ambos
-backend: local      # local | wandb
-
 # Arquitectura
 hidden_dims: [128, 64]   # capas ocultas ([] = sin capas, solo bottleneck)
 latent_dim: 16           # dimensión del espacio latente
@@ -385,21 +370,10 @@ ver `data.py`). **PR-AUC es la métrica principal** (libre de umbral).
 
 ---
 
-## W&B Sweeps
-
-```bash
-# 1. Crear el sweep (genera SWEEP_ID)
-wandb sweep sweeps/ae.yaml
-
-# 2. Lanzar agente (en la misma o diferente terminal)
-python train.py --sweep SWEEP_ID --cultivo soja --count 20
-```
-
----
 
 ## Agregar un modelo nuevo
 
-1. Implementar la interfaz `AnomalyDetector` en `componente_a/models/`:
+1. Implementar la interfaz `AnomalyDetector` en `src/models/`:
    ```python
    class MiDetector(AnomalyDetector):
        model_type = "mi_modelo"
@@ -407,7 +381,7 @@ python train.py --sweep SWEEP_ID --cultivo soja --count 20
        def score_samples(self, X): ...
        def get_config(self): ...
    ```
-2. Exportarlo en `componente_a/models/__init__.py`
-3. Agregarlo al `build_detector()` en `train.py`
+2. Exportarlo en `src/models/__init__.py`
+3. Agregarlo al `build_detector()` en `training/train.py`
 4. Crear config en `configs/mi_modelo/mi_modelo_v1.yaml`
 5. Las runs se guardarán en `runs/mi_modelo/` automáticamente

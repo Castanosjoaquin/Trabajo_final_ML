@@ -1,0 +1,33 @@
+model: ensemble
+name: vae_iforest_ens_v1
+cultivo: ambos
+
+# HETERO-ENSEMBLE de los dos mejores modelos: VAE recon_prob (vae_v4) +
+# IsolationForest tuneado (iforest_v2, mf=0.3). Capturan estructura distinta
+# (sorpresa distribucional per-feature vs aislamiento en subespacios) → la
+# combinación suele superar a cada uno. Scores z-normalizados antes de promediar.
+normalize: zscore
+combine: mean
+members:
+  - model: vae
+    hidden_dims: [64, 32]
+    latent_dim: 16
+    beta: 1.0
+    score_mode: recon_prob
+    n_mc_samples: 50
+    lr: 0.001
+    weight_decay: 0.0001
+    dropout: 0.0
+    max_epochs: 300
+    patience: 30
+    batch_size: 64
+  - model: iforest
+    n_estimators: 200
+    max_samples: auto
+    max_features: 0.3
+    contamination: auto
+
+n_seeds: 3
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

@@ -1,0 +1,22 @@
+model: ae
+name: ae_v24_reg_combo
+cultivo: ambos
+
+# Combinación: lr bajo + dropout alto + wd alto. Regularización máxima coordinada.
+hidden_dims: [128, 64]
+latent_dim: 16
+activation: relu
+lr: 0.0005
+weight_decay: 0.001
+dropout: 0.2
+use_batch_norm: true
+grad_clip_norm: 1.0
+lr_schedule: cosine
+max_epochs: 400
+patience: 50
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

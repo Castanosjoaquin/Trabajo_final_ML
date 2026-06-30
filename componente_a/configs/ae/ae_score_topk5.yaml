@@ -1,0 +1,23 @@
+model: ae
+name: ae_score_topk5
+cultivo: ambos
+
+# Mismo AE que ae_v3 (latent 16, sin capas ocultas), pero el score es la SUMA
+# de los top-5 errores de reconstrucción por feature. Punto medio entre el MSE
+# promedio (diluye) y el máximo (ruidoso: depende de una sola feature).
+hidden_dims: []
+latent_dim: 16
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 200
+patience: 15
+batch_size: 64
+
+score_mode: topk
+top_k: 5
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

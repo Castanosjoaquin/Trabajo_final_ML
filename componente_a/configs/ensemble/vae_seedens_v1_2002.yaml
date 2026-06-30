@@ -1,0 +1,30 @@
+model: ensemble
+name: vae_seedens_v1_2002
+cultivo: ambos
+
+# EXPERIMENTO NDVI — CONTROL del mejor modelo: seed-ensemble vae_v4 en 2002+
+# SIN NDVI. Aísla el efecto de NDVI del recorte de datos en el modelo SOTA.
+use_ndvi: false
+train_start: 2002
+
+normalize: zscore
+combine: mean
+n_members: 10
+base:
+  model: vae
+  hidden_dims: [64, 32]
+  latent_dim: 16
+  beta: 1.0
+  score_mode: recon_prob
+  n_mc_samples: 50
+  lr: 0.001
+  weight_decay: 0.0001
+  dropout: 0.0
+  max_epochs: 300
+  patience: 30
+  batch_size: 64
+
+n_seeds: 3
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

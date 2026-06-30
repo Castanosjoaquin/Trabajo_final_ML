@@ -1,0 +1,22 @@
+model: vae
+name: vae_v2_deep_reg
+cultivo: ambos
+
+# VAE con capas intermedias + regularización:
+# encoder 67->32->16->latent. Weight decay + dropout para reducir varianza.
+hidden_dims: [32, 16]
+latent_dim: 4
+beta: 1.0
+score_mode: recon_error
+n_mc_samples: 20
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 200
+patience: 15
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42

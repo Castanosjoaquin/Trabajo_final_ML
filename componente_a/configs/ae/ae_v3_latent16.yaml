@@ -1,0 +1,20 @@
+model: ae
+name: ae_v3_latent16
+cultivo: ambos
+
+# Latent=16 sin capas ocultas: más espacio de representación (ratio ~16/54 ≈ 0.30).
+# Inspirado en Sakurada & Yairi: Satellite-B (106 dim) usó latent=16.
+# Sirve para ver si el bottleneck de latent=8 era demasiado restrictivo.
+hidden_dims: []
+latent_dim: 16
+lr: 0.001
+weight_decay: 0.0001
+dropout: 0.0
+max_epochs: 200
+patience: 15
+batch_size: 64
+
+n_seeds: 10
+threshold_mode: contamination
+eval_contamination: 0.10
+random_state: 42
