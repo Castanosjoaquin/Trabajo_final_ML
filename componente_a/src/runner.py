@@ -20,10 +20,13 @@ from .store import RunResult, make_run_id
 
 
 def _flatten_summary(cfg_model: Dict, val_m: Dict, test_m: Dict,
-                     thr: Dict, strat: Dict, dataset: CropDataset) -> Dict:
-    """Métricas planas (prefijo por split) aptas para tablas."""
+                     thr: Dict, thr_test: Dict, strat: Dict,
+                     dataset: CropDataset) -> Dict:
+    """Métricas planas (prefijo por split) aptas para tablas. `threshold` es el de
+    test (operating point real, calibrado sobre test en modo contamination)."""
     s = {"model_type": cfg_model.get("model_type"),
-         "threshold": thr["threshold"], "threshold_calibrated": thr["calibrated"],
+         "threshold": thr_test["threshold"], "threshold_val": thr["threshold"],
+         "threshold_calibrated": thr_test["calibrated"],
          "n_train_normal": int(len(dataset.X_train)),
          "n_excluded_year": dataset.n_excluded_year,
          "n_excluded_anom": dataset.n_excluded_anom}
@@ -52,15 +55,23 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
     sc_val = detector.score_samples(dataset.X_val)
     sc_test = detector.score_samples(dataset.X_test)
 
-    # --- Calibrar umbral en val, evaluar ---
+    # --- Calibrar umbral por split y evaluar ---
+    # El operating point es "marcar el top-eval_contamination% de los scores". Bajo
+    # distribution shift temporal, el umbral de val NO transfiere a test (los scores
+    # se corren hacia arriba), así que en modo 'contamination' (default) cada split
+    # se umbraliza sobre SUS PROPIOS scores (cuantil; no usa etiquetas para el corte).
+    # En modo 'f1' (legacy) se mantiene el umbral de val para no filtrar labels de test.
     thr = ev.calibrate_threshold(sc_val, dataset.y_val,
                                  mode=cfg.threshold_mode,
                                  contamination=cfg.eval_contamination)
+    thr_test = (ev.calibrate_threshold(sc_test, dataset.y_test, mode="contamination",
+                                       contamination=cfg.eval_contamination)
+                if cfg.threshold_mode == "contamination" else thr)
     val_m = ev.evaluate_split(sc_val, dataset.y_val, thr["threshold"],
                               contamination=cfg.eval_contamination)
-    test_m = ev.evaluate_split(sc_test, dataset.y_test, thr["threshold"],
+    test_m = ev.evaluate_split(sc_test, dataset.y_test, thr_test["threshold"],
                                contamination=cfg.eval_contamination)
-    strat = ev.stratified_recall(sc_test, dataset.y_test, thr["threshold"],
+    strat = ev.stratified_recall(sc_test, dataset.y_test, thr_test["threshold"],
                                  dataset.X_test, dataset.feature_cols)
 
     # --- Desacuerdo del ensemble (si el detector lo expone): incertidumbre
@@ -69,18 +80,18 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
     std_val = detector.score_std(dataset.X_val) if has_std else None
     std_test = detector.score_std(dataset.X_test) if has_std else None
 
-    # --- Tabla de scores (val + test) ---
-    def _scored(meta, scores, split, y, std=None):
+    # --- Tabla de scores (val + test): y_pred con el umbral del PROPIO split ---
+    def _scored(meta, scores, split, y, threshold, std=None):
         df = meta.copy()
         df["split"] = split
         df["score"] = scores
-        df["y_pred"] = (scores >= thr["threshold"]).astype(int)
+        df["y_pred"] = (scores >= threshold).astype(int)
         if std is not None:
             df["score_std"] = std
         return df
     scores_df = pd.concat([
-        _scored(dataset.meta_val, sc_val, "val", dataset.y_val, std_val),
-        _scored(dataset.meta_test, sc_test, "test", dataset.y_test, std_test),
+        _scored(dataset.meta_val, sc_val, "val", dataset.y_val, thr["threshold"], std_val),
+        _scored(dataset.meta_test, sc_test, "test", dataset.y_test, thr_test["threshold"], std_test),
     ], ignore_index=True)
 
     # --- Curvas (PR + ROC) en formato largo ---
@@ -121,7 +132,7 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
                    "cultivo": dataset.cultivo, "model_name": model_name,
                    "feature_cols": dataset.feature_cols,
                    "n_features": len(dataset.feature_cols)}
-    summary = _flatten_summary(detector.get_config(), val_m, test_m, thr, strat, dataset)
+    summary = _flatten_summary(detector.get_config(), val_m, test_m, thr, thr_test, strat, dataset)
 
     return RunResult(
         run_id=make_run_id(model_name, dataset.cultivo),
@@ -166,8 +177,11 @@ def run_model_multiseed(model_name: str, detector_factory: Callable[[int], Anoma
         thr = ev.calibrate_threshold(sc_val, dataset.y_val,
                                      mode=cfg.threshold_mode,
                                      contamination=cfg.eval_contamination)
+        thr_test = (ev.calibrate_threshold(sc_test, dataset.y_test, mode="contamination",
+                                           contamination=cfg.eval_contamination)
+                    if cfg.threshold_mode == "contamination" else thr)
         val_m = ev.evaluate_split(sc_val, dataset.y_val, thr["threshold"])
-        test_m = ev.evaluate_split(sc_test, dataset.y_test, thr["threshold"])
+        test_m = ev.evaluate_split(sc_test, dataset.y_test, thr_test["threshold"])
         flat = {f"val_{k}": v for k, v in val_m.items()}
         flat.update({f"test_{k}": v for k, v in test_m.items()})
         per_seed.append({"seed": seed, "flat": flat})

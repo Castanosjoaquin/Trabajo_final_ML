@@ -579,7 +579,7 @@ def tbl_hybrids() -> pd.DataFrame:
 
 
 def tbl_features() -> pd.DataFrame:
-    """Features nuevas: efecto sobre el VAE (SOTA) y el IForest. Soja, test sets emparejados."""
+    """Features nuevas: efecto sobre el VAE (mejor del proyecto) y el IForest. Soja, test sets emparejados."""
     return pd.DataFrame([
         ("base (limpio, sin features extra)", 0.592, 0.511, "VAE / IForest"),
         ("+ NDVI-AVHRR (1981+)",              0.561, 0.503, "redundante con clima"),
@@ -589,12 +589,14 @@ def tbl_features() -> pd.DataFrame:
 
 
 def tbl_modern() -> pd.DataFrame:
-    """Comparación con métodos modernos de AD tabular profundo (deepod)."""
+    """Comparación con métodos modernos de AD tabular profundo (deepod), con
+    presupuesto PAREJO: 300 épocas + HP razonables (capacidad como el VAE:
+    hidden_dims 64,32 + rep_dim 16), no los defaults de librería. Multi-seed."""
     return pd.DataFrame([
-        ("VAE seed-ensemble (nuestro)", 0.592, 0.508, "SOTA"),
+        ("VAE seed-ensemble (nuestro)", 0.592, 0.508, "mejor del proyecto"),
         ("IForest (baseline)",          0.511, 0.492, "—"),
-        ("DeepSVDD",                    0.432, 0.426, "deep one-class"),
-        ("ICL",                         0.332, 0.342, "internal contrastive learning"),
-        ("NeuTraL",                     0.240, 0.234, "transformaciones; bajo azar"),
-        ("GOAD",                        np.nan, np.nan, "impracticablemente lento"),
+        ("DeepSVDD",                    0.467, 0.389, "deep one-class; el mejor de los modernos"),
+        ("ICL",                         0.344, 0.389, "internal contrastive learning"),
+        ("NeuTraL",                     0.239, 0.239, "transformaciones; ~azar"),
+        ("GOAD",                        np.nan, np.nan, "costo prohibitivo (256 transf./época)"),
     ], columns=["modelo", "soja_pr", "maiz_pr", "nota"])

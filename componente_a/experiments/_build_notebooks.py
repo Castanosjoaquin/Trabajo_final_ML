@@ -317,19 +317,22 @@ test sets coincidan antes de comparar.**"""),
 # ===========================================================================
 build("05_modernos_y_techo_estructural.ipynb", "5 · Métodos modernos y el techo estructural", [
     md("""## 5.1 — Benchmark contra AD tabular profundo moderno
-Comparamos contra el SOTA vía `deepod`: DeepSVDD, ICL, NeuTraL, GOAD."""),
+Comparamos contra métodos modernos de AD tabular profundo (SOTA de la **literatura**) vía
+`deepod`: DeepSVDD, ICL, NeuTraL, GOAD. (Nuestro VAE es el mejor del *proyecto*, no SOTA del
+campo: solo mostramos que los supera en *nuestro* dataset.)"""),
     code(SETUP),
     code("explib.show(explib.tbl_modern())"),
-    md("""**Out-of-the-box, ninguno se acerca al VAE** (el mejor, DeepSVDD, 0.43, queda
-debajo hasta del IForest).
+    md("""**Comparación justa: ninguno supera al VAE (ni al IForest).** A diferencia de una
+versión anterior con HP por defecto, acá los corrimos con **presupuesto parejo**: mismas
+**300 épocas** que nuestros modelos y **capacidad pareja** (hidden_dims 64,32 + rep_dim 16),
+multi-seed. El mejor de los modernos, DeepSVDD, llega a **0.467** (soja) — todavía por debajo
+del IForest (0.511) y lejos del VAE (0.592).
 
-> ⚠️ **Limitación honesta de esta comparación:** estos modelos se corrieron con
-> hiperparámetros **por defecto**, 100 épocas y **sin tuning**, mientras que a nuestro VAE
-> lo exploramos a fondo (score, arquitectura, ensemble). **No es una comparación justa**, y
-> NO alcanza para afirmar "somos mejores que los métodos modernos". Lo correcto sería
-> tunearlos con el mismo esfuerzo (búsqueda de hiperparámetros + más épocas + multi-seed) —
-> eso queda **pendiente**. La lectura válida es: *con configuración default no superan a
-> nuestro VAE ya tuneado*, no que nuestro enfoque sea intrínsecamente superior."""),
+> **Lectura honesta:** que ganemos **no** nos hace SOTA del campo. La comparación justa
+> descarta el atajo "los modernos no estaban tuneados", pero el motivo de fondo de que nadie
+> despegue es el **techo estructural** (siguiente sección), no la superioridad de nuestro
+> método. GOAD quedó afuera: con 256 transformaciones por época su costo es prohibitivo aun a
+> presupuesto parejo (una limitación práctica real del método, no un resultado)."""),
     md("""## 5.2 — El techo estructural (por qué nadie pasa de ~0.6)
 Tres análisis independientes muestran que el límite **no es del modelo**:
 - **Cross-modelo**: ~68% de las anomalías las fallan TODOS, y tienen **clima normal**.
@@ -341,6 +344,19 @@ invisibles a cualquier feature disponible. Es del problema, no del modelo."""),
     code("""from IPython.display import Image, display
 p = os.path.join(explib.ROOT, "analysis", "consensus_heatmap_soja.png")
 display(Image(p)) if os.path.exists(p) else print("generar: python analyze_errors.py --cultivo soja")"""),
+    md("""### El techo, visto en el espacio de features (t-SNE del modelo final)
+Proyección **t-SNE** de las campañas (features climáticas) del modelo final, coloreada por
+**etiqueta real** (izq.) y por **score** del VAE (der.). La lectura clave: las anomalías
+(rojo) **no forman un cluster separado** — están mezcladas entre las normales. Es la
+confirmación *visual* del techo estructural: si no se distinguen en el espacio de features,
+ningún modelo que mire solo ese espacio puede separarlas. El score del VAE (der.) sí marca
+una región, pero es la de **clima raro**, que solo se solapa parcialmente con el rojo."""),
+    code("""fig, axs = plt.subplots(1, 2, figsize=(11, 4.5))
+explib.plot_embeddings("vae_seedens_v1", "soja", method="tsne", color_by="label", ax=axs[0])
+explib.plot_embeddings("vae_seedens_v1", "soja", method="tsne", color_by="score", ax=axs[1])
+axs[0].set_title("t-SNE · etiqueta real (normal vs anómala)")
+axs[1].set_title("t-SNE · score del VAE")
+plt.tight_layout(); plt.show()"""),
     md("## 5.3 — Comparación final de TODOS los modelos (con desvío estándar)"),
     code("explib.show(explib.tbl_leaderboard())"),
     code("explib.plot_leaderboard_compare(); plt.show()"),
