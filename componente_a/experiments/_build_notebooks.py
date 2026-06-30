@@ -216,6 +216,11 @@ tipo de modelo. Se ve qué enfoque rankea mejor las anomalías a igual presupues
     code("""recon_cm = [(best_ae, "AE"), ("dae_v1_base", "DAE"),
             ("ae_iforest_v2_latent16", "Híbrido"), ("vae_v4_reconprob_lat16", "VAE")]
 explib.plot_confusion_grid(recon_cm, "soja", era="dirty"); plt.show()"""),
+    md("""### Distribución del score por tipo de modelo (el histograma de la app)
+Score de las campañas **normales** (azul) vs **anómalas** (naranja) en test. Cuanto más
+**separadas** las dos distribuciones, mejor rankea el modelo. Se ve por qué el VAE
+`recon_prob` gana: corre la cola de las anómalas más a la derecha que el AE/híbrido."""),
+    code('explib.plot_score_hist_grid(recon_cm, "soja", era="dirty"); plt.show()'),
     md("""**Conclusión:** el **VAE `recon_prob`** es el mejor modelo de reconstrucción y el
 único que le pelea al baseline. Pero tiene **alta varianza** (±0.03) — lo atacamos en el NB 3."""),
 ])
@@ -246,6 +251,11 @@ Filas del grid = punto de operación; columnas = ensemble."""),
           ("vae_seedens_deep", "VAE seed-ens (deep)"),
           ("vae_iforest_ens_v1", "hetero VAE+IForest")]
 explib.plot_confusion_grid(ens_cm, "soja", era="clean"); plt.show()"""),
+    md("""### Distribución del score de los ensembles (el histograma de la app)
+Score de campañas **normales** (azul) vs **anómalas** (naranja) en test, por ensemble.
+El seed-ensemble afina la cola de las anómalas; el hetero VAE+IForest la mezcla más
+(el IForest arrastra)."""),
+    code('explib.plot_score_hist_grid(ens_cm, "soja", era="clean"); plt.show()'),
     md("""## 3.2 — La idea de *Dataset Cartography* (la del profesor)
 "Lo que el modelo predice **siempre** mal es anomalía". La implementamos como **diagnóstico**:
 - **Data map** (Swayamdipta 2020): error de reconstrucción de cada muestra **por época** →

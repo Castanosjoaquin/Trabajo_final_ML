@@ -317,17 +317,41 @@ def plot_pr_curves(runs, cultivo, title="Curvas PR (test)"):
     fig.tight_layout(); return fig
 
 
-def plot_score_hist(name, cultivo, bins=40):
-    """Histograma del score de test, separado por clase (normal vs anómala)."""
-    rid = latest_run(name, cultivo)
-    sc = load_run(rid).scores
-    t = sc[sc["split"] == "test"]
-    fig, ax = plt.subplots(figsize=(6, 4))
+def plot_score_hist(name, cultivo, bins=40, ax=None, era=None):
+    """Histograma del score de test, separado por clase (normal vs anómala) —
+    el mismo gráfico que la app. Si las dos distribuciones se separan, el modelo
+    rankea bien; si se solapan, no distingue."""
+    rid = latest_run(name, cultivo, era) or latest_run(name, cultivo)
+    if not rid:
+        print(f"No hay run para {name} ({cultivo})"); return None
+    t = load_run(rid).scores
+    t = t[t["split"] == "test"]
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6, 4))
     ax.hist(t[t["anomalia"] == 0]["score"], bins=bins, alpha=0.6, label="normal", density=True)
     ax.hist(t[t["anomalia"] == 1]["score"], bins=bins, alpha=0.6, label="anómala", density=True)
     ax.set_xlabel("score de anomalía"); ax.set_ylabel("densidad")
-    ax.set_title(f"Distribución de scores — {name} ({cultivo})")
-    ax.legend(); fig.tight_layout(); return fig
+    ax.set_title(f"{name} · {cultivo}", fontsize=9)
+    ax.legend(fontsize=8)
+    return ax
+
+
+def plot_score_hist_grid(names_labels, cultivo, bins=40, era=None, ncols=2):
+    """Histograma de score (normal vs anómala) de varios modelos, en grid — uno
+    por modelo. Mismo gráfico que la app, para comparar la separación de clases."""
+    n = len(names_labels)
+    ncols = min(ncols, n)
+    nrows = (n + ncols - 1) // ncols
+    fig, axs = plt.subplots(nrows, ncols, figsize=(5.2 * ncols, 3.5 * nrows), squeeze=False)
+    axf = axs.flatten()
+    for k, (name, label) in enumerate(names_labels):
+        plot_score_hist(name, cultivo, bins=bins, ax=axf[k], era=era)
+        axf[k].set_yscale("log")
+        axf[k].set_title(label, fontsize=9)
+    for k in range(n, len(axf)):
+        axf[k].axis("off")
+    fig.suptitle(f"Distribución de scores (test) — {cultivo}", y=1.0)
+    fig.tight_layout(); return fig
 
 
 def barh_leaderboard(df, value="pr_auc", err="pr_std", label="model", title=""):
