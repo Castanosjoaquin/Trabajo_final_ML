@@ -370,6 +370,58 @@ ver `data.py`). **PR-AUC es la métrica principal** (libre de umbral).
 
 ---
 
+## ⚠️ Limitaciones conocidas
+
+### 1. *Distribution shift* temporal (val → test)
+
+Los splits son **temporales** (train ≤2017/18, val 2018–2020, test 2021–2024), así
+que val y test pertenecen a **períodos climáticos distintos**. Esto produce un
+*distribution shift* con **dos caras**, ambas importantes para leer las métricas:
+
+- **Los scores se corren hacia arriba.** El modelo aprende lo "normal" hasta 2017;
+  el clima de 2021–24 está cada vez más lejos de ese período → **todo** reconstruye
+  un poco peor → los scores de anomalía suben en bloque. Ejemplo (VAE, soja): score
+  medio **val 3.76 → test 20.22**.
+- **La tasa real de anomalías sube.** `z_rinde < −1.5` marca **~6% en val** pero
+  **~27% en test** (el test incluye la mega-sequía 2022/23). El prior de
+  contaminación del 10% **subestima** la realidad del test.
+
+**Consecuencia — el umbral no transfiere.** El umbral se calibra como el percentil
+90 de los scores de *validación* y se aplica como corte absoluto a *test*. Por el
+shift, ese corte termina marcando **~70% del test** como anómalo (no porque el
+modelo lo crea, sino porque casi todos los scores de test superan un corte fijado en
+val). Por eso:
+
+- La **métrica principal es PR-AUC** (y ROC-AUC), que son **libres de umbral**:
+  miden el *ranking* de los scores y **no se ven afectadas** por el shift. Todas las
+  conclusiones del proyecto se apoyan en PR-AUC.
+- El **F1 / `y_pred` guardados en los runs usan el umbral de val y NO son
+  confiables** (lo documentamos como tal; no se usan para decidir).
+- Las **matrices de confusión de los notebooks NO usan ese `y_pred`**: re-umbralizan
+  sobre los scores del **propio test** (sin usar etiquetas para el corte) y muestran
+  **dos puntos de operación** — `top-10%` (presupuesto de alertas) y `top-tasa real`
+  (~27%). Con el corte bien hecho el VAE da **80% de precisión al top-10%**; el "FP
+  gigante" del corte de val era un artefacto. Ver NB 1 (`plot_confusion_grid`,
+  parámetro `op` en `src/embeddings`/`explib`).
+
+### 2. Selección en validación vs. test
+
+El val es chico (5–9 anomalías) → ruidoso. A lo largo de los notebooks mostramos
+*test* (más estable) para **ilustrar** comparaciones, pero la **decisión final** de
+modelo debería apoyarse en *val* (evitar *data snooping*). El ranking en val y test
+coincide (el VAE seed-ensemble gana en ambos), así que la conclusión se sostiene;
+queda explícito como limitación. Ver NB 1.
+
+### 3. Techo estructural clima → rinde
+
+~70% de las anomalías de rinde tienen causas **no climáticas** (plaga, granizo,
+manejo, ruido de etiqueta) **invisibles a cualquier feature disponible**. El modelo
+solo ve clima, así que estructuralmente no puede superar la fracción de anomalías con
+firma climática (~30%). Cuantificado con `stratified_recall` + `analyze_errors.py`.
+Es un límite del **problema/datos**, no del modelo. Ver NB 5.
+
+---
+
 
 ## Agregar un modelo nuevo
 

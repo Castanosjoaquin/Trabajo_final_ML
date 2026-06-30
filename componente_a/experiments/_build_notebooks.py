@@ -129,6 +129,26 @@ print("run:", res.run_id)"""),
 - **Multi-seed**: reportamos **media ± desvío** porque los modelos profundos varían entre
   semillas."""),
     code('explib.plot_all_metrics("iforest_v2_mf03_n200", "soja"); plt.show()'),
+    md("""### Matriz de confusión y el punto de operación
+Las métricas de arriba (PR-AUC) son **libres de umbral** — miden el *ranking*. La matriz de
+confusión necesita un **corte**, y ahí hay una sutileza importante:
+
+> ⚠️ **El umbral calibrado en validación NO transfiere a test.** Se calibra como el percentil
+> 90 de los scores de *val*, pero los scores se corren mucho hacia arriba entre val (2018–20)
+> y test (2021–24) —el clima se aleja del período de entrenamiento— así que ese corte termina
+> marcando **~70% del test** como anómalo. No es que el modelo crea que el 70% son anómalas:
+> es el *distribution shift* lavando un corte absoluto.
+
+Por eso re-umbralizamos sobre los **scores del propio test** (sin usar etiquetas para el
+corte) en **dos puntos de operación**: **top-10%** (presupuesto de alertas acotado) y
+**top-tasa real** (~27%, la fracción que realmente es anómala en test). Filas = real,
+columnas = predicho."""),
+    code('explib.plot_confusion_grid([("iforest_v2_mf03_n200","IForest baseline")], "soja"); plt.show()'),
+    code('explib.show(explib.confusion_report("iforest_v2_mf03_n200", "soja"))'),
+    md("""Leído así, el punto de operación se entiende: al **top-10%** la precisión es alta
+(casi todo lo que marca es anomalía real) pero el recall bajo (con 10% de presupuesto no se
+puede cubrir el 27% que hay); al **top-tasa real** precision y recall se igualan. Este es el
+patrón con el que comparar todos los modelos."""),
     md("""## 3 · ⚠️ Selección en validación, no en test (nota metodológica)
 **Lo correcto** es *elegir* el mejor modelo mirando **validación**, y usar **test una sola
 vez** para el número final del modelo ya elegido. Comparar muchos modelos en test y quedarse
@@ -188,6 +208,14 @@ aguja."""),
          ("ae_iforest_v2_latent16","Híbrido AE+IForest"), ("vae_v4_reconprob_lat16","VAE recon_prob")]
 explib.show(explib.compare_table(recon, "soja", era="dirty"))"""),
     code('explib.plot_compare(recon, "soja", era="dirty", baseline=0.389, title="Fase reconstrucción — PR-AUC (soja)"); plt.show()'),
+    md("""### Matriz de confusión por tipo de modelo (re-umbralizado sobre test)
+Más allá del ranking PR-AUC, así se ve el **punto de operación** de cada tipo de modelo. Como
+en el NB 1, re-umbralizamos sobre los scores del propio test en dos puntos: **top-10%**
+(presupuesto) y **top-tasa real** (~27%). Filas del grid = punto de operación; columnas =
+tipo de modelo. Se ve qué enfoque rankea mejor las anomalías a igual presupuesto de alertas."""),
+    code("""recon_cm = [(best_ae, "AE"), ("dae_v1_base", "DAE"),
+            ("ae_iforest_v2_latent16", "Híbrido"), ("vae_v4_reconprob_lat16", "VAE")]
+explib.plot_confusion_grid(recon_cm, "soja", era="dirty"); plt.show()"""),
     md("""**Conclusión:** el **VAE `recon_prob`** es el mejor modelo de reconstrucción y el
 único que le pelea al baseline. Pero tiene **alta varianza** (±0.03) — lo atacamos en el NB 3."""),
 ])
@@ -211,6 +239,13 @@ explib.show(explib.compare_table(ens, "soja", era="clean"))"""),
 ruido idiosincrático de cada semilla. El hetero VAE+IForest queda mixto (el IForest arrastra)."""),
     code("""explib.plot_pr_curves([("vae_v4_reconprob_lat16","VAE single"),
                        ("vae_seedens_v1","seed-ensemble ×10")], "soja"); plt.show()"""),
+    md("""### Matriz de confusión de los ensembles (re-umbralizado sobre test)
+Una por cada ensemble, en los dos puntos de operación (top-10% y top-tasa real; ver NB 1).
+Filas del grid = punto de operación; columnas = ensemble."""),
+    code("""ens_cm = [("vae_seedens_v1", "VAE seed-ens (lat16)"),
+          ("vae_seedens_deep", "VAE seed-ens (deep)"),
+          ("vae_iforest_ens_v1", "hetero VAE+IForest")]
+explib.plot_confusion_grid(ens_cm, "soja", era="clean"); plt.show()"""),
     md("""## 3.2 — La idea de *Dataset Cartography* (la del profesor)
 "Lo que el modelo predice **siempre** mal es anomalía". La implementamos como **diagnóstico**:
 - **Data map** (Swayamdipta 2020): error de reconstrucción de cada muestra **por época** →
@@ -226,6 +261,18 @@ display(Image(p)) if os.path.exists(p) else print("generar: python analyze_datam
     md("## 3.3 — El modelo final: `vae_seedens_v1` (todas sus métricas, ±std)"),
     code('explib.show(explib.run_metrics("vae_seedens_v1", "soja"))'),
     code('explib.plot_all_metrics("vae_seedens_v1", "soja"); plt.show()'),
+    md("""### Matriz de confusión y métricas derivadas del modelo final
+Las métricas libres de umbral (PR-AUC) miden el *ranking*; la matriz de confusión hace
+tangible el **punto de operación**, re-umbralizado sobre el test en los dos puntos (top-10% y
+top-tasa real; ver NB 1) y para ambos cultivos. La tabla resume precision/recall/F1 en cada
+punto."""),
+    code("""explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "soja"); plt.show()
+explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "maiz"); plt.show()"""),
+    code('explib.show(explib.confusion_report("vae_seedens_v1", "soja"))'),
+    md("""Se ve el *trade-off* del detector: al **top-10%** alta precisión (lo que marca casi
+siempre es anomalía real) pero recall acotado por el presupuesto; al **top-tasa real**
+precision y recall se equilibran. El resto de los falsos positivos son campañas de clima raro
+con rinde normal — coherente con el techo estructural del NB 5."""),
     md("**Modelo final del Componente A.** En los próximos notebooks intentamos superarlo (datos nuevos, modernos) sin éxito."),
 ])
 

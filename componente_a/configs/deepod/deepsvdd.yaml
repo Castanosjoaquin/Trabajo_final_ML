@@ -3,9 +3,15 @@ algo: deepsvdd
 name: deepod_deepsvdd
 cultivo: ambos
 
-epochs: 100
+# Comparación JUSTA: mismo presupuesto de épocas que nuestros modelos (300) y
+# capacidad pareja (hidden_dims 64,32 + rep_dim 16 = igual que el VAE ganador),
+# en vez de los defaults de librería (100 épocas, rep_dim 128, capas 100,50).
+epochs: 300
 batch_size: 64
 lr: 0.001
+extra:
+  rep_dim: 16
+  hidden_dims: "64,32"
 
 n_seeds: 5
 threshold_mode: contamination

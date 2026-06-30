@@ -3,9 +3,17 @@ algo: goad
 name: deepod_goad
 cultivo: ambos
 
-epochs: 100
+# Comparación JUSTA: mismo presupuesto de épocas (300). GOAD no usa rep_dim/
+# hidden_dims sino transformaciones aleatorias; se le da algo más de capacidad
+# (hidden_dim 32 vs el default 8) manteniendo n_trans=256. Es el más pesado de
+# los modernos (256 transformaciones), por eso corre aparte / en background.
+epochs: 300
 batch_size: 64
 lr: 0.001
+extra:
+  hidden_dim: 32
+  trans_dim: 32
+  n_trans: 256
 
 n_seeds: 5
 threshold_mode: contamination

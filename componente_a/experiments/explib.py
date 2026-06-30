@@ -363,6 +363,113 @@ def run_metrics(name, cultivo, split="test") -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["metrica", "valor", "std"])
 
 
+# ===========================================================================
+# Matriz de confusión y métricas derivadas (umbral calibrado en val)
+# ===========================================================================
+def _op_label(op):
+    """Etiqueta legible de un punto de operación."""
+    if op is None or op == "calibrated":
+        return "umbral val"
+    if op in ("base", "base_rate"):
+        return "top-tasa real"
+    return f"top-{int(round(float(op) * 100))}%"
+
+
+def _labels_preds(name, cultivo, split="test", era=None, op=None):
+    """(y_real, y_pred) de un run para un split. `op` define el PUNTO DE OPERACIÓN
+    del corte y, salvo 'calibrated', re-umbraliza sobre los scores del PROPIO split
+    (no usa etiquetas para el corte, solo para contar):
+      None/'calibrated' -> usa el y_pred guardado (umbral calibrado en val; el que
+                           transfiere mal a test por el distribution shift).
+      float q           -> marca el top-q de los scores del split (p. ej. 0.10).
+      'base'            -> marca el top-(tasa real de anomalías del split).
+    Si el run no existe en la era pedida, cae a la corrida más reciente."""
+    rid = latest_run(name, cultivo, era) or latest_run(name, cultivo)
+    if not rid:
+        return None, None
+    d = load_run(rid).scores
+    d = d[d["split"] == split]
+    y = d["anomalia"].astype(int).to_numpy()
+    if op is None or op == "calibrated":
+        return y, d["y_pred"].astype(int).to_numpy()
+    s = d["score"].to_numpy()
+    q = float(y.mean()) if op in ("base", "base_rate") else float(op)
+    q = min(max(q, 0.0), 1.0)
+    if q <= 0:
+        return y, np.zeros_like(y)
+    thr = np.quantile(s, 1.0 - q)
+    return y, (s >= thr).astype(int)
+
+
+def plot_confusion_matrix(name, cultivo, split="test", normalize=False,
+                          ax=None, era=None, op=None):
+    """Matriz de confusión en `split`. Filas = real, columnas = predicho. `op` =
+    punto de operación del corte (ver `_labels_preds`): None=umbral calibrado en
+    val, float=top-q% del split, 'base'=top-(tasa real)%. `normalize=True` muestra
+    recall por fila."""
+    from sklearn.metrics import confusion_matrix
+    y, yp = _labels_preds(name, cultivo, split, era, op=op)
+    if y is None:
+        print(f"No hay run para {name} ({cultivo})"); return None
+    cm = confusion_matrix(y, yp, labels=[0, 1])
+    disp = cm.astype(float)
+    if normalize:
+        disp = disp / disp.sum(axis=1, keepdims=True).clip(min=1)
+    if ax is None:
+        _, ax = plt.subplots(figsize=(3.6, 3.2))
+    ax.imshow(disp, cmap="Blues", vmin=0)
+    names = ["normal", "anómala"]
+    ax.set_xticks([0, 1]); ax.set_xticklabels(names)
+    ax.set_yticks([0, 1]); ax.set_yticklabels(names)
+    ax.set_xlabel("predicho"); ax.set_ylabel("real")
+    ax.set_title(f"{name} · {cultivo} · {_op_label(op)}", fontsize=9)
+    thr = disp.max() / 2 if disp.max() else 0.5
+    for i in range(2):
+        for j in range(2):
+            txt = f"{disp[i, j]:.2f}" if normalize else f"{cm[i, j]}"
+            ax.text(j, i, txt, ha="center", va="center", fontsize=11,
+                    color="white" if disp[i, j] > thr else "black")
+    return ax
+
+
+def confusion_report(name, cultivo, split="test", era=None,
+                     ops=(0.10, "base")) -> pd.DataFrame:
+    """Métricas derivadas de la matriz de confusión en uno o varios puntos de
+    operación (re-umbral sobre el split). Una columna por op."""
+    from sklearn.metrics import confusion_matrix
+    idx = ["TP/FP/FN/TN", "Precision", "Recall", "Especificidad", "F1", "Balanced acc"]
+    data = {}
+    for op in ops:
+        y, yp = _labels_preds(name, cultivo, split, era, op=op)
+        if y is None:
+            return pd.DataFrame()
+        tn, fp, fn, tp = confusion_matrix(y, yp, labels=[0, 1]).ravel()
+        prec = tp / (tp + fp) if tp + fp else 0.0
+        rec  = tp / (tp + fn) if tp + fn else 0.0
+        spec = tn / (tn + fp) if tn + fp else 0.0
+        f1   = 2 * prec * rec / (prec + rec) if prec + rec else 0.0
+        data[_op_label(op)] = [f"{tp}/{fp}/{fn}/{tn}", round(prec, 3), round(rec, 3),
+                               round(spec, 3), round(f1, 3), round((rec + spec) / 2, 3)]
+    return pd.DataFrame(data, index=idx)
+
+
+def plot_confusion_grid(names_labels, cultivo, split="test", normalize=False,
+                        era=None, ops=(0.10, "base")):
+    """Grid de matrices de confusión: filas = puntos de operación (`ops`),
+    columnas = modelos. Cada CM se re-umbraliza sobre los scores del propio split
+    (top-q%), sin usar etiquetas para el corte."""
+    nrow, ncol = len(ops), len(names_labels)
+    fig, axs = plt.subplots(nrow, ncol, figsize=(3.3 * ncol, 3.1 * nrow), squeeze=False)
+    for i, op in enumerate(ops):
+        for j, (name, label) in enumerate(names_labels):
+            plot_confusion_matrix(name, cultivo, split, normalize=normalize,
+                                  ax=axs[i][j], era=era, op=op)
+            axs[i][j].set_title(f"{label} · {_op_label(op)}", fontsize=9)
+    fig.suptitle(f"Matrices de confusión — {cultivo} (filas = punto de operación; "
+                 f"{'norm. por fila' if normalize else 'conteos'})", y=1.0)
+    fig.tight_layout(); return fig
+
+
 def plot_all_metrics(name, cultivo, split="test"):
     """Barras de TODAS las métricas del run, con barra de error (±std entre seeds)."""
     m = run_metrics(name, cultivo, split)
