@@ -56,7 +56,7 @@ Trabajo_final_ML/
 │   ├── analyze_errors.py / analyze_labels.py / analyze_datamap.py  # Análisis (→ analysis/)
 │   ├── app_streamlit.py      # App de comparación de modelos (lado a lado)
 │   ├── experiments/          # Notebooks del recorrido completo (la historia del proyecto)
-│   ├── eda/                  # Construcción del panel (build_panel_union.py)
+│   ├── eda/                  # EDA del panel (eda_panel_union.ipynb) + construcción (build_panel_union.py)
 │   │
 │   ├── configs/              # Configs YAML por modelo (ae/ vae/ dae/ hybrid/ ensemble/ iforest/ deepod/)
 │   ├── runs/                 # Resultados guardados localmente, por modelo (gitignored)
@@ -72,9 +72,9 @@ Trabajo_final_ML/
 ## Dataset
 
 - **Panel**: `data/processed/panel_union.parquet`
-- **Filas**: 28 683 (departamento × cultivo × campaña)
-- **Features**: 54 (9 variables climáticas × 6 meses de campaña Sep–Feb)
-  - Variables: radiación solar, precipitación NASA, humedad, T media/max/min, viento, ONI, precipitación CHIRPS
+- **Filas**: 28 683 en bruto → **21 418** tras deduplicar (dedup en `data.load_panel`)
+- **Features**: 54 (7 variables NASA POWER × 7 meses Sep–Mar + ONI × 5 meses)
+  - Variables: radiación solar, precipitación, humedad, T media/max/min, viento, ONI
 - **Etiqueta proxy**: `z_rinde < -1.5` (z-score del rinde vs media móvil 5 años por departamento y cultivo)
 - **Splits temporales**:
   - Train: campañas 1981/82 – 2017/18 (solo años normales)
