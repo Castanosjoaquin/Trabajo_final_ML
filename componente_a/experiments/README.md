@@ -1,21 +1,20 @@
-# experiments/ — El proyecto contado de punta a punta (notebooks)
+# experiments/ — El recorrido experimental, notebook por notebook
 
-Notebooks **didácticos y reproducibles** que cuentan todo el Componente A: qué son los
-datos, cómo es el pipeline, cómo se entrena cada modelo, y el recorrido de experimentos
-hasta el modelo final. Pensados para que **alguien ajeno al proyecto** entienda y pueda
-**correr todo**.
+Notebooks **narrativos y reproducibles** del Componente A: cada uno toma una hipótesis
+de modelado, muestra el experimento que la puso a prueba y la conclusión que justifica
+el diseño final. Pensados para que **alguien ajeno al proyecto** pueda leerlos de
+corrido (vienen ejecutados, con tablas y gráficos embebidos) o **re-correr todo**.
+Todos los números salen de los runs actuales (mismo panel, misma evaluación).
 
-Vienen ya ejecutados (tablas + gráficos embebidos), así que se pueden leer directo; y
-cualquier modelo se puede **re-entrenar en el notebook**.
-
-| notebook | contenido |
-|---|---|
-| `00_datos_y_pipeline` | Qué son los datos, la etiqueta `z_rinde`, las features, los splits temporales y la normalización — **con plots del panel real** |
-| `01_evaluacion_baseline_y_como_correrlo` | Cómo se entrena/evalúa, **cómo reproducirlo** (entrenar en el notebook), PR-AUC vs F1, **selección en val vs test**, y el baseline IForest |
-| `02_modelos_de_reconstruccion` | AE (top-5 de 24) → DAE → híbrido AE+IForest → VAE — con **config y arquitectura** de cada uno |
-| `03_ensembles_y_modelo_final` | Seed-ensemble (de la varianza al modelo final) + **Dataset Cartography** explicada |
-| `04_limpieza_de_datos_y_features` | El punto de quiebre (limpieza, +0.09–0.14) + NDVI / suelo / heladas |
-| `05_modernos_y_techo_estructural` | Benchmark vs métodos modernos (deepod) + el techo estructural + comparación final |
+| nb | notebook | pregunta que responde |
+|---|---|---|
+| 0 | `00_el_problema_y_los_datos` | El problema, el panel, la etiqueta proxy `z_rinde` (y sus decisiones de diseño), splits y normalización |
+| 1 | `01_evaluacion_y_baseline` | Por qué PR-AUC multi-seed, el *distribution shift* del umbral, por qué val no permite seleccionar, y el baseline (IForest tuneado, 0.511) |
+| 2 | `02_reconstruccion_ae_a_vae` | AE (los HP no eran el cuello) → score max/top-k (refutado) → DAE → híbrido AE+IForest (refutado) → **VAE `recon_prob`**: el salto es el *score*, no la arquitectura |
+| 3 | `03_varianza_y_seed_ensemble` | De dónde viene la varianza del VAE (MC no, reg no, Student-t no) y cómo la elimina el **seed-ensemble ×10** → modelo final (soja 0.592, maíz 0.508) |
+| 4 | `04_el_techo_estructural` | ¿Por qué nadie pasa de ~0.6? Cross-modelo (todos fallan en las mismas anomalías, sin firma climática), Dataset Cartography, auditoría de etiqueta, t-SNE |
+| 5 | `05_features_nuevas` | Features agro, NDVI-AVHRR y ERA5: ayudan al IForest, perjudican al VAE, ninguna supera al base → el techo se confirma |
+| 6 | `06_modernos_leaderboard_y_conclusiones` | Benchmark justo vs deepod (DeepSVDD/ICL/NeuTraL), leaderboard final, el modelo final por dentro, limitaciones y conclusiones |
 
 ## Reproducibilidad: entrenar en el notebook
 
@@ -44,18 +43,17 @@ jupyter notebook experiments/        # leer / correr
 ```
 
 ## Nota metodológica (importante)
-La **selección de modelo** debería hacerse en **validación** y el **test** usarse una sola
-vez. Acá el val es chico/ruidoso (5–9 anomalías), así que mostramos test para *ilustrar* las
-comparaciones, dejando la limitación explícita (NB 1). El ranking en val y test coincide.
-
-## Dos eras de datos
-El recorrido tiene dos etapas (es parte de la historia): **exploración** (panel original,
-NB 2) y **modelos finales** (panel limpio, NB 3–5). La limpieza (NB 4) es el punto de quiebre
-que subió a todos. `explib` selecciona la era con `era='dirty'|'clean'`.
+La **selección de modelo** debería hacerse en **validación** y el **test** usarse una
+sola vez. Acá el val es tan chico (5–9 anomalías) que sus métricas son ruido (PR-AUC ≈
+tasa base) y no permiten seleccionar; mostramos test para *ilustrar* las comparaciones,
+con el riesgo de *data snooping* dejado explícito (nb. 1).
 
 ## Estructura interna
-- **`explib.py`** — motor: carga de runs, `run_experiment` (entrenar-o-cargar),
-  `show_yaml`/`describe_architecture`, tablas (`compare_table`, `run_metrics`,
-  `tbl_journey`, `tbl_leaderboard`…) y plots (`plot_all_metrics`, `plot_loss`,
-  `plot_compare`, `plot_pr_curves`, `plot_leaderboard_compare`).
-- **`_build_notebooks.py`** — generador de los `.ipynb`.
+- **`explib.py`** — motor: carga de runs (siempre la corrida más reciente de cada
+  config), `run_experiment` (entrenar-o-cargar), `show_yaml`/`describe_architecture`,
+  tablas (`compare_table`, `run_metrics`, `summary_fields`, `tbl_leaderboard`,
+  `tbl_modern`) y plots (`plot_all_metrics`, `plot_loss`, `plot_compare`,
+  `plot_pr_curves`, `plot_confusion_grid`, `plot_score_hist_grid`, `plot_embeddings`,
+  `plot_leaderboard_compare`).
+- **`_build_notebooks.py`** — generador de los `.ipynb` (después se ejecutan con
+  `jupyter nbconvert --execute --inplace` para embeber salidas).

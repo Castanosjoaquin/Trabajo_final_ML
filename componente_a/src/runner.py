@@ -7,7 +7,7 @@ que cumpla AnomalyDetector pasa por acá sin cambios → comparación justa.
 """
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -38,16 +38,12 @@ def _flatten_summary(cfg_model: Dict, val_m: Dict, test_m: Dict,
 
 
 def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
-              cfg: ExperimentConfig,
-              sweep_factory: Optional[Callable] = None,
-              sweep_grids: Optional[Dict] = None) -> RunResult:
+              cfg: ExperimentConfig) -> RunResult:
     """Entrena y evalúa un detector sobre un cultivo, devuelve un RunResult.
 
     Las proyecciones 2D (UMAP/t-SNE) NO se calculan acá: son lentas y opcionales.
     Se computan on-demand con `embeddings.compute_embeddings(run_id)` cuando la
     app o un notebook las pide (dependen solo de X + los scores ya guardados).
-
-    sweep_factory(n_estimators, max_samples) -> AnomalyDetector (opcional).
     """
     # --- Entrenar (solo train normal) y scorear ---
     detector.fit(dataset.X_train)
@@ -119,14 +115,6 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
     curves_df = (pd.concat(curve_frames, ignore_index=True) if curve_frames
                  else pd.DataFrame(columns=["curve", "split", "x", "y"]))
 
-    # --- Barrido opcional ---
-    sweep_df = None
-    if sweep_factory is not None and sweep_grids is not None:
-        sweep_df = ev.hyperparam_sweep(
-            sweep_factory, dataset.X_train,
-            lambda det: det.score_samples(dataset.X_val), dataset.y_val,
-            sweep_grids["n_estimators"], sweep_grids["max_samples"])
-
     # --- Config completo (experimento + modelo) y summary plano ---
     full_config = {**cfg.to_dict(), **detector.get_config(),
                    "cultivo": dataset.cultivo, "model_name": model_name,
@@ -138,7 +126,7 @@ def run_model(model_name: str, detector: AnomalyDetector, dataset: CropDataset,
         run_id=make_run_id(model_name, dataset.cultivo),
         model_name=model_name, cultivo=dataset.cultivo,
         config=full_config, summary=summary,
-        scores=scores_df, curves=curves_df, embeddings=pd.DataFrame(), sweep=sweep_df,
+        scores=scores_df, curves=curves_df, embeddings=pd.DataFrame(),
     )
 
 
@@ -150,9 +138,7 @@ _AGG_KEYS = ["val_pr_auc", "val_roc_auc", "val_f1",
 
 def run_model_multiseed(model_name: str, detector_factory: Callable[[int], AnomalyDetector],
                         dataset: CropDataset, cfg: ExperimentConfig,
-                        n_seeds: int = 5, base_seed: int = 42,
-                        sweep_factory: Optional[Callable] = None,
-                        sweep_grids: Optional[Dict] = None) -> RunResult:
+                        n_seeds: int = 5, base_seed: int = 42) -> RunResult:
     """Corre el detector con `n_seeds` semillas y agrega media/desvío de las
     métricas. Devuelve UN RunResult representativo (semilla mediana por
     val_pr_auc — la métrica de selección, nunca toca labels de test) con los
@@ -162,8 +148,7 @@ def run_model_multiseed(model_name: str, detector_factory: Callable[[int], Anoma
     detector_factory(seed) -> AnomalyDetector  (con ese random_state).
     """
     if n_seeds <= 1:
-        res = run_model(model_name, detector_factory(base_seed), dataset, cfg,
-                        sweep_factory, sweep_grids)
+        res = run_model(model_name, detector_factory(base_seed), dataset, cfg)
         res.summary["n_seeds"] = 1
         return res
 
@@ -202,8 +187,7 @@ def run_model_multiseed(model_name: str, detector_factory: Callable[[int], Anoma
     rep = per_seed[int(order[len(order) // 2])]["seed"]
 
     # --- Run completo (scores/curvas) en la semilla representativa ---
-    result = run_model(model_name, detector_factory(rep), dataset, cfg,
-                       sweep_factory, sweep_grids)
+    result = run_model(model_name, detector_factory(rep), dataset, cfg)
     result.summary.update(agg)
     result.summary["representative_seed"] = int(rep)
     return result

@@ -56,7 +56,7 @@ def _load_run(runs_dir, run_id):
                      "cultivo": r.cultivo, "created_at": r.created_at},
             "config": r.config, "summary": r.summary,
             "scores": r.scores, "curves": r.curves,
-            "embeddings": emb, "sweep": r.sweep}
+            "embeddings": emb}
 
 
 # -----------------------------------------------------------------------------
@@ -255,16 +255,3 @@ with col_a:
     render_column(run_a, run_b, metric_key)
 with col_b:
     render_column(run_b, run_a, metric_key)
-
-# Barrido de hiperparámetros (si existe)
-if run_a["sweep"] is not None or run_b["sweep"] is not None:
-    st.markdown("---")
-    st.subheader("Barrido de hiperparámetros (PR-AUC val)")
-    sc1, sc2 = st.columns(2)
-    for c, run in [(sc1, run_a), (sc2, run_b)]:
-        with c:
-            st.caption(run["meta"]["model_name"])
-            if run["sweep"] is not None:
-                st.dataframe(run["sweep"], hide_index=True, width='stretch')
-            else:
-                st.info("Sin barrido para este run.")

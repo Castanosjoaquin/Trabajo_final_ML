@@ -1,5 +1,9 @@
-"""Genera los notebooks de experiments/ — didácticos, reproducibles, con narrativa.
+"""Genera los notebooks de experiments/ — el recorrido experimental del Componente A:
+cada hipótesis de arquitectura, el experimento que la puso a prueba y la conclusión.
+Todos los números salen de los runs actuales (mismo panel, misma evaluación).
+
     python experiments/_build_notebooks.py
+
 Leen de runs/ (no re-entrenan por defecto), pero permiten entrenar en el notebook
 (force_train=True). Después se ejecutan con nbconvert para embeber salidas."""
 import os
@@ -35,33 +39,53 @@ for old in glob.glob(os.path.join(HERE, "*.ipynb")):
 
 
 # ===========================================================================
-# 00 — Datos y pipeline (la base que faltaba)
+# 00 — El problema y los datos
 # ===========================================================================
-build("00_datos_y_pipeline.ipynb", "0 · Los datos y el pipeline", [
-    md("""Antes de cualquier modelo: **¿qué son los datos y cómo los procesamos?** Este
-notebook carga el panel real y muestra cada paso. Es la base para entender todo lo demás.
+build("00_el_problema_y_los_datos.ipynb", "0 · El problema y los datos", [
+    md("""Serie de notebooks del Componente A. Cada uno toma una **hipótesis de
+modelado**, muestra el **experimento** que la puso a prueba y la **conclusión** que
+justifica el diseño final. Se pueden leer de corrido (vienen ejecutados) o re-correr.
+
+| nb | pregunta que responde |
+|---|---|
+| **0** | ¿Qué datos, qué etiqueta, qué pipeline? |
+| **1** | ¿Cómo se evalúa un detector acá (y por qué así)? + el baseline |
+| **2** | ¿Reconstrucción? AE → DAE → scoring → híbrido → **VAE `recon_prob`** |
+| **3** | ¿Cómo se elimina la varianza de los modelos profundos? El **seed-ensemble** |
+| **4** | ¿Por qué ningún modelo pasa de ~0.6? El **techo estructural** |
+| **5** | ¿Más features (agro, NDVI, suelo/heladas) ayudan? |
+| **6** | ¿Y los métodos modernos? Leaderboard final y conclusiones |
+
+---
 
 **El problema:** detectar **campañas con rinde anómalo** por departamento (soja/maíz,
-Argentina, 1981–2024). Es **no supervisado**: entrenamos solo con campañas normales."""),
+Argentina, 1981–2024) usando solo variables climáticas. Es **no supervisado**: el modelo
+entrena solo con campañas normales y nunca ve la etiqueta."""),
     code(SETUP),
-    md("""## 1 · El panel
+    md("""## 0.1 · El panel
 Una fila = un (departamento, campaña, cultivo). Columnas: identificadores, `rinde_kgha`
-(el objetivo) y ~54 features climáticas (promedios mensuales Sep–Mar)."""),
+(el objetivo) y ~54 features climáticas (promedios mensuales Sep–Mar de NASA POWER,
+CHIRPS y ONI). La carga (`data.load_panel`) deduplica y usa siempre la clave geográfica
+completa `[provincia, departamento]`."""),
     code("""from src.config import ExperimentConfig
 from src import data as cdata
 cfg = ExperimentConfig()
-panel = cdata.load_panel(cfg)     # incluye el dedup (ver NB 4)
+panel = cdata.load_panel(cfg)
 print("shape:", panel.shape)
 panel[["provincia","departamento","campania","cultivo","rinde_kgha"]].head()"""),
-    md("""## 2 · La etiqueta proxy `z_rinde`
-No tenemos etiquetas de "anomalía". Las definimos: cuánto cae el rinde respecto de la
-**media móvil del propio departamento**.
+    md("""## 0.2 · La etiqueta proxy `z_rinde`
+No existen etiquetas de "anomalía", así que la definimos: cuánto cae el rinde respecto
+de la **media móvil del propio departamento**.
 
-`z_rinde = (rinde − media_móvil) / desvío_móvil`  → `anomalía = z_rinde < −1.5`
+`z_rinde = (rinde − media_móvil_5_años) / desvío_móvil`  → `anomalía = z_rinde < −1.5`
 
-Se calcula con `shift(1)` (solo pasado, sin leakage) y agrupando por
-`[provincia, departamento, cultivo]`. **El modelo nunca ve esta etiqueta — solo se usa
-para evaluar.**"""),
+Decisiones de diseño (y su porqué):
+- Se calcula con `shift(1)`: solo pasado, **sin leakage**.
+- Se agrupa por `[provincia, departamento, cultivo]`. El `cultivo` es clave: la soja
+  rinde ~2700 kg/ha y el maíz ~6700 — mezclarlos en un mismo baseline sesgaría el
+  z-score de cada uno en direcciones opuestas.
+- **El modelo nunca la ve** — es solo para evaluar. Es la misma para todos los modelos
+  (comparación justa)."""),
     code("""panel_z = cdata.compute_z_rinde(panel, cfg)
 print("tasa de anomalías por cultivo:")
 print((panel_z.groupby("cultivo")["anomalia"].mean()*100).round(1).astype(str) + " %")"""),
@@ -80,300 +104,510 @@ ax.hist(panel_z[panel_z.cultivo=="soja"]["z_rinde"].dropna(), bins=60, color="#5
 ax.axvline(-1.5, color="red", ls="--", lw=2, label="umbral (-1.5)")
 ax.set_xlabel("z_rinde"); ax.set_ylabel("frecuencia"); ax.set_title("Distribución de z_rinde (soja)")
 ax.legend(); plt.show()"""),
-    md("""## 3 · Las features (X)
+    md("""## 0.3 · Las features (X)
 54 columnas = ~9 variables climáticas × 7 meses (Sep–Mar). NO incluyen el rinde."""),
     code("""feats = cdata.build_feature_list(panel, cfg.use_ndvi)
 print(f"nº de features: {len(feats)}")
 prefijos = sorted(set(f.rsplit('_',1)[0] for f in feats))
 print("variables:", prefijos)"""),
-    md("""## 4 · Splits temporales + entrenar-solo-con-normales + normalización
-- **Split temporal** (no aleatorio): train ≤2017, val 2018–2020, test ≥2021.
+    md("""## 0.4 · Splits temporales + entrenar-solo-con-normales + normalización
+- **Split temporal** (no aleatorio): train ≤2017, val 2018–2020, test ≥2021. Simula el
+  uso real: detectar anomalías en campañas futuras.
 - **Train normal**: del train se excluyen las anomalías y los años con >30% de deptos
   anómalos → el modelo aprende solo "lo normal".
-- **Normalización por departamento** (z-score), con stats calculadas SOLO en train normal
-  (sin leakage), e incluyendo la provincia para no mezclar deptos homónimos."""),
+- **Normalización por departamento** (z-score) con stats calculadas SOLO en train normal
+  (sin leakage). Si un feature tiene desvío 0 en un departamento, se usa el desvío
+  global como fallback (no se pierde la fila)."""),
     code("""ds = cdata.build_crop_dataset(panel_z, "soja", cfg)
 print(f"train normal (≤2017): {len(ds.X_train):5d} filas")
 print(f"val        (2018-20): {len(ds.X_val):5d} filas  ({int(ds.y_val.sum())} anomalías)")
 print(f"test       (≥2021)  : {len(ds.X_test):5d} filas  ({int(ds.y_test.sum())} anomalías)")
 print(f"X_train: matriz {ds.X_train.shape} (filas normales × features, ya normalizada)")"""),
     md("""**Con esto el pipeline está listo.** Cualquier detector recibe `X_train` (normales)
-para `fit()` y puntúa `X_val`/`X_test` con `score_samples()` (mayor = más anómalo). Todo lo
-demás (entrenar, evaluar, comparar) se construye sobre esto → próximo notebook."""),
+para `fit()` y puntúa `X_val`/`X_test` con `score_samples()` (mayor = más anómalo). Todo
+lo demás (entrenar, evaluar, comparar) se construye sobre esta interfaz común
+(`AnomalyDetector`) → **próximo notebook**."""),
 ])
 
 # ===========================================================================
-# 01 — Evaluación, reproducibilidad y baseline
+# 01 — Evaluación y baseline
 # ===========================================================================
-build("01_evaluacion_baseline_y_como_correrlo.ipynb", "1 · Evaluación, baseline y cómo reproducirlo", [
-    md("""Acá explicamos **cómo medimos, cómo se entrena un modelo, y cómo reproducir todo**.
-Después fijamos el baseline (Isolation Forest) que hay que superar."""),
-    code(SETUP),
-    md("""## 1 · Cómo se entrena y evalúa un modelo (y cómo correrlo vos)
-Todo modelo cumple la interfaz `AnomalyDetector`: `fit(X_train)` (solo normales) +
-`score_samples(X)`. El helper `explib.run_experiment` **carga** el run guardado o, con
-`force_train=True`, lo **entrena de verdad** con el pipeline real y lo guarda en `runs/`.
+build("01_evaluacion_y_baseline.ipynb", "1 · Cómo se evalúa (y por qué así) + el baseline", [
+    md("""Antes de comparar modelos hay que poder **confiar en la comparación**. Tres
+propiedades de este dataset obligan a elegir las métricas con cuidado; las tres están
+verificadas experimentalmente:
 
-Veamos la configuración del baseline (un YAML de `configs/`):"""),
+1. **El F1 con umbral fijo es engañoso.** El umbral se calibra en val (5–9 anomalías,
+   tasa base ~6%) y en test la tasa base salta a ~27% (la sequía 2022/23 está en test):
+   un corte absoluto calibrado en val marca casi todo el test como anómalo y todos los
+   modelos dan F1 ≈ tasa base. → La métrica principal es **PR-AUC** (libre de umbral,
+   sensible al desbalance); ROC-AUC como referencia.
+2. **Una sola semilla no es representativa.** Los modelos profundos varían mucho entre
+   semillas (un mismo AE puede dar ROC 0.50 o 0.68 según la seed). → **Todo se reporta
+   multi-seed: media ± desvío** (10 semillas por defecto).
+3. **La validación es diminuta** (5–9 anomalías): sus métricas son ruido y no permiten
+   seleccionar modelos (lo mostramos abajo). → Las comparaciones se ilustran en test,
+   con el riesgo de *data snooping* dejado explícito."""),
+    code(SETUP),
+    md("""## 1.1 · Cómo se entrena y evalúa un modelo (reproducibilidad)
+Todo modelo cumple la interfaz `AnomalyDetector`: `fit(X_train)` (solo normales) +
+`score_samples(X)`. Cada experimento es un YAML de `configs/`. El helper
+`explib.run_experiment` **carga** el run guardado o, con `force_train=True`, lo
+**entrena de verdad** con el pipeline real y lo guarda en `runs/`."""),
     code('explib.show_yaml("configs/iforest/iforest_v2_mf03_n200.yaml")'),
     code('explib.describe_architecture("configs/iforest/iforest_v2_mf03_n200.yaml")'),
-    md("""**Entrenarlo / cargarlo** (poné `force_train=True` para re-entrenar — tarda unos
-segundos el IForest; los VAE, varios minutos):"""),
     code("""res = explib.run_experiment("configs/iforest/iforest_v2_mf03_n200.yaml", "soja",
                             force_train=False)   # ← cambiá a True para entrenarlo vos
 print("run:", res.run_id)"""),
-    md("""## 2 · Métricas: por qué PR-AUC (y no F1), y por qué reportamos desvío
-- **PR-AUC** (principal) y **ROC-AUC**: libres de umbral.
-- **F1 es engañoso acá**: el umbral se calibra en val (pocas anomalías) y en test la tasa
-  base salta a ~30% → casi todos dan F1 ≈ tasa base. No lo usamos para decidir.
-- **Multi-seed**: reportamos **media ± desvío** porque los modelos profundos varían entre
-  semillas."""),
     code('explib.plot_all_metrics("iforest_v2_mf03_n200", "soja"); plt.show()'),
-    md("""### Matriz de confusión y el punto de operación
-Las métricas de arriba (PR-AUC) son **libres de umbral** — miden el *ranking*. La matriz de
-confusión necesita un **corte**, y ahí hay una sutileza importante:
+    md("""## 1.2 · La matriz de confusión y el *distribution shift*
+Las métricas de arriba miden el **ranking** de los scores. La matriz de confusión
+necesita un **corte**, y acá hay un fenómeno importante del dataset:
 
-> ⚠️ **El umbral calibrado en validación NO transfiere a test.** Se calibra como el percentil
-> 90 de los scores de *val*, pero los scores se corren mucho hacia arriba entre val (2018–20)
-> y test (2021–24) —el clima se aleja del período de entrenamiento— así que ese corte termina
-> marcando **~70% del test** como anómalo. No es que el modelo crea que el 70% son anómalas:
-> es el *distribution shift* lavando un corte absoluto.
+> ⚠️ **Un umbral calibrado en validación NO transfiere a test.** Como los splits son
+> temporales, el clima de test (2021–24) está más lejos del período de entrenamiento que
+> el de val (2018–20): *todo* reconstruye un poco peor y los scores suben en bloque. Un
+> corte absoluto fijado en val termina marcando ~70% del test.
 
 Por eso re-umbralizamos sobre los **scores del propio test** (sin usar etiquetas para el
 corte) en **dos puntos de operación**: **top-10%** (presupuesto de alertas acotado) y
-**top-tasa real** (~27%, la fracción que realmente es anómala en test). Filas = real,
-columnas = predicho."""),
+**top-tasa real** (~27%, la fracción realmente anómala del test)."""),
     code('explib.plot_confusion_grid([("iforest_v2_mf03_n200","IForest baseline")], "soja"); plt.show()'),
     code('explib.show(explib.confusion_report("iforest_v2_mf03_n200", "soja"))'),
-    md("""Leído así, el punto de operación se entiende: al **top-10%** la precisión es alta
-(casi todo lo que marca es anomalía real) pero el recall bajo (con 10% de presupuesto no se
-puede cubrir el 27% que hay); al **top-tasa real** precision y recall se igualan. Este es el
-patrón con el que comparar todos los modelos."""),
-    md("""## 3 · ⚠️ Selección en validación, no en test (nota metodológica)
-**Lo correcto** es *elegir* el mejor modelo mirando **validación**, y usar **test una sola
-vez** para el número final del modelo ya elegido. Comparar muchos modelos en test y quedarse
-con el ganador sesga la métrica (data snooping).
+    md("""Al **top-10%** la precisión es alta pero el recall queda acotado por el presupuesto;
+al **top-tasa real** precision y recall se equilibran. Este es el patrón con el que se
+lee el punto de operación de cualquier modelo de la serie.
 
-**Limitación de este proyecto:** nuestro val es chico (5–9 anomalías) → ruidoso. Por eso a
-lo largo de los notebooks mostramos test (más estable) para *ilustrar* las comparaciones,
-pero la **decisión final** debería apoyarse en val. Acá los dos, lado a lado:"""),
+## 1.3 · ⚠️ La validación no permite seleccionar (nota metodológica)
+Lo correcto es elegir el modelo en **validación** y tocar **test una sola vez**. Veamos
+qué da nuestra validación:"""),
     code("""modelos = [("iforest_v2_mf03_n200","IForest"), ("vae_seedens_v1","VAE seed-ens"),
            ("vae_v4_reconprob_lat16","VAE single")]
 print("— VALIDACIÓN —"); display(explib.show(explib.compare_table(modelos, "soja", split="val")))
 print("— TEST —");       display(explib.show(explib.compare_table(modelos, "soja", split="test")))"""),
-    md("""El ranking en val y en test **coincide** (el VAE seed-ensemble gana en ambos), así
-que la conclusión se sostiene; pero dejamos explícita la limitación.
+    md("""Con 5–9 anomalías, las métricas de val son **ruido** — PR-AUC ≈ tasa base (~0.05)
+para todos los modelos, con desvíos que solapan todo. Val no alcanza para seleccionar.
+Lo declaramos en vez de esconderlo: las comparaciones se ilustran en test, y la confianza
+en el modelo final viene de que su ventaja es **consistente en ambos cultivos** y su
+varianza entre semillas es mínima (nb. 3).
 
-## 4 · El baseline a superar: Isolation Forest = **PR-AUC 0.51 (soja)**
-Es el listón de toda la historia. En los próximos notebooks vamos modelo por modelo."""),
+## 1.4 · El baseline: Isolation Forest
+Ensamble de árboles que aísla puntos raros; no neuronal, varianza baja — el punto de
+referencia natural. La búsqueda de hiperparámetros (grilla sobre `max_features`,
+`n_estimators`, `max_samples`) encontró una sola palanca con efecto real:
+**`max_features=0.3`** (cada árbol mira un subconjunto de las 54 features, anomalías
+más "locales")."""),
+    code("""explib.show(explib.compare_table([
+    ("iforest_v1_base","IForest default"),
+    ("iforest_v2_mf03_n200","IForest tuneado (mf=0.3, n=200)")], "soja"))"""),
+    md("""**Conclusión del notebook:** métrica principal PR-AUC, todo multi-seed, umbral
+re-calibrado por split, y un listón claro: **IForest tuneado, PR-AUC 0.511 (soja)**.
+
+**Próximo notebook:** ¿puede un modelo de reconstrucción superarlo?"""),
 ])
 
 # ===========================================================================
-# 02 — Modelos de reconstrucción
+# 02 — Reconstrucción: del AE al VAE recon_prob
 # ===========================================================================
-build("02_modelos_de_reconstruccion.ipynb", "2 · Modelos de reconstrucción: AE → DAE → híbrido → VAE", [
-    md("""**Autoencoders**: se entrenan a reconstruir las campañas normales; lo que
-reconstruyen mal = anómalo. Recorremos los intentos en orden, siempre vs el baseline.
-
-> *Fase de exploración*, sobre el panel original (la limpieza de datos es el NB 4). Importa
-> la **comparación relativa** entre enfoques; los números absolutos suben después."""),
+build("02_reconstruccion_ae_a_vae.ipynb",
+      "2 · Reconstrucción: AE → DAE → scoring → híbrido → VAE recon_prob", [
+    md("""**Hipótesis de partida:** un autoencoder entrenado solo con campañas normales
+reconstruye mal las anómalas; el error de reconstrucción sirve de score de anomalía
+(Sakurada & Yairi 2014). Este notebook recorre esa familia completa — cada variante con
+su experimento — hasta el hallazgo que define el modelo final: **lo que importa no es la
+arquitectura, es el score**."""),
     code(SETUP),
-    md("""## 2.1 — Autoencoder (AE)
-Arquitectura: encoder comprime las 54 features a un latente chico, decoder reconstruye.
-Score = error de reconstrucción (MSE). Veamos un config y su estructura:"""),
+    md("""## 2.1 · AE: la arquitectura no era el cuello de botella
+Encoder comprime las 54 features a un latente chico, decoder reconstruye,
+score = error de reconstrucción (MSE). Config representativo:"""),
     code('explib.describe_architecture("configs/ae/ae_v11_cosine_deep.yaml")'),
-    md("Entrenamos **24 variantes** (arquitectura, latente, dropout, schedules). Los 5 mejores:"),
-    code('explib.show(explib.top_runs("ae", "soja", n=5, era="dirty"))'),
-    md("""El rango entre las 24 fue de **~0.034**: tunear hiperparámetros casi no movió la
-aguja → el cuello de botella no era ése. Curva de loss y métricas del mejor AE:"""),
-    code("""best_ae = explib.top_runs("ae","soja",1,era="dirty")["name"].iloc[0]
-explib.plot_loss(best_ae, "soja"); plt.show()
-explib.plot_all_metrics(best_ae, "soja"); plt.show()"""),
-    md("""## 2.2 — Denoising AE (DAE)
-Se entrena reconstruyendo *limpio* desde input *corrupto* → más robusto al ruido. Ayuda
-algo, pero sigue en el rango del AE."""),
-    code('explib.show(explib.compare_table([("dae_v1_base","DAE base"), ("dae_v2_sweep_best","DAE sweep")], "soja"))'),
-    md("""## 2.3 — Híbrido: AE-latente + Isolation Forest
-Correr IForest sobre el **latente** del AE. En la literatura suele ganar; acá **falló** — el
-bottleneck del AE destruye la estructura que el IForest necesita."""),
-    code('explib.show(explib.compare_table([("ae_iforest_v1","híbrido lat8"), ("ae_iforest_v2_latent16","híbrido lat16")], "soja"))'),
-    md("""## 2.4 — VAE: el salto del *score probabilístico*
-El VAE usa `recon_prob` (An & Cho 2015): pondera el error de cada feature por la **varianza
-que el decoder le asigna**. Ese cambio de *score* (no de arquitectura) es lo que mueve la
-aguja."""),
+    code("""explib.show(explib.compare_table([
+    ("iforest_v2_mf03_n200","IForest (baseline)"),
+    ("ae_v11_cosine_deep","AE")], "soja"))"""),
+    code('explib.plot_loss("ae_v11_cosine_deep", "soja"); plt.show()'),
+    md("""El AE entrena bien (la loss converge) pero queda **por debajo del baseline y con más
+varianza** — y no por falta de tuning: en la fase de exploración se probaron **24
+variantes** de arquitectura y optimización (capas, latente, activaciones, dropout,
+weight decay, batch norm, schedules) sin que ninguna alcanzara al IForest.
+**Conclusión: los hiperparámetros del AE no eran el cuello de botella.**
+
+## 2.2 · ¿Y si el problema es cómo se agrega el error? (score max / top-k)
+Hipótesis: el MSE *promedia* sobre 54 features; si solo unas pocas reconstruyen mal, la
+señal se diluye. Probamos score = **máximo error por feature** y **suma de los top-5**:"""),
+    code("""explib.show(explib.compare_table([
+    ("ae_v11_cosine_deep","AE (MSE)"),
+    ("ae_score_max","AE score=max"),
+    ("ae_score_topk5","AE score=top-5")], "soja"))"""),
+    md("""**Refutado:** igual o peor. La intuición era razonable, pero un agregado *fijo*
+del error no es la respuesta (guardá la idea: la versión **probabilística** de esto sí
+va a funcionar, en 2.5).
+
+## 2.3 · DAE: denoising
+Entrenar reconstruyendo *limpio* desde input *corrupto* hace la representación más
+robusta al ruido — otra palanca clásica de la familia:"""),
+    code("""explib.show(explib.compare_table([
+    ("ae_v11_cosine_deep","AE"),
+    ("dae_v1_base","DAE"),
+    ("dae_seedens_v1","DAE seed-ensemble ×10")], "soja"))"""),
+    md("""**Tampoco:** el denoising no supera al AE y queda lejos del baseline, incluso
+promediando 10 semillas. La robustez al ruido del *input* no era el problema.
+
+## 2.4 · Híbrido de la literatura: IForest sobre el latente del AE
+Hipótesis: el AE comprime, el IForest aísla en el espacio comprimido — lo mejor de los
+dos mundos."""),
+    code("""explib.show(explib.compare_table([
+    ("iforest_v2_mf03_n200","IForest (sobre features)"),
+    ("ae_iforest_v2_latent16","IForest sobre latente del AE")], "soja"))"""),
+    md("""**Refutado, con ganas:** peor que cada componente por separado y con la varianza
+más alta de la familia. La receta asume que el latente preserva la estructura de
+anomalía; en un panel heterogéneo de ~276 departamentos, el bottleneck la destruye.
+
+## 2.5 · VAE: el hallazgo del *score probabilístico*
+El VAE modela `p(x|z)` con media **y varianza** por feature. Eso habilita el score
+**`recon_prob`** (An & Cho 2015): `-E[log p(x|z)]` estimado por Monte Carlo — el error
+de cada feature **ponderado por la varianza que el decoder le asigna**. Es la versión
+principiada de lo que `max`/`top-k` intentaba a mano. Dos experimentos lo aíslan:
+
+**(a) Mismo VAE, distinto score** — el salto es del score, no de la arquitectura:"""),
+    code("""explib.show(explib.compare_table([
+    ("vae_v9_negelbo_lat16_bn","VAE score=neg_elbo"),
+    ("vae_v4_reconprob_lat16","VAE score=recon_prob")], "soja"))"""),
+    md("**(b) `recon_prob` con y sin regularización pesada** — la regularización destruye la señal:"),
+    code("""explib.show(explib.compare_table([
+    ("vae_v4_reconprob_lat16","recon_prob limpio (v4)"),
+    ("vae_v8_reconprob_reg","recon_prob + BN/dropout/β=0.5")], "soja"))"""),
+    md("""La varianza per-feature del decoder ya regulariza el score; apilarle batch norm,
+dropout y β bajo lo aplana. El refinamiento convergió rápido: β óptimo 1.0–1.5,
+**latente 16**, hidden [64,32] (la versión profunda [128,64], `v15`, es comparable).
+Config final del single:"""),
     code('explib.describe_architecture("configs/vae/vae_v4_reconprob_lat16.yaml")'),
     code('explib.plot_loss("vae_v4_reconprob_lat16", "soja"); plt.show()'),
-    md("### Comparación de toda la fase (test, media±std) — misma era (panel original)"),
-    code("""recon = [("iforest_v1_base","IForest (baseline)"), (best_ae,"AE (mejor)"),
-         ("ae_iforest_v2_latent16","Híbrido AE+IForest"), ("vae_v4_reconprob_lat16","VAE recon_prob")]
-explib.show(explib.compare_table(recon, "soja", era="dirty"))"""),
-    code('explib.plot_compare(recon, "soja", era="dirty", baseline=0.389, title="Fase reconstrucción — PR-AUC (soja)"); plt.show()'),
-    md("""### Matriz de confusión por tipo de modelo (re-umbralizado sobre test)
-Más allá del ranking PR-AUC, así se ve el **punto de operación** de cada tipo de modelo. Como
-en el NB 1, re-umbralizamos sobre los scores del propio test en dos puntos: **top-10%**
-(presupuesto) y **top-tasa real** (~27%). Filas del grid = punto de operación; columnas =
-tipo de modelo. Se ve qué enfoque rankea mejor las anomalías a igual presupuesto de alertas."""),
-    code("""recon_cm = [(best_ae, "AE"), ("dae_v1_base", "DAE"),
-            ("ae_iforest_v2_latent16", "Híbrido"), ("vae_v4_reconprob_lat16", "VAE")]
-explib.plot_confusion_grid(recon_cm, "soja", era="dirty"); plt.show()"""),
-    md("""### Distribución del score por tipo de modelo (el histograma de la app)
-Score de las campañas **normales** (azul) vs **anómalas** (naranja) en test. Cuanto más
-**separadas** las dos distribuciones, mejor rankea el modelo. Se ve por qué el VAE
-`recon_prob` gana: corre la cola de las anómalas más a la derecha que el AE/híbrido."""),
-    code('explib.plot_score_hist_grid(recon_cm, "soja", era="dirty"); plt.show()'),
-    md("""**Conclusión:** el **VAE `recon_prob`** es el mejor modelo de reconstrucción y el
-único que le pelea al baseline. Pero tiene **alta varianza** (±0.03) — lo atacamos en el NB 3."""),
+    md("### La familia completa, contra el baseline"),
+    code("""recon = [("iforest_v2_mf03_n200","IForest (baseline)"),
+         ("ae_v11_cosine_deep","AE"), ("dae_v1_base","DAE"),
+         ("ae_score_max","AE score=max"), ("ae_iforest_v2_latent16","Híbrido AE+IForest"),
+         ("vae_v9_negelbo_lat16_bn","VAE neg_elbo"),
+         ("vae_v4_reconprob_lat16","VAE recon_prob"),
+         ("vae_v15_reconprob_deep","VAE recon_prob deep")]
+explib.show(explib.compare_table(recon, "soja"))"""),
+    code('explib.plot_compare(recon, "soja", baseline=0.511, title="Familia reconstrucción — PR-AUC (soja)"); plt.show()'),
+    md("""### El score, visto en las distribuciones
+Score de campañas **normales** (azul) vs **anómalas** (naranja) en test. Cuanto más
+separadas, mejor rankea. Se ve por qué `recon_prob` gana: corre la cola de las anómalas
+más a la derecha que el MSE del AE o el híbrido."""),
+    code("""explib.plot_score_hist_grid([("ae_v11_cosine_deep", "AE (MSE)"),
+    ("ae_iforest_v2_latent16", "Híbrido"),
+    ("vae_v4_reconprob_lat16", "VAE recon_prob")], "soja", ncols=3); plt.show()"""),
+    md("""**Conclusiones del notebook:**
+- AE/DAE con score MSE quedan por debajo del baseline, y no por hiperparámetros (24
+  variantes), ni por el agregado del error (max/top-k refutados), ni por denoising, ni
+  por combinar con IForest (híbrido refutado).
+- El **VAE con `recon_prob`** es el único de la familia que supera al IForest
+  (0.559 vs 0.511, soja) — y el salto es atribuible al **score** (+0.085 sobre el mismo
+  VAE con `neg_elbo`), no a la arquitectura.
+- La señal de `recon_prob` requiere el modelo **sin regularización pesada** (−0.10 al
+  agregar BN/dropout/β bajo).
+
+**Pero** el single tiene desvío ±0.035 entre semillas: en una corrida mala roza el
+baseline. **Próximo notebook:** cómo se elimina esa varianza."""),
 ])
 
 # ===========================================================================
-# 03 — Ensembles y modelo final
+# 03 — Varianza y seed-ensemble
 # ===========================================================================
-build("03_ensembles_y_modelo_final.ipynb", "3 · Ensembles: de la varianza al modelo final", [
-    md("""El VAE `recon_prob` era el mejor, pero **cada semilla converge distinto** → alta
-varianza. Solución: **ensemble de semillas**."""),
+build("03_varianza_y_seed_ensemble.ipynb", "3 · La varianza y el seed-ensemble (modelo final)", [
+    md("""**El problema:** el VAE `recon_prob` gana en promedio (0.559 vs 0.511, soja) pero
+con ±0.035 de desvío entre semillas. Para recomendar un modelo hace falta que gane
+**siempre**, no según la suerte de la seed.
+
+**La pregunta:** ¿de dónde viene la varianza y cómo se elimina?"""),
     code(SETUP),
-    md("""## 3.1 — Seed-ensemble
-Entrenamos N VAEs con semillas distintas y promediamos sus scores normalizados. El
-`EnsembleDetector` es agnóstico al modelo. Config y estructura del ensemble final:"""),
+    md("""## 3.1 · Descartando causas
+- **¿El estimador Monte Carlo del score?** No: duplicar las muestras MC (50→100) da un
+  resultado idéntico. La varianza viene del **entrenamiento** (cada semilla converge a
+  un óptimo local distinto), no del score.
+- **¿Falta regularización?** No: el nb. 2 mostró que la regularización pesada *destruye*
+  la señal de `recon_prob`.
+- **¿Colas pesadas en el decoder (Student-t)?** Tampoco: empeora la media y el desvío
+  **sube**. La razón es informativa: las colas pesadas protegen cuando el train está
+  *contaminado* con outliers, pero nuestro pipeline ya entrena solo con normales
+  curados (nb. 0). No había nada que robustecer:"""),
+    code("""explib.show(explib.compare_table([
+    ("vae_v4_reconprob_lat16","VAE gaussian (ref)"),
+    ("vae_studentt_v1","VAE Student-t ν=4")], "soja"))"""),
+    md("""## 3.2 · La solución: promediar semillas (seed-ensemble)
+Si cada semilla es un óptimo local distinto pero igualmente válido, su ruido
+idiosincrático se cancela **promediando los scores** (z-normalizados per-miembro) de N
+semillas. El `EnsembleDetector` es agnóstico al modelo base:"""),
     code('explib.describe_architecture("configs/ensemble/vae_seedens_v1.yaml")'),
-    code("""ens = [("vae_v4_reconprob_lat16","VAE single"), ("vae_seedens_v1","seed-ens ×10 (lat16)"),
-       ("vae_seedens_deep","seed-ens ×10 (deep)"), ("vae_iforest_ens_v1","hetero VAE+IForest")]
-explib.show(explib.compare_table(ens, "soja", era="clean"))"""),
-    code('explib.plot_compare(ens, "soja", era="clean", baseline=0.511, title="Ensembles — PR-AUC (soja)"); plt.show()'),
-    md("""El **desvío se desploma** (±0.035 → ±0.010) y la media *sube*: el promedio cancela el
-ruido idiosincrático de cada semilla. El hetero VAE+IForest queda mixto (el IForest arrastra)."""),
-    code("""explib.plot_pr_curves([("vae_v4_reconprob_lat16","VAE single"),
-                       ("vae_seedens_v1","seed-ensemble ×10")], "soja"); plt.show()"""),
-    md("""### Matriz de confusión de los ensembles (re-umbralizado sobre test)
-Una por cada ensemble, en los dos puntos de operación (top-10% y top-tasa real; ver NB 1).
-Filas del grid = punto de operación; columnas = ensemble."""),
-    code("""ens_cm = [("vae_seedens_v1", "VAE seed-ens (lat16)"),
-          ("vae_seedens_deep", "VAE seed-ens (deep)"),
-          ("vae_iforest_ens_v1", "hetero VAE+IForest")]
-explib.plot_confusion_grid(ens_cm, "soja", era="clean"); plt.show()"""),
-    md("""### Distribución del score de los ensembles (el histograma de la app)
-Score de campañas **normales** (azul) vs **anómalas** (naranja) en test, por ensemble.
-El seed-ensemble afina la cola de las anómalas; el hetero VAE+IForest la mezcla más
-(el IForest arrastra)."""),
-    code('explib.plot_score_hist_grid(ens_cm, "soja", era="clean"); plt.show()'),
-    md("""## 3.2 — La idea de *Dataset Cartography* (la del profesor)
-"Lo que el modelo predice **siempre** mal es anomalía". La implementamos como **diagnóstico**:
-- **Data map** (Swayamdipta 2020): error de reconstrucción de cada muestra **por época** →
-  *confidence* (error medio) + *variability* (desvío entre épocas).
-- **Desacuerdo del ensemble** (`score_std`): desvío entre miembros = incertidumbre.
+    code("""ens = [("vae_v4_reconprob_lat16","VAE single"),
+       ("vae_seedens_v1","VAE seed-ens ×10 (lat16)"),
+       ("vae_seedens_deep","VAE seed-ens ×10 (deep)"),
+       ("vae_iforest_ens_v1","hetero VAE+IForest")]
+explib.show(explib.compare_table(ens, "soja"))"""),
+    code('explib.plot_compare(ens, "soja", baseline=0.511, title="Ensembles — PR-AUC (soja)"); plt.show()'),
+    md("""**El desvío se desploma (±0.035 → ±0.010) y la media SUBE** (0.559 → 0.592): el
+promedio no solo estabiliza, también mejora, porque los errores de cada semilla son
+independientes. Con `media − desvío = 0.582 ≫ 0.511`, el seed-ensemble supera al
+baseline **también en el peor caso**, en ambos cultivos.
 
-> **El modelo final NO usa cartography para puntuar** (es el promedio simple del ensemble).
-> Fue herramienta para *auditar* (NB 5): mostró que lo "siempre mal reconstruido" es rareza
-> climática, no anomalía de rinde. Lo dejamos porque responde la pregunta del profesor."""),
-    code("""from IPython.display import Image, display
-p = os.path.join(explib.ROOT, "analysis", "datamap_soja.png")
-display(Image(p)) if os.path.exists(p) else print("generar: python analyze_datamap.py --cultivo soja")"""),
-    md("## 3.3 — El modelo final: `vae_seedens_v1` (todas sus métricas, ±std)"),
-    code('explib.show(explib.run_metrics("vae_seedens_v1", "soja"))'),
-    code('explib.plot_all_metrics("vae_seedens_v1", "soja"); plt.show()'),
-    md("""### Matriz de confusión y métricas derivadas del modelo final
-Las métricas libres de umbral (PR-AUC) miden el *ranking*; la matriz de confusión hace
-tangible el **punto de operación**, re-umbralizado sobre el test en los dos puntos (top-10% y
-top-tasa real; ver NB 1) y para ambos cultivos. La tabla resume precision/recall/F1 en cada
-punto."""),
-    code("""explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "soja"); plt.show()
-explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "maiz"); plt.show()"""),
-    code('explib.show(explib.confusion_report("vae_seedens_v1", "soja"))'),
-    md("""Se ve el *trade-off* del detector: al **top-10%** alta precisión (lo que marca casi
-siempre es anomalía real) pero recall acotado por el presupuesto; al **top-tasa real**
-precision y recall se equilibran. El resto de los falsos positivos son campañas de clima raro
-con rinde normal — coherente con el techo estructural del NB 5."""),
-    md("**Modelo final del Componente A.** En los próximos notebooks intentamos superarlo (datos nuevos, modernos) sin éxito."),
+Dos controles que delimitan la conclusión:
+- **Hetero-ensemble VAE+IForest**: queda a la altura del VAE single y por debajo del
+  seed-ensemble puro — el IForest no aporta señal nueva, solo diluye. Mezclar modelos
+  solo suma si el segundo trae información que el primero no tiene.
+- **El ensemble no salva una base débil** — mismo tratamiento al AE y al DAE
+  (base [64,32] con score MSE):"""),
+    code("""explib.show(explib.compare_table([
+    ("ae_seedens_v1","AE seed-ens ×10 (MSE)"),
+    ("dae_seedens_v1","DAE seed-ens ×10 (MSE)"),
+    ("vae_seedens_v1","VAE seed-ens ×10 (recon_prob)")], "soja"))"""),
+    md("""El ensemble les elimina la varianza igual… pero la media no acompaña: **el
+diferenciador es el score `recon_prob`** (nb. 2), el ensemble solo consolida.
+
+## 3.3 · El modelo elegido: `vae_seedens_v1`
+VAE `recon_prob` (lat 16, hidden [64,32], β=1) × 10 semillas. Curva PR y punto de
+operación:"""),
+    code("""explib.plot_pr_curves([("vae_seedens_v1","VAE seed-ensemble"),
+                       ("vae_v4_reconprob_lat16","VAE single"),
+                       ("iforest_v2_mf03_n200","IForest baseline")], "soja"); plt.show()"""),
+    code('explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "soja"); plt.show()'),
+    md("""**Conclusiones del notebook:** la varianza del VAE viene del entrenamiento y se
+resuelve con el **ensemble de semillas** (no con más MC, ni regularización, ni Student-t);
+el hetero-ensemble y los seed-ensembles de AE/DAE delimitan el resultado: hace falta
+**base fuerte (`recon_prob`) + promedio de semillas**. Modelo final del Componente A:
+**`vae_seedens_v1` — soja 0.592 ± 0.010, maíz 0.508 ± 0.005**.
+
+**Pero** queda una pregunta incómoda: ¿por qué *ningún* modelo — de familias totalmente
+distintas — pasa de ~0.6? **Próximo notebook.**"""),
 ])
 
 # ===========================================================================
-# 04 — Limpieza de datos + features
+# 04 — El techo estructural
 # ===========================================================================
-build("04_limpieza_de_datos_y_features.ipynb", "4 · Limpieza de datos y features nuevas", [
-    md("""## 4.0 — El punto de quiebre: LIMPIEZA DE DATOS
-El panel tenía **25% de filas duplicadas** (explosión cartesiana de lat/lon por un join que
-ignoró la provincia) y la etiqueta corrompida por mezclar departamentos homónimos. Corregirlo
-(dedup + clave provincia, en `data.py`) **subió a TODOS +0.09–0.14 PR-AUC** — la mayor mejora
-del proyecto."""),
+build("04_el_techo_estructural.ipynb", "4 · ¿Por qué ningún modelo pasa de ~0.6? El techo estructural", [
+    md("""**La observación:** IForest, AE, DAE, híbridos, VAE y ensembles — arquitecturas
+muy distintas — quedan todas en una banda acotada, y el mejor no pasa de ~0.6. Cuando
+familias tan diferentes chocan contra el mismo número, la sospecha cambia de lugar: ¿y
+si el límite no está en los modelos sino en la **señal**?
+
+**Tres análisis independientes** lo confirman."""),
     code(SETUP),
-    md("La progresión completa con las dos eras (exploración → limpieza → final):"),
-    code("explib.show(explib.tbl_journey())"),
-    md("""## 4.1 — Features nuevas (NDVI, suelo, heladas, agro)
-Para capturar el ~70% de anomalías con clima normal (NB 5), extrajimos por
-departamento×campaña con Google Earth Engine: **NDVI-AVHRR** (1981+), **ERA5-Land** (humedad
-de suelo + días de helada) y **agronómicas** (ventana crítica). Efecto, con test sets
-emparejados:"""),
-    code("explib.show(explib.tbl_features())"),
-    code("""t = explib.tbl_features(); x = np.arange(len(t)); w = 0.38
-fig, ax = plt.subplots(figsize=(8, 4))
-ax.bar(x - w/2, t["VAE_seedens"], w, label="VAE seed-ens", color="#4C72B0", alpha=0.85)
-ax.bar(x + w/2, t["IForest"], w, label="IForest", color="#DD8452", alpha=0.85)
-ax.axhline(0.592, ls="--", color="gray", lw=1, label="VAE base (0.592)")
-ax.set_xticks(x); ax.set_xticklabels(t["features"], rotation=18, ha="right", fontsize=8)
-ax.set_ylabel("PR-AUC (soja, test)"); ax.legend(fontsize=8)
-ax.set_title("Features nuevas: ayudan al IForest, perjudican al VAE"); plt.tight_layout(); plt.show()"""),
-    md("""**Conclusión:** ninguna feature extra supera al base con el VAE (diluyen el
-`recon_prob`). Ayudan modestamente al IForest, pero IForest+ERA5 (0.542) sigue debajo del VAE
-base (0.592).
+    md("""## 4.1 · Análisis cross-modelo: todos fallan en las MISMAS anomalías
+`analyze_errors.py` alinea las predicciones de test de las **7 familias** (IForest, AE,
+DAE, híbrido, VAE single, VAE seed-ensemble, DeepSVDD) y computa el consenso de errores
+(detalle en `analysis/summary_soja.md`). Resultado (soja):
 
-**Artefacto cazado (lección de método):** un primer ERA5 dio 0.642 — era artefacto:
-`frost_days`=0 en el norte → varianza-cero por depto → la normalización tiraba el 34% de los
-departamentos → test sesgado. Se corrigió (std global de fallback). **Siempre validar que los
-test sets coincidan antes de comparar.**"""),
-])
+- **127 de 257 anomalías (49%) las fallan TODOS los modelos a la vez.**
+- Las detectadas tienen precipitación claramente deficitaria (z medio **−0.84**); las
+  falladas, clima cercano a lo normal (**−0.41**) — el **55% de las falladas no tiene
+  firma climática** (precip_z ≥ −0.5).
 
-# ===========================================================================
-# 05 — Modernos + techo + comparación final
-# ===========================================================================
-build("05_modernos_y_techo_estructural.ipynb", "5 · Métodos modernos y el techo estructural", [
-    md("""## 5.1 — Benchmark contra AD tabular profundo moderno
-Comparamos contra métodos modernos de AD tabular profundo (SOTA de la **literatura**) vía
-`deepod`: DeepSVDD, ICL, NeuTraL, GOAD. (Nuestro VAE es el mejor del *proyecto*, no SOTA del
-campo: solo mostramos que los supera en *nuestro* dataset.)"""),
-    code(SETUP),
-    code("explib.show(explib.tbl_modern())"),
-    md("""**Comparación justa: ninguno supera al VAE (ni al IForest).** A diferencia de una
-versión anterior con HP por defecto, acá los corrimos con **presupuesto parejo**: mismas
-**300 épocas** que nuestros modelos y **capacidad pareja** (hidden_dims 64,32 + rep_dim 16),
-multi-seed. El mejor de los modernos, DeepSVDD, llega a **0.467** (soja) — todavía por debajo
-del IForest (0.511) y lejos del VAE (0.592).
-
-> **Lectura honesta:** que ganemos **no** nos hace SOTA del campo. La comparación justa
-> descarta el atajo "los modernos no estaban tuneados", pero el motivo de fondo de que nadie
-> despegue es el **techo estructural** (siguiente sección), no la superioridad de nuestro
-> método. GOAD quedó afuera: con 256 transformaciones por época su costo es prohibitivo aun a
-> presupuesto parejo (una limitación práctica real del método, no un resultado)."""),
-    md("""## 5.2 — El techo estructural (por qué nadie pasa de ~0.6)
-Tres análisis independientes muestran que el límite **no es del modelo**:
-- **Cross-modelo**: ~68% de las anomalías las fallan TODOS, y tienen **clima normal**.
-- **Auditoría de etiqueta**: excluir las sospechosas de ruido **no** mejora la PR-AUC.
-- **Data map**: lo "siempre mal reconstruido" es rareza climática, no anomalía de rinde.
-
-→ ~70% de las anomalías de rinde tienen causas **no climáticas** (plaga, granizo, manejo)
-invisibles a cualquier feature disponible. Es del problema, no del modelo."""),
+Si cada modelo fallara en cosas distintas, un ensemble lo arreglaría; fallar todos en
+las mismas apunta a la señal."""),
     code("""from IPython.display import Image, display
 p = os.path.join(explib.ROOT, "analysis", "consensus_heatmap_soja.png")
 display(Image(p)) if os.path.exists(p) else print("generar: python analyze_errors.py --cultivo soja")"""),
-    md("""### El techo, visto en el espacio de features (t-SNE del modelo final)
-Proyección **t-SNE** de las campañas (features climáticas) del modelo final, coloreada por
-**etiqueta real** (izq.) y por **score** del VAE (der.). La lectura clave: las anomalías
-(rojo) **no forman un cluster separado** — están mezcladas entre las normales. Es la
-confirmación *visual* del techo estructural: si no se distinguen en el espacio de features,
-ningún modelo que mire solo ese espacio puede separarlas. El score del VAE (der.) sí marca
-una región, pero es la de **clima raro**, que solo se solapa parcialmente con el rojo."""),
+    md("""El mismo fenómeno, medido dentro de cada run — el **recall estratificado** por causa
+climática (anomalías con precipitación deficitaria vs el resto):"""),
+    code("""explib.show(explib.summary_fields([
+    ("iforest_v2_mf03_n200","IForest"),
+    ("vae_seedens_v1","VAE seed-ens")], "soja",
+    keys=["recall_clima_adverso","n_clima_adverso","recall_otros","n_otros"]))"""),
+    md("""Las anomalías **con clima adverso** se detectan casi todas; las **"otras"** (rinde
+anómalo con clima normal) casi ninguna — en todos los modelos.
+
+## 4.2 · ¿Lo "consistentemente difícil" es anomalía? (Dataset Cartography)
+Hipótesis propuesta por el docente: lo que el modelo reconstruye **siempre** mal podría
+ser anomalía. La implementamos con dos herramientas: el **desacuerdo del ensemble**
+(`score_std` entre los 10 miembros) y un **data map** (Swayamdipta 2020) adaptado a
+reconstrucción: error por muestra **por época** → *confidence* + *variability* → mapa
+easy / ambiguous / hard-to-learn."""),
+    code("""from IPython.display import Image, display
+p = os.path.join(explib.ROOT, "analysis", "datamap_soja.png")
+display(Image(p)) if os.path.exists(p) else print("generar: python analyze_datamap.py --cultivo soja")"""),
+    md("""**Resultado:** el **27% del train normal** es hard-to-learn, pero su `z_rinde`
+medio (0.66) es igual al del train completo (0.69) → lo que cuesta reconstruir es
+**rareza climática, no anomalía de rinde**. La hipótesis queda refutada como *detector* (y por
+eso el modelo final no la usa para puntuar), pero validada como *auditoría*: confirma
+que dificultad-de-reconstrucción ≠ anomalía-de-rinde, que es exactamente el techo.
+
+## 4.3 · ¿Y si la etiqueta es ruido? (auditoría de `z_rinde`)
+Última explicación posible: que las anomalías "invisibles" fueran artefactos de la
+etiqueta proxy. `analyze_labels.py` clasifica cada anomalía por la fragilidad del
+denominador del z-score (CV del baseline, z extremos, historia corta):
+
+- La gran mayoría de las anomalías es **genuina** (86% en soja; 10% z-extremo, 4%
+  baseline inestable).
+- **Excluir las sospechosas EMPEORA la PR-AUC** (−0.021) → no son ruido removible.
+- Las z-extremo (z < −5) se detectan a la misma tasa que las genuinas (recall 0.32 vs
+  0.31) → son catástrofes reales, no artefactos.
+
+**Refutado también:** el techo no es ruido de etiqueta."""),
+    md("""## 4.4 · El techo, visto en el espacio de features (t-SNE)
+Proyección t-SNE de las campañas de test coloreada por **etiqueta real** (izq.) y por
+**score del VAE** (der.). Las anomalías (rojo) **no forman un cluster**: están mezcladas
+entre las normales. Si no se distinguen en el espacio de features, ningún modelo que
+mire ese espacio puede separarlas. El score del VAE (der.) marca una región — la de
+**clima raro** — que solo se solapa parcialmente con el rojo."""),
     code("""fig, axs = plt.subplots(1, 2, figsize=(11, 4.5))
 explib.plot_embeddings("vae_seedens_v1", "soja", method="tsne", color_by="label", ax=axs[0])
 explib.plot_embeddings("vae_seedens_v1", "soja", method="tsne", color_by="score", ax=axs[1])
 axs[0].set_title("t-SNE · etiqueta real (normal vs anómala)")
 axs[1].set_title("t-SNE · score del VAE")
 plt.tight_layout(); plt.show()"""),
-    md("## 5.3 — Comparación final de TODOS los modelos (con desvío estándar)"),
-    code("explib.show(explib.tbl_leaderboard())"),
-    code("explib.plot_leaderboard_compare(); plt.show()"),
-    md("""**Modelo final: `vae_seedens_v1`** — mejor en ambos cultivos, con el desvío más chico.
-Dos palancas: **limpieza de datos** + **score probabilístico + ensemble de semillas**. Ni
-features satelitales, ni AE/DAE, ni métodos modernos lo superaron; el techo de ~0.6 es
-estructural."""),
+    md("""**Conclusión del notebook:** el techo es **estructural** — una mayoría de las
+anomalías de rinde tiene causas no climáticas (plaga, granizo, manejo, mercado)
+invisibles para un detector que solo ve clima. No es la arquitectura (todas fallan en
+las mismas muestras) ni la etiqueta (la auditoría lo descarta). La única salida posible:
+**darle al modelo más señal** — **próximo notebook**."""),
 ])
 
-print("\\nNotebooks generados.")
+# ===========================================================================
+# 05 — ¿Más features ayudan?
+# ===========================================================================
+build("05_features_nuevas.ipynb", "5 · ¿Más señal? Features agronómicas y satelitales", [
+    md("""**Hipótesis:** si el clima mensual no ve ~2/3 de las anomalías (nb. 4), quizás
+otras fuentes sí: features **agronómicas** de la ventana crítica del cultivo, el
+**verdor de la planta** (NDVI-AVHRR, 1981+, vía Google Earth Engine) y el **estado del
+suelo + heladas** (ERA5-Land). Si una plaga arrasa un lote, el clima no lo registra —
+pero el NDVI debería.
+
+Cada adición se evalúa con el flag correspondiente del pipeline (`use_agro_features`,
+`use_ndvi`, `use_era5_features`), mismo protocolo, sobre el VAE y el IForest."""),
+    code(SETUP),
+    md("""## 5.1 · Features agronómicas (ventana crítica + balance hídrico)
+Precipitación, estrés térmico y balance hídrico de Hargreaves en la ventana crítica
+del cultivo (Dic–Feb soja / Nov–Ene maíz): conocimiento de dominio destilado en
+~4 features."""),
+    code("""explib.show(explib.compare_table([
+    ("iforest_v2_mf03_n200","IForest base"), ("iforest_v2_agro","IForest + agro"),
+    ("vae_v4_reconprob_lat16","VAE base"), ("vae_v4_agro","VAE + agro")], "soja"))"""),
+    md("""## 5.2 · NDVI-AVHRR (verdor, 1981+)
+NDVI mensual por departamento desde 1981 (AVHRR), mergeado por
+`[provincia, departamento, campaña]` — historia completa, sin recortar el train.
+*(El NDVI de MODIS se descartó de plano: solo existe desde 2002 y recortar la historia
+de train cuesta más de lo que el NDVI aporta.)*"""),
+    code("""explib.show(explib.compare_table([
+    ("vae_seedens_v1","VAE seed-ens base"), ("vae_seedens_v1_ndvilargo","VAE seed-ens + NDVI"),
+    ("iforest_v2_mf03_n200","IForest base"), ("iforest_v2_ndvilargo","IForest + NDVI")], "soja"))"""),
+    md("""## 5.3 · ERA5-Land: humedad de suelo + heladas
+Cuatro features por (departamento, campaña): humedad de suelo en siembra y en el
+invierno previo (inercia hídrica), días de helada y heladas tardías."""),
+    code("""explib.show(explib.compare_table([
+    ("vae_seedens_v1","VAE seed-ens base"), ("vae_seedens_v1_era5","VAE seed-ens + ERA5"),
+    ("iforest_v2_mf03_n200","IForest base"), ("iforest_v2_era5","IForest + ERA5")], "soja"))"""),
+    md("### Resumen visual: efecto de cada adición sobre cada modelo"),
+    code("""pares = [("base", "vae_seedens_v1", "iforest_v2_mf03_n200"),
+         ("+ agro", "vae_v4_agro", "iforest_v2_agro"),
+         ("+ NDVI-AVHRR", "vae_seedens_v1_ndvilargo", "iforest_v2_ndvilargo"),
+         ("+ ERA5", "vae_seedens_v1_era5", "iforest_v2_era5")]
+def pr(name):
+    rid = explib.latest_run(name, "soja")
+    s = explib.load_run(rid).summary
+    return s.get("test_pr_auc_mean", s.get("test_pr_auc"))
+labs = [p[0] for p in pares]
+vae_v = [pr(p[1]) for p in pares]; ifo_v = [pr(p[2]) for p in pares]
+x = np.arange(len(labs)); w = 0.38
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.bar(x - w/2, vae_v, w, label="VAE", color="#4C72B0", alpha=0.85)
+ax.bar(x + w/2, ifo_v, w, label="IForest", color="#DD8452", alpha=0.85)
+ax.axhline(pr("vae_seedens_v1"), ls="--", color="gray", lw=1, label="VAE base")
+ax.set_xticks(x); ax.set_xticklabels(labs)
+ax.set_ylabel("PR-AUC (soja, test)"); ax.legend(fontsize=8)
+ax.set_title("Features nuevas: ayudan al IForest, perjudican al VAE")
+plt.tight_layout(); plt.show()
+print("(la fila 'agro' usa el VAE single — la ablación agro se corrió sobre ese modelo)")"""),
+    md("""**Conclusiones del notebook:**
+- **Asimetría consistente**: las features extra ayudan (modestamente) al IForest — que
+  submuestrea columnas y tolera agregados — y **perjudican al VAE**, que debe
+  reconstruir TODAS las features: cada columna nueva diluye el `recon_prob` y sube la
+  varianza.
+- **Ninguna combinación supera al VAE base** (0.592): el mejor "aumentado" es
+  IForest+ERA5, y queda abajo.
+- El resultado **confirma el techo del nb. 4**: si ni el verdor de la planta marca esas
+  anomalías, no son fallas biofísicas observables por satélite. Mejorar requiere otra
+  clase de datos (sanidad, granizo, manejo), no más features climático-satelitales.
+
+**Próximo notebook:** la última vara — los métodos modernos de deep anomaly detection —
+y el cierre."""),
+])
+
+# ===========================================================================
+# 06 — Modernos, leaderboard final y conclusiones
+# ===========================================================================
+build("06_modernos_leaderboard_y_conclusiones.ipynb",
+      "6 · Métodos modernos, leaderboard final y conclusiones", [
+    md("""**Última pregunta de exhaustividad:** ¿un método moderno de deep anomaly detection
+supera lo nuestro? Benchmark vía `deepod`: **DeepSVDD** (one-class), **ICL**
+(contrastive), **NeuTraL** (transformaciones aprendidas).
+
+> **Protocolo justo:** mismas 300 épocas que nuestros modelos, capacidad equivalente
+> (hidden 64,32 + rep_dim 16) y multi-seed — no los defaults de la librería. GOAD quedó
+> afuera por costo prohibitivo (256 transformaciones por época)."""),
+    code(SETUP),
+    code("explib.show(explib.tbl_modern())"),
+    code("""explib.show(explib.compare_table([
+    ("deepod_deepsvdd","DeepSVDD"), ("deepod_icl","ICL"), ("deepod_neutral","NeuTraL"),
+    ("iforest_v2_mf03_n200","IForest"), ("vae_seedens_v1","VAE seed-ens")], "soja"))"""),
+    md("""**Ninguno supera al VAE — ni siquiera al IForest.** Lectura honesta: esto no nos
+hace estado del arte del campo; dice que en *este* dataset, con presupuesto parejo, no
+despegan. Es coherente con el techo estructural (nb. 4): no hay señal extra que un método
+más sofisticado pueda exprimir.
+
+## 6.1 · Leaderboard final (media ± desvío, test)"""),
+    code("explib.show(explib.tbl_leaderboard())"),
+    code("explib.plot_leaderboard_compare(); plt.show()"),
+    md("## 6.2 · La progresión completa, con números comparables"),
+    code("""prog = [("iforest_v1_base","IForest default"),
+        ("iforest_v2_mf03_n200","IForest tuneado (mf=0.3)"),
+        ("ae_v11_cosine_deep","AE (MSE)"),
+        ("dae_v1_base","DAE"),
+        ("ae_iforest_v2_latent16","Híbrido AE+IForest"),
+        ("vae_v9_negelbo_lat16_bn","VAE neg_elbo"),
+        ("vae_v4_reconprob_lat16","VAE recon_prob single"),
+        ("deepod_deepsvdd","DeepSVDD (moderno)"),
+        ("vae_seedens_v1","VAE seed-ensemble ★")]
+explib.show(explib.compare_table(prog, "soja"))"""),
+    code('explib.plot_compare(prog, "soja", baseline=0.511, title="Progresión del proyecto — PR-AUC (soja)"); plt.show()'),
+    md("""## 6.3 · El modelo final por dentro: `vae_seedens_v1`
+VAE `recon_prob` (lat 16, hidden [64,32], β=1) × 10 semillas, scores z-normalizados y
+promediados. Métricas completas y punto de operación en ambos cultivos (ver nb. 1 por
+qué se re-umbraliza sobre el propio test):"""),
+    code('explib.show(explib.run_metrics("vae_seedens_v1", "soja"))'),
+    code('explib.plot_all_metrics("vae_seedens_v1", "soja"); plt.show()'),
+    code("""explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "soja"); plt.show()
+explib.plot_confusion_grid([("vae_seedens_v1", "VAE seed-ens")], "maiz"); plt.show()"""),
+    code('explib.show(explib.confusion_report("vae_seedens_v1", "soja"))'),
+    md("""Al **top-10%**, precisión ~0.8: casi todo lo que marca es anomalía real, con recall
+acotado por el presupuesto de alertas; al **top-tasa real** se equilibran. Los falsos
+positivos restantes son campañas de clima raro con rinde normal — coherente con el
+techo del nb. 4.
+
+## 6.4 · Limitaciones
+1. **Distribution shift temporal**: scores y tasa base suben de val a test (el clima
+   2021–24 se aleja del train; el test incluye la sequía 2022/23). Por eso todo se
+   decide por PR-AUC (ranking) y los umbrales se re-calibran por split (nb. 1).
+2. **Validación chica** (5–9 anomalías): sus métricas son ruido y no permiten
+   seleccionar; las comparaciones se ilustran en test con el *data snooping* declarado
+   (nb. 1).
+3. **Techo estructural**: la mayoría de las anomalías de rinde no tiene causa climática
+   ni vegetacional observable — límite del problema, no del modelo (nbs. 4–5).
+
+## Conclusiones del Componente A
+1. **Modelo final: `vae_seedens_v1`** — seed-ensemble ×10 del VAE con score
+   `recon_prob` (An & Cho 2015): **soja 0.592 ± 0.010, maíz 0.508 ± 0.005**, el desvío
+   más chico del leaderboard. Supera al baseline en media **y en peor caso**, en ambos
+   cultivos.
+2. Las **dos decisiones de arquitectura** que explican el resultado: el **score
+   probabilístico** `recon_prob` sin regularización pesada (nb. 2) y el **ensemble de
+   semillas** (nb. 3).
+3. Las alternativas quedaron refutadas experimentalmente: tuning de HP del AE, scoring
+   max/top-k, híbrido AE+IForest (nb. 2), Student-t, hetero-ensemble (nb. 3), features
+   agro/NDVI/ERA5 (nb. 5) y el deep AD moderno a presupuesto parejo (nb. 6).
+4. El desempeño está acotado por un **techo estructural** demostrado por tres análisis
+   independientes (nb. 4): la mayoría de las anomalías de rinde no deja huella en las
+   features disponibles. Mejorar de acá en adelante requiere **otra clase de datos**
+   (sanidad, granizo, manejo), no otro modelo."""),
+])
+
+print("\nNotebooks generados.")

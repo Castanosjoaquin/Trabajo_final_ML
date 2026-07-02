@@ -16,7 +16,6 @@ from src.models import (
     AnomalyDetector,
     DenoisingAEDetector,
     IsolationForestDetector,
-    PCAReconDetector,
     VAEDetector,
 )
 
@@ -58,7 +57,6 @@ _FAST = dict(hidden_dims=(32, 16), latent_dim=4, max_epochs=30, patience=10, ran
 
 DETECTORS: list[tuple[str, AnomalyDetector]] = [
     ("isolation_forest", IsolationForestDetector(n_estimators=50, random_state=0)),
-    ("pca_recon",        PCAReconDetector(n_components=10, random_state=0)),
     ("ae",               AEDetector(**_FAST)),
     ("dae_salt_pepper",  DenoisingAEDetector(**_FAST, corruption=0.1, noise_type="salt_pepper")),
     ("dae_gaussian",     DenoisingAEDetector(**_FAST, corruption=0.3, noise_type="gaussian")),

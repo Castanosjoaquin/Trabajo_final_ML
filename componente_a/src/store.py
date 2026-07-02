@@ -10,7 +10,6 @@ Cada corrida se guarda como un run-dir:
     scores.parquet     -> filas val+test (depto, campania, split, score, label, ...)
     embeddings.parquet -> proyecciones 2D (UMAP / t-SNE)
     curves.parquet     -> puntos de PR / ROC / loss
-    sweep.parquet      -> barrido de hiperparámetros (opcional)
 
 La app Streamlit y los notebooks consumen los runs vía `ResultsStore(runs_dir)`.
 """
@@ -20,7 +19,7 @@ import json
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import pandas as pd
 
@@ -39,7 +38,6 @@ class RunResult:
     curves: pd.DataFrame          # puntos de PR / ROC / loss
     # proyecciones 2D: vacío al entrenar; se computan on-demand (ver embeddings.py)
     embeddings: pd.DataFrame = field(default_factory=pd.DataFrame)
-    sweep: Optional[pd.DataFrame] = None
     created_at: str = field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
 
 
@@ -84,8 +82,6 @@ class ResultsStore:
         result.curves.to_parquet(os.path.join(d, "curves.parquet"), index=False)
         if result.embeddings is not None and not result.embeddings.empty:
             result.embeddings.to_parquet(os.path.join(d, "embeddings.parquet"), index=False)
-        if result.sweep is not None:
-            result.sweep.to_parquet(os.path.join(d, "sweep.parquet"), index=False)
         return d
 
     def list_runs(self) -> List[Dict]:
@@ -113,7 +109,6 @@ class ResultsStore:
             config = json.load(f)
         with open(os.path.join(d, "summary.json")) as f:
             summary = json.load(f)
-        sweep_path = os.path.join(d, "sweep.parquet")
         emb_path = os.path.join(d, "embeddings.parquet")
         return RunResult(
             run_id=meta["run_id"], model_name=meta["model_name"],
@@ -122,5 +117,4 @@ class ResultsStore:
             scores=pd.read_parquet(os.path.join(d, "scores.parquet")),
             curves=pd.read_parquet(os.path.join(d, "curves.parquet")),
             embeddings=pd.read_parquet(emb_path) if os.path.exists(emb_path) else pd.DataFrame(),
-            sweep=pd.read_parquet(sweep_path) if os.path.exists(sweep_path) else None,
         )

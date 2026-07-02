@@ -1,10 +1,9 @@
-"""Detectores baseline: IsolationForest y PCA Reconstruction Error."""
+"""Detectores baseline: IsolationForest."""
 from __future__ import annotations
 
 from typing import Dict
 
 import numpy as np
-from sklearn.decomposition import PCA
 from sklearn.ensemble import IsolationForest
 
 from .base import AnomalyDetector
@@ -57,40 +56,5 @@ class IsolationForestDetector(AnomalyDetector):
             "resolved_max_samples": getattr(self, "_resolved_max_samples", None),
             "max_features": self.max_features,
             "contamination": str(self.contamination),
-            "random_state": self.random_state,
-        }
-
-
-class PCAReconDetector(AnomalyDetector):
-    """Baseline lineal: error de reconstrucción PCA (MSE por fila).
-
-    Referencia: equivalente lineal del autoencoder (Sakurada & Yairi 2014 §2.1).
-    n_components: int = nro de componentes exacto, float ∈ (0,1) = varianza explicada.
-    """
-
-    model_type = "pca_recon"
-
-    def __init__(self, n_components=0.95, random_state: int = 42):
-        self.n_components = n_components
-        self.random_state = random_state
-        self._pca: PCA | None = None
-
-    def fit(self, X: np.ndarray) -> "PCAReconDetector":
-        self._pca = PCA(n_components=self.n_components, random_state=self.random_state)
-        self._pca.fit(X)
-        self._resolved_n_components = self._pca.n_components_
-        return self
-
-    def score_samples(self, X: np.ndarray) -> np.ndarray:
-        if self._pca is None:
-            raise RuntimeError("Llamá fit() primero.")
-        X_recon = self._pca.inverse_transform(self._pca.transform(X))
-        return np.mean((X - X_recon) ** 2, axis=1)
-
-    def get_config(self) -> Dict:
-        return {
-            "model_type": self.model_type,
-            "n_components": self.n_components,
-            "resolved_n_components": getattr(self, "_resolved_n_components", None),
             "random_state": self.random_state,
         }

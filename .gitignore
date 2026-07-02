@@ -13,3 +13,4 @@ docs/sakurada_yairi_2014.md
 docs/an_cho_2015.md
 data/raw/
 **/analysis/
+.pytest_cache/

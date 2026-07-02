@@ -43,7 +43,7 @@ Trabajo_final_ML/
 │   │       ├── base.py       #   Interfaz AnomalyDetector (fit/score_samples/get_config)
 │   │       ├── ae.py         #   AEDetector + DenoisingAEDetector (subclase)
 │   │       ├── vae.py        #   VAEDetector
-│   │       ├── baselines.py  #   IsolationForestDetector, PCAReconDetector
+│   │       ├── baselines.py  #   IsolationForestDetector
 │   │       ├── hybrid.py     #   AEIForestDetector (AE-latente + IForest)
 │   │       ├── ensemble.py   #   EnsembleDetector (seed-ensemble / hetero)
 │   │       ├── deep_baselines.py  # DeepODDetector (métodos modernos, deepod)
@@ -55,8 +55,8 @@ Trabajo_final_ML/
 │   │
 │   ├── analyze_errors.py / analyze_labels.py / analyze_datamap.py  # Análisis (→ analysis/)
 │   ├── app_streamlit.py      # App de comparación de modelos (lado a lado)
-│   ├── experiments/          # Notebooks didácticos del recorrido completo
-│   ├── eda/                  # EDA + construcción del panel
+│   ├── experiments/          # Notebooks del recorrido completo (la historia del proyecto)
+│   ├── eda/                  # Construcción del panel (build_panel_union.py)
 │   │
 │   ├── configs/              # Configs YAML por modelo (ae/ vae/ dae/ hybrid/ ensemble/ iforest/ deepod/)
 │   ├── runs/                 # Resultados guardados localmente, por modelo (gitignored)
@@ -308,8 +308,7 @@ use_agro_features: true   # default false; per-cultivo (Dic–Feb soja / Nov–E
 
 ## Resultados actuales (soja, test)
 
-Evaluación multi-seed (media±std, **panel limpio** — dedup + clave provincia,
-ver `data.py`). **PR-AUC es la métrica principal** (libre de umbral).
+Evaluación multi-seed (media±std). **PR-AUC es la métrica principal** (libre de umbral).
 
 **Soja (test):**
 | Modelo | PR-AUC | ROC-AUC | Rec@k | seeds |
@@ -329,44 +328,34 @@ ver `data.py`). **PR-AUC es la métrica principal** (libre de umbral).
 | iforest_v2_mf03_n200 (sin ERA5) | 0.492 ±0.030 | 0.648 | 0.244 | 10 |
 
 > **Estado:** el mejor modelo del Componente A es el **seed-ensemble del VAE
-> `recon_prob`** (`vae_seedens_v1`): soja 0.592, maíz 0.508. La mayor mejora del
-> proyecto fue la **limpieza de datos** (dedup 25% + clave provincia: +0.09–0.14 a
-> todos). El seed-ensemble resuelve la varianza (±0.006 vs ±0.035 del single) vía
-> promedio de scores normalizados de 10 semillas; el score probabilístico (An &
-> Cho 2015) funciona mejor sin regularización pesada.
+> `recon_prob`** (`vae_seedens_v1`): soja 0.592, maíz 0.508. Las dos decisiones de
+> arquitectura que explican el resultado: el **score probabilístico** (An & Cho
+> 2015) sin regularización pesada, y el **ensemble de 10 semillas** (promedio de
+> scores z-normalizados), que resuelve la varianza (±0.010 vs ±0.035 del single).
 >
 > **Ninguna feature satelital/extra supera al base con el VAE.** ERA5-Land
 > (humedad de suelo + heladas) ayuda **modestamente al IForest** (soja +0.031) pero
-> **perjudica al VAE** (maíz −0.024, dilución del recon_prob), y el IForest+ERA5
-> (0.542) sigue debajo del VAE base. (Lección de método: un primer resultado
-> ERA5 de 0.642 resultó ser un ARTEFACTO — `frost_days`=0 en el norte sin heladas
-> daba varianza-cero por depto y la normalización tiraba el 34% de los
-> departamentos → test set sesgado. Se corrigió con fallback a std global en
-> `_normalize_per_depto`; con test sets emparejados el efecto real es el de
-> arriba.) Ablaciones NDVI / Student-t / agro / híbrido: ver abajo.
+> **perjudica al VAE** (dilución del recon_prob), y el IForest+ERA5 (0.542) sigue
+> debajo del VAE base. Ablaciones NDVI / Student-t / agro / híbrido: ver abajo.
 
 **Ablaciones (no superan al seed-ensemble, útiles para justificar el modelo final):**
 
-- **VAE decoder Student-t** (`vae_studentt_*`): neutro-negativo. ν=4 empata soja
-  PR-AUC (0.435) con mejor ROC pero no baja la varianza; ν=8 peor. Las colas
-  pesadas ayudan con train *contaminado*, pero el pipeline ya excluye filas
-  anómalas + años problemáticos → train curado, sin nada que robustecer.
+- **VAE decoder Student-t** (`vae_studentt_*`): neutro — no baja la varianza ni
+  mejora la media. Las colas pesadas ayudan con train *contaminado*, pero el
+  pipeline ya excluye filas anómalas + años problemáticos → train curado, sin
+  nada que robustecer.
 - **Features agronómicas** (`use_agro_features`: ventana crítica Dic–Feb soja /
   Nov–Ene maíz + balance hídrico Hargreaves): **ayudan al IForest, perjudican al
-  VAE**. `iforest_v2_agro` sube PR-AUC (soja 0.416→0.421, maiz 0.366→0.372),
-  ROC, Rec@k y baja varianza; `vae_v4_agro` empeora (el VAE debe reconstruir más
-  features → más varianza). El `recall_clima_adverso` del IForest sube con agro
-  (soja 0.97→0.99) — la señal de dominio afina lo climático —, pero el
-  `recall_otros` (anomalías sin firma climática) sigue bajo: **el techo
-  estructural clima→rinde persiste**.
-- **NDVI** (`use_ndvi`: `ndvi_anomalia_pct`, único NDVI con señal temporal — las
-  otras 3 columnas son estáticas por depto): **no aporta**. Experimento de 3 vías
-  con control de período (`train_start`) porque NDVI solo existe 2002+. Soja: VAE
-  full 0.435 → control 2002 0.352 → +NDVI 0.344; IForest 0.416 → 0.380 → 0.383.
-  El recorte a 2002+ duele (−0.03 a −0.08, el VAE el más golpeado); el efecto
-  marginal de NDVI vs su control es ≈0 (dentro del ruido). Refuerza el techo
-  estructural: si ni el verdor de la planta marca esas anomalías de rinde, o el
-  clima ya las captura o son ruido de etiqueta.
+  VAE** (que debe reconstruir más features → recon_prob diluido, más varianza).
+  Con agro sube el `recall_clima_adverso` del IForest, pero el `recall_otros`
+  (anomalías sin firma climática) sigue bajo: **el techo estructural
+  clima→rinde persiste**.
+- **NDVI-AVHRR 1981+** (`use_ndvi`, panel aumentado por Earth Engine): **no
+  aporta** — soja seed-ensemble 0.592→0.561, IForest 0.511→0.503. Refuerza el
+  techo estructural: si ni el verdor de la planta marca esas anomalías de rinde,
+  no son fallas biofísicas observables por satélite. (El NDVI de MODIS se
+  descartó: existe solo desde 2002 y recortar la historia de train cuesta más de
+  lo que aporta.)
 
 ---
 
@@ -401,16 +390,16 @@ val). Por eso:
   sobre los scores del **propio test** (sin usar etiquetas para el corte) y muestran
   **dos puntos de operación** — `top-10%` (presupuesto de alertas) y `top-tasa real`
   (~27%). Con el corte bien hecho el VAE da **80% de precisión al top-10%**; el "FP
-  gigante" del corte de val era un artefacto. Ver NB 1 (`plot_confusion_grid`,
-  parámetro `op` en `src/embeddings`/`explib`).
+  gigante" del corte de val era un artefacto. Ver ep. 1 de `experiments/`
+  (`plot_confusion_grid`, parámetro `op` en `explib`).
 
 ### 2. Selección en validación vs. test
 
-El val es chico (5–9 anomalías) → ruidoso. A lo largo de los notebooks mostramos
-*test* (más estable) para **ilustrar** comparaciones, pero la **decisión final** de
-modelo debería apoyarse en *val* (evitar *data snooping*). El ranking en val y test
-coincide (el VAE seed-ensemble gana en ambos), así que la conclusión se sostiene;
-queda explícito como limitación. Ver NB 1.
+El val es tan chico (5–9 anomalías) que sus métricas son ruido (PR-AUC ≈ tasa base):
+no permite seleccionar modelos. A lo largo de los notebooks mostramos *test* (más
+estable) para **ilustrar** comparaciones, con el riesgo de *data snooping* dejado
+explícito. La confianza en el modelo final viene de la consistencia de su ventaja en
+ambos cultivos y de su varianza mínima entre semillas. Ver ep. 1.
 
 ### 3. Techo estructural clima → rinde
 
@@ -418,7 +407,7 @@ queda explícito como limitación. Ver NB 1.
 manejo, ruido de etiqueta) **invisibles a cualquier feature disponible**. El modelo
 solo ve clima, así que estructuralmente no puede superar la fracción de anomalías con
 firma climática (~30%). Cuantificado con `stratified_recall` + `analyze_errors.py`.
-Es un límite del **problema/datos**, no del modelo. Ver NB 5.
+Es un límite del **problema/datos**, no del modelo. Ver eps. 4–5 de `experiments/`.
 
 ---
 

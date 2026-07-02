@@ -115,22 +115,3 @@ def stratified_recall(scores: np.ndarray, y_true: np.ndarray, threshold: float,
 
     return {"recall_clima_adverso": _recall(m_adv), "n_clima_adverso": int(m_adv.sum()),
             "recall_otros": _recall(m_oth), "n_otros": int(m_oth.sum())}
-
-
-def hyperparam_sweep(detector_factory, X_train, scores_eval_fn,
-                     y_val, n_estimators_grid, max_samples_grid) -> pd.DataFrame:
-    """Barrido PR-AUC en val variando n_estimators y max_samples.
-
-    detector_factory(n_estimators, max_samples) -> AnomalyDetector
-    scores_eval_fn(detector) -> scores_val
-    """
-    rows = []
-    for n_est in n_estimators_grid:
-        for max_s in max_samples_grid:
-            det = detector_factory(n_est, max_s).fit(X_train)
-            scores_val = scores_eval_fn(det)
-            prauc = (float(average_precision_score(y_val, scores_val))
-                     if y_val.sum() > 0 else np.nan)
-            rows.append({"n_estimators": n_est, "max_samples": max_s,
-                         "pr_auc_val": prauc})
-    return pd.DataFrame(rows)

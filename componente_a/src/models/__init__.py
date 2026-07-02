@@ -5,7 +5,7 @@ Import público preservado:
     from src.models import AEDetector, VAEDetector   # nuevo
 """
 from .base import AnomalyDetector
-from .baselines import IsolationForestDetector, PCAReconDetector
+from .baselines import IsolationForestDetector
 from .ae import AEDetector, DenoisingAEDetector
 from .vae import VAEDetector
 from .hybrid import AEIForestDetector
@@ -15,7 +15,6 @@ from .ensemble import EnsembleDetector
 __all__ = [
     "AnomalyDetector",
     "IsolationForestDetector",
-    "PCAReconDetector",
     "AEDetector",
     "DenoisingAEDetector",
     "VAEDetector",

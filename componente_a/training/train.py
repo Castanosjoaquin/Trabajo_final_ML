@@ -21,16 +21,10 @@ from src.config import CULTIVOS, RUNS_DIR, ExperimentConfig
 from src import data as cdata
 from src.models import (
     AEDetector, AEIForestDetector, DenoisingAEDetector, EnsembleDetector,
-    IsolationForestDetector, PCAReconDetector, VAEDetector,
+    IsolationForestDetector, VAEDetector,
 )
 from src.runner import run_model, run_model_multiseed
 from src.store import ResultsStore
-
-
-_IFOREST_SWEEP_GRIDS = {
-    "n_estimators": [100, 200],
-    "max_samples": [64, 128, 256],
-}
 
 
 # ---------------------------------------------------------------------------
@@ -75,11 +69,6 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
             max_samples=cfg.get("max_samples", "auto"),
             max_features=cfg.get("max_features", 1.0),
             contamination=cfg.get("contamination", "auto"),
-            random_state=rs,
-        )
-    if model == "pca_recon":
-        return PCAReconDetector(
-            n_components=cfg.get("n_components", 0.95),
             random_state=rs,
         )
     if model == "ae":
@@ -161,7 +150,7 @@ def build_detector(cfg: Dict[str, Any], seed: int | None = None):
         )
     raise ValueError(
         f"Modelo desconocido: {model!r}. "
-        "Opciones: iforest, pca_recon, ae, ae_iforest, dae, vae"
+        "Opciones: iforest, ae, ae_iforest, dae, vae, ensemble, deepod"
     )
 
 
@@ -206,16 +195,9 @@ def cmd_train(args) -> None:
         print(f"\n--- {c.upper()} ---")
         ds = cdata.build_crop_dataset(panel_z, c, exp_cfg)
 
-        sweep_factory = sweep_grids = None
-        if cfg["model"] == "iforest":
-            sweep_factory = lambda n, m, _rs=base_seed: \
-                IsolationForestDetector(n_estimators=n, max_samples=m, random_state=_rs)
-            sweep_grids = _IFOREST_SWEEP_GRIDS
-
         result = run_model_multiseed(
             name, lambda s: build_detector(cfg, s), ds, exp_cfg,
-            n_seeds=n_seeds, base_seed=base_seed,
-            sweep_factory=sweep_factory, sweep_grids=sweep_grids)
+            n_seeds=n_seeds, base_seed=base_seed)
 
         path = ResultsStore(RUNS_DIR).save(result)
 
