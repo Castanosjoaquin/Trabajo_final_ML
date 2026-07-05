@@ -12,6 +12,7 @@ ejecutado (tablas y gráficos embebidos) y se puede re-correr de cero.
 | 3 | `03_hp_xgboost` | Búsqueda aleatoria de XGBoost; métricas finales + importancias; + comparación de datasets y latente |
 | 4 | `04_hp_red_neuronal` | Búsqueda de la red neuronal; métricas finales + curva de entrenamiento; + comparación de datasets y latente |
 | 5 | `05_comparacion_modelos` | Comparación final + **análisis de por qué el R² es bajo y qué modificar** |
+| 6 | `06_modelo_por_zona` | **Un modelo por zona** (geo-clustering): pooled vs. por-zona, zona por zona. Ayuda en la Pampa, colapsa en el norte ruidoso; neto global no supera al pooled |
 
 ## Dos datasets y el latente del Componente A
 

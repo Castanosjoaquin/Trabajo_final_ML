@@ -77,7 +77,7 @@ class RegDataset:
     depto_mean: pd.Series                  # rinde medio por (prov, depto) en train
 
 
-_META_COLS = ["provincia", "departamento", "campania", "campania_inicio", "rinde_kgha"]
+_META_COLS = ["provincia", "departamento", "campania", "campania_inicio", "rinde_kgha", "zona"]
 
 
 def load_panel(dataset: str = "base") -> pd.DataFrame:
@@ -183,6 +183,24 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
 def prepare(cultivo: str, dataset: str = "base", **kwargs) -> RegDataset:
     """Atajo: carga el panel del `dataset` y arma el RegDataset del cultivo."""
     return build_reg_dataset(load_panel(dataset), cultivo, dataset=dataset, **kwargs)
+
+
+def build_zona_datasets(cultivo: str, dataset: str = "base", n_zonas: int = 6,
+                        method: str = "geo", min_train: int = 100, min_test: int = 20,
+                        seed: int = 42, **kwargs) -> dict:
+    """Un RegDataset por zona (para entrenar un modelo por zona).
+
+    Asigna zonas con `assign_zonas` y arma, para cada una, un RegDataset con SU
+    propio split temporal, codificación de depto y escalado (todo calculado dentro
+    de la zona). Descarta zonas con pocas filas de train/test. `kwargs` se pasan a
+    `build_reg_dataset` (p. ej. `use_agro=True`). Devuelve {zona: RegDataset}."""
+    panel = assign_zonas(load_panel(dataset), n_zonas=n_zonas, method=method, seed=seed)
+    out = {}
+    for z in sorted(panel["zona"].dropna().unique()):
+        ds = build_reg_dataset(panel[panel["zona"] == z], cultivo, dataset=dataset, **kwargs)
+        if len(ds.y_train) >= min_train and len(ds.y_test) >= min_test:
+            out[z] = ds
+    return out
 
 
 def assign_zonas(panel: pd.DataFrame, n_zonas: int = 6, method: str = "geo",
