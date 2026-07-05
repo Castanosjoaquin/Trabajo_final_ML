@@ -1,11 +1,14 @@
 """
 build_panel_union.py — Panel expandido: unión de todos los departamentos con
-cobertura mínima, sin restricción a la región núcleo BCR.
+cobertura mínima, sin restricción a la región núcleo BCR. Es el builder canónico
+del panel del Componente A.
 
-Diferencias con build_panel_chirps.py (que NO se modifica):
-  - Sin REGION_NUCLEO hardcodeado.  En su lugar: MIN_CAMPANAS por cultivo (default 20).
+Características:
+  - MIN_CAMPANAS por cultivo (default 20), sin REGION_NUCLEO hardcodeado.
   - Centroides via Nominatim (OSM) con caché local; los 26 del núcleo se preservan tal cual.
   - Columna 'region' para ablations (núcleo vs resto).
+  - Fuentes: MAGyP (rinde) + ONI + NASA POWER + CHIRPS. El NDVI de MODIS se retiró
+    (2026-07); el NDVI-AVHRR 1981+ se agrega aparte con merge_avhrr_ndvi.py.
   - Sin imputación de rinde: se reportan faltantes al final.
   - Output: data/processed/panel_union.parquet
 
@@ -425,143 +428,13 @@ def load_oni() -> pd.DataFrame:
     return camp_oni
 
 
-# ── Paso 5: NDVI ─────────────────────────────────────────────────────────
-
-# Correcciones manuales: nombre normalizado en panel_union → nombre en HDX xlsx
-_NDVI_NAME_FIXES = {
-    ("Villa Constitucion", "SANTA FE"):            "Constitucion",
-    ("Pellegrini", "SANTIAGO DEL ESTERO"):         "Pelegrini",
-    ("Famailla", "TUCUMAN"):                       "Famalla",
-    ("Juan Bautista Alberdi", "TUCUMAN"):          "Juan B. Alberdi",
-    ("1° De Mayo", "CHACO"):                       "1Ro. De Mayo",
-    ("Eldorado", "MISIONES"):                      "El Dorado",
-    # Juan Martin De Pueyrredon (SAN LUIS) no existe en HDX → sin NDVI
-}
+# NOTA (2026-07): el NDVI de MODIS se RETIRÓ del panel. Existía solo desde 2002 y
+# 3 de sus 4 columnas eran estáticas por departamento (cero señal temporal). El
+# único NDVI que se usa hoy es el AVHRR mensual 1981+ (`ndvi_avhrr_<mes>`), que se
+# agrega aparte con data_sources/merge_avhrr_ndvi.py sobre este panel.
 
 
-def _build_pcode_map() -> dict:
-    """Descarga el xlsx de referencia de HDX y construye
-    (depto_norm, prov_norm) → PCODE. Cachea en data/raw/hdx_pcode_adm2.parquet."""
-    cache = RAW / "hdx_pcode_adm2.parquet"
-    if cache.exists():
-        df = pd.read_parquet(cache)
-    else:
-        log.info("NDVI: descargando tabla de referencia PCODE de HDX...")
-        from io import BytesIO
-        url = (
-            "https://data.humdata.org/dataset/c661e398-66cf-4a9f-9607-4962c72d1ccf"
-            "/resource/a0018352-bc26-41ea-90ab-87a94dd0fd9e/download/arg_admgz.xlsx"
-        )
-        r = requests.get(url, headers={"User-Agent": "tp-final-ml/1.0"}, timeout=30)
-        r.raise_for_status()
-        df = pd.read_excel(BytesIO(r.content), sheet_name="arg_admpop_adm2_indec2010")
-        df.to_parquet(cache, index=False)
-
-    pcode_map = {}
-    for _, row in df.iterrows():
-        pcode = str(row["ADM2_PCODE"]).strip()
-        nombre = normalizar(str(row["ADM2_ES"]))
-        prov   = normalizar(str(row["ADM1_ES"])).upper()
-        pcode_map[(nombre, prov)] = pcode
-    return pcode_map
-
-
-def load_ndvi_for(deptos_prov: pd.DataFrame) -> pd.DataFrame:
-    """NDVI agregado por departamento × campaña para todos los deptos del panel.
-
-    Usa el CSV crudo local (data/raw/ndvi_arg_adm2.csv) ya descargado.
-    Mapea departamento → PCODE via el xlsx de referencia de HDX.
-    Agrega ndvi_mean, ndvi_min, ndvi_max, ndvi_anomalia_pct por campaña (oct–mar).
-    No imputa: deptos sin PCODE o sin datos quedan como NaN en el merge posterior.
-    """
-    out = PROC / "ndvi_union.parquet"
-    if out.exists():
-        log.info("NDVI union: usando caché %s", out)
-        return pd.read_parquet(out)
-
-    ndvi_csv = RAW / "ndvi_arg_adm2.csv"
-    if not ndvi_csv.exists():
-        log.warning("NDVI: no existe %s — saltando NDVI.", ndvi_csv)
-        return pd.DataFrame()
-
-    # Construir mapa (nombre, prov) → PCODE
-    pcode_map = _build_pcode_map()
-
-    # Mapear cada departamento del panel
-    depto_to_pcode: dict[str, str] = {}
-    sin_pcode = []
-    for _, row in deptos_prov.iterrows():
-        depto = row["departamento"]
-        prov  = row["provincia"]
-        nombre_hdx = _NDVI_NAME_FIXES.get((depto, prov), depto)
-        key = (normalizar(nombre_hdx), prov)
-        pcode = pcode_map.get(key)
-        if pcode:
-            depto_to_pcode[pcode] = depto  # PCODE → nombre canónico del panel
-        else:
-            sin_pcode.append(depto)
-
-    if sin_pcode:
-        log.warning("NDVI: %d deptos sin PCODE (quedarán NaN): %s",
-                    len(sin_pcode), sin_pcode[:10])
-    log.info("NDVI: %d deptos mapeados a PCODE", len(depto_to_pcode))
-
-    # Leer CSV crudo y filtrar a PCODEs relevantes
-    log.info("NDVI: leyendo %s...", ndvi_csv)
-    df = pd.read_csv(ndvi_csv)
-    df = df[df["adm_level"] == 2].copy()
-    df = df[df["PCODE"].isin(depto_to_pcode)].copy()
-    df["departamento"] = df["PCODE"].map(depto_to_pcode)
-
-    # Columnas vim/viq
-    vim_col = next((c for c in ("vim_avg", "vim") if c in df.columns), None)
-    viq_col = next((c for c in df.columns if c == "viq"), None)
-    if vim_col is None:
-        log.error("NDVI: no se encontró columna vim/vim_avg")
-        return pd.DataFrame()
-
-    df["fecha"] = pd.to_datetime(df["date"], errors="coerce")
-    df = df.dropna(subset=["fecha"])
-    df["mes"]  = df["fecha"].dt.month
-    df["anio"] = df["fecha"].dt.year
-    df["campania_inicio"] = df.apply(
-        lambda r: r["anio"] if r["mes"] >= 10 else (r["anio"] - 1 if r["mes"] <= 3 else None),
-        axis=1,
-    )
-    df = df.dropna(subset=["campania_inicio"])
-    df["campania_inicio"] = df["campania_inicio"].astype(int)
-    df = df[df["mes"].isin([10, 11, 12, 1, 2, 3])].copy()
-
-    agg_dict: dict = {vim_col: ["mean", "min", "max"]}
-    if viq_col:
-        agg_dict[viq_col] = "mean"
-
-    ndvi_camp = (
-        df.groupby(["departamento", "campania_inicio"])
-        .agg(agg_dict)
-        .reset_index()
-    )
-    ndvi_camp.columns = [
-        "_".join(c).strip("_") if isinstance(c, tuple) else c
-        for c in ndvi_camp.columns
-    ]
-    rename = {
-        f"{vim_col}_mean": "ndvi_mean",
-        f"{vim_col}_min":  "ndvi_min",
-        f"{vim_col}_max":  "ndvi_max",
-    }
-    if viq_col:
-        rename[f"{viq_col}_mean"] = "ndvi_anomalia_pct"
-    ndvi_camp = ndvi_camp.rename(columns=rename)
-
-    log.info("NDVI union: %d filas | %d deptos | campañas %d–%d",
-             len(ndvi_camp), ndvi_camp["departamento"].nunique(),
-             ndvi_camp["campania_inicio"].min(), ndvi_camp["campania_inicio"].max())
-    ndvi_camp.to_parquet(out, index=False)
-    return ndvi_camp
-
-
-# ── Paso 6: CHIRPS ────────────────────────────────────────────────────────
+# ── Paso 5: CHIRPS ────────────────────────────────────────────────────────
 
 def _ee_init():
     import ee
@@ -710,7 +583,6 @@ def load_chirps_for(centroides: pd.DataFrame) -> pd.DataFrame:
 def build_panel_union(
     min_campanas: int = 20,
     skip_chirps: bool = False,
-    skip_ndvi: bool = False,
 ) -> pd.DataFrame:
     log.info("=" * 60)
     log.info("BUILD PANEL UNION (min_campanas=%d) — iniciando", min_campanas)
@@ -742,15 +614,7 @@ def build_panel_union(
     log.info("NASA POWER: descargando/cacheando %d departamentos...", len(centroides))
     nasa = load_nasa_power_for(centroides)
 
-    # 5. NDVI
-    if skip_ndvi:
-        log.info("NDVI: saltado (--skip-ndvi)")
-        ndvi = pd.DataFrame()
-    else:
-        log.info("NDVI: cargando para %d departamentos...", len(deptos_prov))
-        ndvi = load_ndvi_for(deptos_prov)
-
-    # 6. CHIRPS
+    # 5. CHIRPS
     if skip_chirps:
         log.info("CHIRPS: saltado (--skip-chirps)")
         chirps = pd.DataFrame()
@@ -758,7 +622,7 @@ def build_panel_union(
         log.info("CHIRPS: descargando/cacheando %d departamentos...", len(centroides))
         chirps = load_chirps_for(centroides)
 
-    # 7. Merge
+    # 6. Merge
     panel = magyp[[
         "cultivo", "campania_inicio", "campania", "provincia", "departamento",
         "sup_sembrada_ha", "sup_cosechada_ha", "produccion_tn", "rinde_kgha", "region"
@@ -772,17 +636,12 @@ def build_panel_union(
         panel = panel.merge(nasa, on=["departamento","campania_inicio"], how="left")
         log.info("NASA mergeado: %d columnas", len(panel.columns))
 
-    if len(ndvi):
-        ndvi["departamento"] = ndvi["departamento"].apply(normalizar)
-        panel = panel.merge(ndvi, on=["departamento","campania_inicio"], how="left")
-        log.info("NDVI mergeado: %d columnas", len(panel.columns))
-
     if len(chirps):
         chirps["departamento"] = chirps["departamento"].apply(normalizar)
         panel = panel.merge(chirps, on=["departamento","campania_inicio"], how="left")
         log.info("CHIRPS mergeado: %d columnas", len(panel.columns))
 
-    # 8. Reporte de faltantes (sin imputar)
+    # 7. Reporte de faltantes (sin imputar)
     out_path = PROC / "panel_union.parquet"
     panel.to_parquet(out_path, index=False)
 
@@ -796,9 +655,9 @@ def build_panel_union(
     log.info("  Cultivos: %s", panel["cultivo"].unique().tolist())
     log.info("  Campañas: %d–%d", panel["campania_inicio"].min(), panel["campania_inicio"].max())
 
-    # NaN report (columnas climáticas + ndvi)
+    # NaN report (columnas climáticas)
     clim_cols = [c for c in panel.columns if any(
-        c.startswith(p) for p in ["t2m","prect","rh2m","allsky","ws2m","oni","chirps","ndvi"]
+        c.startswith(p) for p in ["t2m","prect","rh2m","allsky","ws2m","oni","chirps"]
     )]
     nan_pct = panel[clim_cols].isna().mean().sort_values(ascending=False)
     nan_alto = nan_pct[nan_pct > 0.05]
@@ -818,13 +677,10 @@ if __name__ == "__main__":
                     help="Mínimo de campañas con rinde válido por (depto, prov, cultivo) [default: 20]")
     ap.add_argument("--skip-chirps", action="store_true",
                     help="Saltar descarga de CHIRPS (útil si EE no está configurado)")
-    ap.add_argument("--skip-ndvi", action="store_true",
-                    help="Saltar NDVI (útil si no existe el CSV crudo)")
     args = ap.parse_args()
 
     panel = build_panel_union(
         min_campanas=args.min_campanas,
         skip_chirps=args.skip_chirps,
-        skip_ndvi=args.skip_ndvi,
     )
     print(f"\nPanel guardado: data/processed/panel_union.parquet  ({panel.shape})")

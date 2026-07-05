@@ -14,3 +14,4 @@ docs/an_cho_2015.md
 data/raw/
 **/analysis/
 .pytest_cache/
+componente_b/.latente_cache/

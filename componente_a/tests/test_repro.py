@@ -21,15 +21,16 @@ import os
 import numpy as np
 import pytest
 
-from src.config import ExperimentConfig, PANEL_PATH
+from src.config import PANEL_PATH
 from src import data as cdata
 
-# Baseline registrado el 2026-06-30 (panel limpio: dedup + clave provincia).
+# Baseline registrado el 2026-07-04 (split train/test: el val 2018–2020 se plegó
+# al train → n_train mayor; el test no cambió).
 BASELINE = {
-    "soja": {"X_train": "b0d0e874711ccc40", "X_test": "06197c9db67e42ff",
-             "y_test": "3950e6765e4197f3", "n_train": 5717, "n_test": 954},
-    "maiz": {"X_train": "4c0f75db1c882bc2", "X_test": "783bdec7ff57db11",
-             "y_test": "3b9534a774778c17", "n_train": 7548, "n_test": 1172},
+    "soja": {"X_train": "b246ea7c5442f956", "X_test": "9ebcb26f7515b0c8",
+             "y_test": "3950e6765e4197f3", "n_train": 6377, "n_test": 954},
+    "maiz": {"X_train": "2a4bb42bbe244e00", "X_test": "9086c84b232b0aa1",
+             "y_test": "3b9534a774778c17", "n_train": 8347, "n_test": 1172},
 }
 
 
@@ -43,9 +44,8 @@ def _h(a) -> str:
 def test_dataset_content_unchanged(cultivo):
     """El contenido del dataset (post data.py) coincide con el baseline → los
     experimentos siguen dando los mismos resultados."""
-    cfg = ExperimentConfig()
-    panel, _ = cdata.prepare(cfg)
-    ds = cdata.build_crop_dataset(panel, cultivo, cfg)
+    panel_z = cdata.prepare()
+    ds = cdata.build_crop_dataset(panel_z, cultivo)
     exp = BASELINE[cultivo]
     assert len(ds.X_train) == exp["n_train"], f"{cultivo}: n_train cambió"
     assert len(ds.X_test) == exp["n_test"],   f"{cultivo}: n_test cambió"

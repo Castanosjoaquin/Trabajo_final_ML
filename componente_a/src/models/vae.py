@@ -233,6 +233,20 @@ class VAEDetector(AnomalyDetector):
                 scores = recon + self.beta * kl
         return scores.numpy()
 
+    def encode(self, X: np.ndarray) -> np.ndarray:
+        """Representación latente (media del encoder, mu_z) de cada muestra.
+
+        Devuelve el mu_z determinista (sin muestrear ruido). La usan los
+        experimentos que corren un detector (OneClassSVM / IForest) sobre el
+        espacio latente del VAE en vez del espacio original de features."""
+        if self._net is None:
+            raise RuntimeError("Llamá fit() primero.")
+        self._net.eval()
+        X_t = torch.tensor(X, dtype=torch.float32)
+        with torch.no_grad():
+            mu_z, _ = self._net.encode(X_t)
+        return mu_z.numpy()
+
     def get_config(self) -> Dict:
         return {
             "model_type": self.model_type,

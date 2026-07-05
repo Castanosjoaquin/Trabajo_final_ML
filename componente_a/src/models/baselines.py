@@ -1,10 +1,11 @@
-"""Detectores baseline: IsolationForest."""
+"""Detectores baseline: IsolationForest y OneClassSVM."""
 from __future__ import annotations
 
 from typing import Dict
 
 import numpy as np
 from sklearn.ensemble import IsolationForest
+from sklearn.svm import OneClassSVM
 
 from .base import AnomalyDetector
 
@@ -56,5 +57,47 @@ class IsolationForestDetector(AnomalyDetector):
             "resolved_max_samples": getattr(self, "_resolved_max_samples", None),
             "max_features": self.max_features,
             "contamination": str(self.contamination),
+            "random_state": self.random_state,
+        }
+
+
+class OneClassSVMDetector(AnomalyDetector):
+    """Baseline sklearn OneClassSVM: aprende una frontera que envuelve a los datos
+    normales; lo que cae afuera es anómalo. Con kernel RBF (gaussiano) la frontera
+    es no lineal. Score = distancia al hiperplano invertida (mayor = más anómalo).
+
+    kernel: 'rbf' (gaussiano, no lineal — default) | 'linear' | 'poly' | 'sigmoid'.
+    nu:     cota superior de la fracción de outliers en train (~contaminación).
+    gamma:  ancho del kernel RBF ('scale' = 1/(n_features·var), default de sklearn).
+    """
+
+    model_type = "ocsvm"
+
+    def __init__(self, kernel: str = "rbf", nu: float = 0.1,
+                 gamma="scale", random_state: int = 42):
+        self.kernel = kernel
+        self.nu = nu
+        self.gamma = gamma
+        self.random_state = random_state  # OneClassSVM es determinístico; se guarda por consistencia
+        self._clf: OneClassSVM | None = None
+
+    def fit(self, X: np.ndarray) -> "OneClassSVMDetector":
+        self._clf = OneClassSVM(kernel=self.kernel, nu=self.nu, gamma=self.gamma)
+        self._clf.fit(X)
+        return self
+
+    def score_samples(self, X: np.ndarray) -> np.ndarray:
+        if self._clf is None:
+            raise RuntimeError("Llamá fit() primero.")
+        # decision_function > 0 = dentro de la frontera (normal); invertimos el signo
+        # para que mayor = más anómalo, como el resto de los detectores.
+        return -self._clf.decision_function(X)
+
+    def get_config(self) -> Dict:
+        return {
+            "model_type": self.model_type,
+            "kernel": self.kernel,
+            "nu": self.nu,
+            "gamma": str(self.gamma),
             "random_state": self.random_state,
         }

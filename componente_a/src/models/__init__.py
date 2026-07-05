@@ -1,24 +1,22 @@
 """Re-exports del subpaquete models.
 
-Import público preservado:
-    from src.models import IsolationForestDetector   # sigue funcionando
-    from src.models import AEDetector, VAEDetector   # nuevo
+Todos los detectores comparten la interfaz AnomalyDetector:
+fit(X_train_normal) + score_samples(X) (mayor = más anómalo).
 """
 from .base import AnomalyDetector
-from .baselines import IsolationForestDetector
+from .baselines import IsolationForestDetector, OneClassSVMDetector
 from .ae import AEDetector, DenoisingAEDetector
 from .vae import VAEDetector
-from .hybrid import AEIForestDetector
 from .deep_baselines import DeepODDetector
 from .ensemble import EnsembleDetector
 
 __all__ = [
     "AnomalyDetector",
     "IsolationForestDetector",
+    "OneClassSVMDetector",
     "AEDetector",
     "DenoisingAEDetector",
     "VAEDetector",
-    "AEIForestDetector",
     "DeepODDetector",
     "EnsembleDetector",
 ]

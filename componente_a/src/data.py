@@ -6,26 +6,34 @@ temporales y normaliza por departamento SIN leakage (parámetros calculados
 solo sobre las filas normales de train). Devuelve un CropDataset listo para
 cualquier detector.
 
+Todas las funciones toman parámetros explícitos con defaults (los de
+config.py), así el notebook que quiera variar algo lo pasa a la vista:
+
+    panel_z = data.prepare()                                # pipeline default
+    ds = data.build_crop_dataset(panel_z, "soja")           # split default
+    ds = data.build_crop_dataset(panel_z, "soja", train_end=2020)  # variante
+
 Source-only: el panel se lee, nunca se escribe.
 """
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional, Sequence
 
 import numpy as np
 import pandas as pd
 
-from .config import (ExperimentConfig, CLIM_PREFIXES, CRITICAL_MONTHS, NDVI_COLS,
-                     ERA5_COLS, MESES, _REPO_ROOT)
-
+from .config import (CLIM_PREFIXES, CRITICAL_MONTHS, ERA5_COLS, MESES,
+                     PANEL_PATH, ROLLING_WINDOW, Z_THRESH,
+                     TRAIN_END, TEST_START,
+                     EXCLUDED_TRAIN_YEARS, _REPO_ROOT)
 
 # --- Columnas clave que deben existir en el panel ---
 _REQUIRED_BASE = ["cultivo", "campania", "campania_inicio", "departamento", "rinde_kgha"]
 
 
-def build_feature_list(panel: pd.DataFrame, use_ndvi: bool,
+def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = False,
                        use_era5: bool = False) -> List[str]:
     """Lista explícita de columnas que entran en X (promedios mensuales Sep–Mar
     de las variables climáticas). Solo incluye las que realmente existen."""
@@ -36,31 +44,29 @@ def build_feature_list(panel: pd.DataFrame, use_ndvi: bool,
             if col in panel.columns:
                 cols.append(col)
     if use_ndvi:
-        # Preferencia: NDVI-AVHRR mensual (1981+, `ndvi_avhrr_<mes>`, del panel
-        # aumentado) si está. Solo si NO está se cae al NDVI viejo
-        # (`ndvi_anomalia_pct`, MODIS 2002+) — así usar el panel con AVHRR NO
-        # re-introduce el recorte a 2002+ por incluir la columna vieja.
-        avhrr = [f"ndvi_avhrr_{mes}" for mes in MESES
+        # NDVI-AVHRR mensual (1981+, `ndvi_avhrr_<mes>`, del panel aumentado por
+        # merge_avhrr_ndvi.py).
+        cols += [f"ndvi_avhrr_{mes}" for mes in MESES
                  if f"ndvi_avhrr_{mes}" in panel.columns]
-        cols += avhrr if avhrr else [c for c in NDVI_COLS if c in panel.columns]
     if use_era5:
         cols += [c for c in ERA5_COLS if c in panel.columns]
     return cols
 
 
-def load_panel(cfg: ExperimentConfig) -> pd.DataFrame:
-    """Carga el panel y valida columnas. Falla con mensaje claro si falta algo.
+def load_panel(panel_path: str = PANEL_PATH, use_ndvi: bool = False,
+               use_era5: bool = False) -> pd.DataFrame:
+    """Carga el panel, valida columnas y deduplica.
 
-    Un `panel_path` relativo (p. ej. el de un config override) se resuelve contra
-    la raíz del repo, donde vive data/ — así funciona corriendo desde cualquier cwd."""
-    path = cfg.panel_path
+    Un `panel_path` relativo se resuelve contra la raíz del repo (donde vive
+    data/), así funciona corriendo desde cualquier cwd."""
+    path = panel_path
     if not os.path.isabs(path):
         path = os.path.join(_REPO_ROOT, path)
     if not os.path.exists(path):
         raise FileNotFoundError(f"Panel no encontrado: {path}")
     panel = pd.read_parquet(path)
 
-    feats = build_feature_list(panel, cfg.use_ndvi, cfg.use_era5_features)
+    feats = build_feature_list(panel, use_ndvi, use_era5)
     missing = [c for c in (_REQUIRED_BASE + feats) if c not in panel.columns]
     if missing:
         raise ValueError(
@@ -71,11 +77,9 @@ def load_panel(cfg: ExperimentConfig) -> pd.DataFrame:
     # --- Dedup ---
     # El panel trae filas duplicadas (mismo depto-campaña-cultivo con lat/lon
     # distintos): el join geográfico pegó lat/lon por NOMBRE de departamento sin
-    # respetar la provincia → explosión cartesiana (p. ej. la "Capital" de
-    # Corrientes quedó con las 6 coordenadas de las 6 "Capital" del país).
-    # Dentro de cada grupo solo varía lat/lon (rinde/clima/NDVI idénticos), así
-    # que el dedup es seguro Y NECESARIO: sin él, el rolling de z_rinde incluye
-    # campañas repetidas y la etiqueta sale mal.
+    # respetar la provincia → explosión cartesiana. Dentro de cada grupo solo
+    # varía lat/lon, así que el dedup es seguro Y NECESARIO: sin él, el rolling
+    # de z_rinde incluye campañas repetidas y la etiqueta sale mal.
     dedup_key = [c for c in ["provincia", "departamento", "campania_inicio", "cultivo"]
                  if c in panel.columns]
     n0 = len(panel)
@@ -86,43 +90,48 @@ def load_panel(cfg: ExperimentConfig) -> pd.DataFrame:
     return panel
 
 
-def compute_z_rinde(panel: pd.DataFrame, cfg: ExperimentConfig) -> pd.DataFrame:
+def compute_z_rinde(panel: pd.DataFrame, rolling_window: int = ROLLING_WINDOW,
+                    z_thresh: float = Z_THRESH) -> pd.DataFrame:
     """z-score del rinde vs media móvil por departamento Y cultivo (etiqueta
     proxy). Se agrupa por [provincia, departamento, cultivo]: incluir provincia
     es imprescindible porque el nombre de departamento se repite entre
-    provincias (p. ej. "25 De Mayo" en BA, La Pampa y San Juan) — agrupar solo
-    por nombre mezclaría sus series de rinde en un mismo baseline. Cultivo
-    separa soja (~2700 kg/ha) de maíz (~6700). Usa shift(1) para no filtrar el
-    valor actual en su propia media. Etiqueta SOLO para evaluación."""
+    provincias; cultivo separa soja (~2700 kg/ha) de maíz (~6700). Usa shift(1)
+    para no filtrar el valor actual en su propia media. Etiqueta SOLO para
+    evaluación."""
     geo = ["provincia", "departamento"] if "provincia" in panel.columns else ["departamento"]
     df = panel.sort_values(geo + ["cultivo", "campania_inicio"]).copy()
     grp = df.groupby(geo + ["cultivo"])["rinde_kgha"]
     roll_mean = grp.transform(
-        lambda s: s.shift(1).rolling(cfg.rolling_window, min_periods=3).mean()
+        lambda s: s.shift(1).rolling(rolling_window, min_periods=3).mean()
     )
     roll_std = grp.transform(
-        lambda s: s.shift(1).rolling(cfg.rolling_window, min_periods=3).std()
+        lambda s: s.shift(1).rolling(rolling_window, min_periods=3).std()
     )
     df["z_rinde"] = (df["rinde_kgha"] - roll_mean) / roll_std.replace(0, np.nan)
-    df["anomalia"] = (df["z_rinde"] < cfg.z_thresh).astype(int)
+    df["anomalia"] = (df["z_rinde"] < z_thresh).astype(int)
     return df
+
+
+def prepare(panel_path: str = PANEL_PATH, use_ndvi: bool = False,
+            use_era5: bool = False) -> pd.DataFrame:
+    """Pipeline corto: carga el panel + computa la etiqueta. Devuelve panel_z."""
+    return compute_z_rinde(load_panel(panel_path, use_ndvi, use_era5))
 
 
 def add_agro_features(df: pd.DataFrame, cultivo: str) -> tuple:
     """Deriva features agronómicas centradas en la ventana crítica del cultivo,
     a partir de las columnas mensuales ya presentes (no requiere datos nuevos).
 
-    Apunta a la señal que `stratified_recall` mostró que domina la detección
-    (estrés hídrico/térmico en floración-llenado). Devuelve (df_con_cols,
-    nombres_nuevos). Todas se normalizan luego por depto como el resto.
+    Devuelve (df_con_cols, nombres_nuevos). Todas se normalizan luego por depto
+    como el resto.
 
     - agro_precip_crit  : precip total (NASA POWER) en ventana crítica.
     - agro_tmax_crit    : t2m_max media en ventana crítica (estrés térmico).
     - agro_thermamp_crit: amplitud térmica media (t2m_max − t2m_min).
     - agro_waterbal_crit: balance hídrico Σ(precip − PET) con PET Hargreaves
       proxy = 0.0023·Ra·(Tmean+17.8)·√(Tmax−Tmin), Ra≈allsky_sfc_sw_dwn. Como
-      la feature se z-scorea por depto, las unidades/constantes no importan,
-      solo la variación relativa.
+      la feature se z-scorea por depto, las constantes no importan, solo la
+      variación relativa.
     """
     months = CRITICAL_MONTHS.get(cultivo, [])
     df = df.copy()
@@ -169,20 +178,17 @@ def add_agro_features(df: pd.DataFrame, cultivo: str) -> tuple:
 class CropDataset:
     """Datos de un cultivo listos para entrenar/evaluar. Los X ya están
     normalizados por departamento. Los meta_* conservan identificadores y la
-    etiqueta proxy para evaluación y visualización."""
+    etiqueta proxy para evaluación y visualización. Solo train/test (sin val)."""
 
     cultivo: str
     feature_cols: List[str]
 
-    X_train: np.ndarray
-    X_val: np.ndarray
-    X_test: np.ndarray
+    X_train: np.ndarray       # solo campañas normales ≤ TRAIN_END (lo que ve el modelo)
+    X_test: np.ndarray        # ≥ TEST_START (con sus anomalías, para evaluar)
 
-    meta_train: pd.DataFrame  # train NORMAL (lo que ve el modelo)
-    meta_val: pd.DataFrame
+    meta_train: pd.DataFrame
     meta_test: pd.DataFrame
 
-    y_val: np.ndarray
     y_test: np.ndarray
 
     # diagnósticos
@@ -204,8 +210,7 @@ def _normalize_per_depto(df_in: pd.DataFrame, stats: pd.DataFrame,
 
     Cuando la std por-depto es 0 o NaN (feature constante en ese depto, p. ej.
     `frost_days`=0 en el norte que nunca hiela), se usa la std GLOBAL del feature
-    como fallback: así NO se cae la fila (antes `/0 → NaN → dropna` borraba el
-    34% de los departamentos sin heladas) Y se preserva la señal — un depto que
+    como fallback: así NO se cae la fila Y se preserva la señal — un depto que
     nunca hiela y de golpe tiene una helada se vuelve anómalo en vez de perderse."""
     df_out = df_in.copy()
     stats_r = stats.reset_index()
@@ -222,27 +227,33 @@ def _normalize_per_depto(df_in: pd.DataFrame, stats: pd.DataFrame,
 
 
 def build_crop_dataset(panel_z: pd.DataFrame, cultivo: str,
-                       cfg: ExperimentConfig) -> CropDataset:
-    """Construye el CropDataset para un cultivo: split temporal, filtrado de
-    train a filas normales, y normalización por departamento sin leakage."""
-    feats = build_feature_list(panel_z, cfg.use_ndvi, cfg.use_era5_features)
+                       use_ndvi: bool = False, use_era5: bool = False,
+                       use_agro: bool = False,
+                       train_start: Optional[int] = None,
+                       train_end: int = TRAIN_END,
+                       test_start: int = TEST_START,
+                       excluded_train_years: Sequence[int] = tuple(EXCLUDED_TRAIN_YEARS),
+                       ) -> CropDataset:
+    """Construye el CropDataset para un cultivo: split train/test, filtrado de
+    train a filas normales, y normalización por departamento sin leakage.
+    No hay val (el bloque 2018–2020 se pliega al train; ver config)."""
+    feats = build_feature_list(panel_z, use_ndvi, use_era5)
     df = panel_z[panel_z["cultivo"] == cultivo].copy()
 
     # --- Features agronómicas de dominio (ventana crítica, per-cultivo) ---
-    if cfg.use_agro_features:
+    if use_agro:
         df, agro_cols = add_agro_features(df, cultivo)
         feats = feats + agro_cols
 
-    # --- Split temporal ---
-    m_train = df["campania_inicio"] <= cfg.train_end
-    if cfg.train_start is not None:
-        m_train &= df["campania_inicio"] >= cfg.train_start
-    m_val = (df["campania_inicio"] >= cfg.val_start) & (df["campania_inicio"] <= cfg.val_end)
-    m_test = df["campania_inicio"] >= cfg.test_start
-    df_train, df_val, df_test = df[m_train].copy(), df[m_val].copy(), df[m_test].copy()
+    # --- Split temporal: solo train (≤ train_end) y test (≥ test_start) ---
+    m_train = df["campania_inicio"] <= train_end
+    if train_start is not None:
+        m_train &= df["campania_inicio"] >= train_start
+    m_test = df["campania_inicio"] >= test_start
+    df_train, df_test = df[m_train].copy(), df[m_test].copy()
 
     # --- Train normal: excluir años problemáticos + filas anómalas ---
-    m_excl = df_train["campania_inicio"].isin(cfg.excluded_train_years)
+    m_excl = df_train["campania_inicio"].isin(list(excluded_train_years))
     m_anom = df_train["anomalia"] == 1
     df_train_normal = df_train[~m_excl & ~m_anom].copy()
 
@@ -255,7 +266,6 @@ def build_crop_dataset(panel_z: pd.DataFrame, cultivo: str,
     global_std = df_train_normal[feats].std()
 
     df_tr_n = _normalize_per_depto(df_train_normal, stats, feats, geo, global_std).dropna(subset=feats)
-    df_va_n = _normalize_per_depto(df_val, stats, feats, geo, global_std).dropna(subset=feats)
     df_te_n = _normalize_per_depto(df_test, stats, feats, geo, global_std).dropna(subset=feats)
 
     meta_cols = (["provincia"] if "provincia" in df.columns else []) + _META_COLS
@@ -264,20 +274,10 @@ def build_crop_dataset(panel_z: pd.DataFrame, cultivo: str,
         cultivo=cultivo,
         feature_cols=feats,
         X_train=df_tr_n[feats].values,
-        X_val=df_va_n[feats].values,
         X_test=df_te_n[feats].values,
         meta_train=df_tr_n[meta_cols].reset_index(drop=True),
-        meta_val=df_va_n[meta_cols].reset_index(drop=True),
         meta_test=df_te_n[meta_cols].reset_index(drop=True),
-        y_val=df_va_n["anomalia"].values,
         y_test=df_te_n["anomalia"].values,
         n_excluded_year=int(m_excl.sum()),
         n_excluded_anom=int((~m_excl & m_anom).sum()),
     )
-
-
-def prepare(cfg: ExperimentConfig):
-    """Carga panel + etiqueta. Devuelve (panel_z, feature_cols)."""
-    panel = load_panel(cfg)
-    panel_z = compute_z_rinde(panel, cfg)
-    return panel_z, build_feature_list(panel_z, cfg.use_ndvi, cfg.use_era5_features)

@@ -36,12 +36,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.rcParams["figure.dpi"] = 110
 
-from src.config import ExperimentConfig
 from src import data as cdata
 
-cfg = ExperimentConfig()
-panel = cdata.load_panel(cfg)                 # dedup + clave [provincia, departamento]
-panel = cdata.compute_z_rinde(panel, cfg)     # la MISMA etiqueta que usan los modelos
+panel = cdata.load_panel()                    # dedup + clave [provincia, departamento]
+panel = cdata.compute_z_rinde(panel)          # la MISMA etiqueta que usan los modelos
 panel["split"] = panel.campania_inicio.map(
     lambda y: "train" if y <= 2017 else ("val" if y <= 2020 else "test"))
 print("shape:", panel.shape)
@@ -220,9 +218,10 @@ Hay señal climática real en el panel — la pregunta de los experimentos es *c
 radiación (`allsky`), precipitación (`prectotcorr`), humedad relativa (`rh2m`),
 temperatura media/máx/mín (`t2m*`) y viento (`ws2m`). **No incluyen el rinde.**
 
-> Sobre el NDVI del panel: ~45% NaN (MODIS existe desde 2002) y 3 de las 4 columnas
-> son constantes por departamento. Se excluye del set base; la evaluación con NDVI
-> largo (AVHRR 1981+) está en `experiments/05`."""),
+> Sobre el NDVI: el viejo NDVI de MODIS se **retiró** del panel (existía solo desde
+> 2002 y 3 de sus 4 columnas eran constantes por departamento — cero señal temporal).
+> El NDVI que sí se evalúa es el **AVHRR 1981+**, en su propio EDA (`eda_ndvi_avhrr`) y
+> como ablación en `experiments/05`."""),
 
     code("""feats = cdata.build_feature_list(panel, use_ndvi=False)
 print(f"{len(feats)} features")
@@ -322,33 +321,42 @@ res["tasa"] = (res.tasa*100).round(1)
 display(res.pivot(index="split", columns="cultivo", values=["n","tasa"])
         .reindex(["train","val","test"]))"""),
 
+    md("""**La tasa base de anomalías cambia de split**: ~7% en val vs ~29% en test (la
+sequía 2022/23 cae en test). Un umbral calibrado en val no transfiere a test → por eso
+se usan métricas de *ranking* (PR-AUC/ROC-AUC), libres de umbral (ver `experiments/01`).
+
+---
+## 8 · ¿Se separan las anomalías en el espacio climático? (PCA)
+
+La pregunta central del proyecto: proyectamos las 54 features climáticas a 2D con **PCA**
+y coloreamos por **etiqueta real** (normal vs anómala). Si las anomalías de rinde
+tuvieran una firma climática clara, deberían caer en una región propia."""),
+
     code("""from sklearn.decomposition import PCA
 sl = soja[soja.z_rinde.notna()].copy()
 sl[feats] = sl.groupby(["provincia","departamento"])[feats].transform(
     lambda x: (x - x.mean()) / x.std() if x.std() > 0 else x * 0)
 sl = sl.dropna(subset=feats)
-pca = PCA(n_components=2, random_state=42).fit(sl[sl.split=="train"][feats])
+pca = PCA(n_components=2, random_state=42).fit(sl[feats])
 emb = pca.transform(sl[feats])
 fig, ax = plt.subplots(figsize=(7, 5.5))
-for sp, color in [("train","#4C72B0"), ("val","#55A868"), ("test","#C44E52")]:
-    m = (sl.split==sp).values
-    ax.scatter(emb[m,0], emb[m,1], s=6, alpha=0.35, color=color, label=sp)
-    mx, my = emb[m,0].mean(), emb[m,1].mean()
-    ax.scatter([mx],[my], s=180, marker="X", color=color, edgecolor="k", zorder=5)
+for lab_, color, nombre in [(0, "#4C72B0", "normal"), (1, "#C44E52", "anómala")]:
+    m = (sl.anomalia == lab_).values
+    ax.scatter(emb[m,0], emb[m,1], s=8, alpha=0.35 if lab_==0 else 0.7,
+               color=color, label=f"{nombre} (n={int(m.sum())})")
 ax.legend(); ax.set_xlabel("PC1"); ax.set_ylabel("PC2")
-ax.set_title("PCA del espacio climático (fit en train) — centroides por split")
+ax.set_title("PCA del espacio climático (soja) — coloreado por anomalía de rinde")
 plt.show()
 print("varianza explicada PC1+PC2:", pca.explained_variance_ratio_.sum().round(2))"""),
 
-    md("""Dos hechos que condicionan toda la evaluación (ver `experiments/01`):
-- **La tasa base de anomalías cambia de split**: ~7% en val vs ~29% en test (la sequía
-  2022/23 cae en test). Un umbral calibrado en val no puede transferir.
-- **El clima de test está corrido** respecto de train (centroides desplazados en el
-  PCA): los scores absolutos suben en bloque → solo las métricas de *ranking*
-  (PR-AUC/ROC-AUC) son comparables entre splits.
+    md("""**Las anomalías (rojo) NO forman un cluster separado** — están mezcladas entre las
+normales. Es la confirmación *visual* del **techo estructural** (`experiments/04`): una
+parte grande de las anomalías de rinde no se distingue en el espacio de features
+climáticas, así que ningún modelo que mire solo ese espacio puede separarlas caso a
+caso. (El mismo fenómeno, con el score del modelo final y t-SNE, en `experiments/04`.)"""),
 
----
-## 8 · Conclusiones del EDA → decisiones de diseño
+    md("""---
+## 9 · Conclusiones del EDA → decisiones de diseño
 
 | hallazgo | decisión de diseño |
 |---|---|
@@ -356,7 +364,7 @@ print("varianza explicada PC1+PC2:", pca.explained_variance_ratio_.sum().round(2
 | La etiqueta marca las sequías documentadas y el % cosechado las confirma (§3) | el proxy `z_rinde < −1.5` es válido como ground truth de evaluación |
 | Nivel climático geográfico fuerte en varias features (temp. ratio ~2) (§5.1) | **normalización por departamento** con stats de train |
 | Features en bloques redundantes (§5) | latentes chicos (8–16) en los autoencoders |
-| Señal clima→anomalía real (Niña 3×) pero solapada caso a caso (§4, §6) | esperar recall alto en anomalías climáticas y un techo en las demás (`experiments/04`) |
+| Señal clima→anomalía real (Niña 3×) pero solapada caso a caso; las anomalías no se separan en el PCA (§4, §6, §8) | esperar recall alto en anomalías climáticas y un techo en las demás (`experiments/04`) |
 | Tasa base y clima cambian de split (§7) | métricas de ranking (PR-AUC), umbral re-calibrado por split (`experiments/01`) |
 
 El modelado a partir de acá: **`experiments/00–06`**."""),

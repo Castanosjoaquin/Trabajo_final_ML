@@ -1,25 +1,23 @@
 """
-Configuración compartida del Componente A.
+Constantes compartidas del Componente A: rutas, features, splits y etiqueta.
 
-Centraliza rutas, splits temporales, años excluidos y la definición de la
-matriz de features. Cualquier modelo (Isolation Forest, Autoencoder, ...)
-parte de esta misma configuración para que la comparación sea justa.
+Un solo lugar para los valores que usan los notebooks y el pipeline de datos.
+Los hiperparámetros de cada modelo NO viven acá: van visibles en el notebook
+que entrena ese modelo.
 """
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field, asdict
-from typing import List, Optional
 
 # --- Rutas ---
-# data/ y data_sources/ viven en la RAÍZ del repo (infra compartida entre
-# componentes). Se resuelven en ABSOLUTO desde este archivo
-# (componente_a/src/config.py → tres niveles arriba), para no depender del cwd.
-# RUNS_DIR sí es local a componente_a/ (cada componente guarda sus propias runs).
+# data/ vive en la RAÍZ del repo (compartida entre componentes). Se resuelve en
+# ABSOLUTO desde este archivo (componente_a/src/config.py → tres niveles arriba),
+# para no depender del cwd.
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(_REPO_ROOT, "data")
 PANEL_PATH = os.path.join(DATA_DIR, "processed", "panel_union.parquet")
-RUNS_DIR = "runs"  # raíz de los run-dirs locales (relativo a componente_a/)
+PANEL_NDVI_PATH = os.path.join(DATA_DIR, "processed", "panel_union_ndvi.parquet")
+PANEL_ERA5_PATH = os.path.join(DATA_DIR, "processed", "panel_union_era5.parquet")
 
 # --- Cultivos soportados ---
 CULTIVOS = ["soja", "maiz"]
@@ -27,8 +25,8 @@ CULTIVOS = ["soja", "maiz"]
 # --- Meses de la campaña (Sep–Mar) ---
 MESES = ["sep", "oct", "nov", "dic", "ene", "feb", "mar"]
 
-# --- Prefijos de variables climáticas (NASA POWER + CHIRPS + ONI) ---
-# NO incluye rinde ni superficie. NDVI entra solo si USE_NDVI=True.
+# --- Prefijos de variables climáticas (NASA POWER + ONI) ---
+# NO incluye rinde ni superficie. 7 variables × 7 meses + ONI × 5 meses = 54.
 CLIM_PREFIXES = [
     "allsky_sfc_sw_dwn",  # radiación solar
     "prectotcorr",        # precipitación NASA POWER
@@ -38,68 +36,38 @@ CLIM_PREFIXES = [
     "t2m_min",            # temperatura mínima
     "ws2m",               # viento
     "oni",                # ONI (ENSO) — solo meses disponibles en el panel
-    "chirps_precip",      # precipitación CHIRPS
+    "chirps_precip",      # precipitación CHIRPS (no está en el panel actual)
 ]
-# Solo ndvi_anomalia_pct: las otras 3 (ndvi_mean/min/max) son CONSTANTES por
-# departamento (un NDVI climatológico, mismo valor en todas las campañas) →
-# cero señal temporal y degeneran la normalización por depto (std=0 → NaN, tira
-# todas las filas). ndvi_anomalia_pct sí varía año a año (índice de anomalía
-# vegetal, ~100 = normal) y es la feature NDVI realmente informativa.
-NDVI_COLS = ["ndvi_anomalia_pct"]
+# NDVI: el único usado es el AVHRR mensual (1981+, `ndvi_avhrr_<mes>`) del panel
+# aumentado por merge_avhrr_ndvi.py. El NDVI viejo de MODIS se RETIRÓ del panel
+# (2026-07): existía solo desde 2002 y 3 de sus 4 columnas eran estáticas por depto.
 
 # --- Features ERA5-Land (estado del suelo + heladas), del merge externo ---
-# Capturan lo que los promedios mensuales NO ven: el ESTADO inicial (humedad de
-# suelo, la "inercia" de arrancar inundado o seco) y EVENTOS puntuales (heladas
-# que un promedio mensual borra). Disponibles 1950+, se mergean con merge_era5.py.
 #   sm_planting      : humedad de suelo 0-100cm en la siembra (Sep–Nov).
-#   sm_winter        : humedad de suelo 0-100cm en el invierno previo (Jun–Ago)
-#                      = condición inicial / inercia.
+#   sm_winter        : humedad de suelo 0-100cm en el invierno previo (Jun–Ago).
 #   frost_days       : nº de días con helada (Tmin<0) en la campaña (Sep–Mar).
-#   frost_days_early : nº de heladas tardías de primavera (Sep–Nov), las más dañinas.
+#   frost_days_early : nº de heladas tardías de primavera (Sep–Nov).
 ERA5_COLS = ["sm_planting", "sm_winter", "frost_days", "frost_days_early"]
 
 # --- Ventana crítica del cultivo (floración + llenado de grano) ---
-# Meses donde el estrés hídrico/térmico pega más fuerte en el rinde. Aproximado
-# y tuneable. Soja: floración/llenado Dic–Feb. Maíz: siembra más temprana →
-# período crítico Nov–Ene. Usado por las features agronómicas derivadas.
+# Meses donde el estrés hídrico/térmico pega más fuerte en el rinde.
 CRITICAL_MONTHS = {
     "soja": ["dic", "ene", "feb"],
     "maiz": ["nov", "dic", "ene"],
 }
 
+# --- Etiqueta proxy ---
+ROLLING_WINDOW = 5     # ventana de la media móvil del rinde
+Z_THRESH = -1.5        # anomalía = z_rinde < Z_THRESH
 
-@dataclass
-class ExperimentConfig:
-    """Configuración de un experimento. Se serializa a config.json."""
+# --- Split temporal (sobre campania_inicio, entero) ---
+# Solo train / test. NO hay validación: el bloque 2018–2020 se pliega al train
+# porque sus anomalías no tienen firma climática (val "ciego" → PR-AUC ≈ azar,
+# no discrimina modelos). La selección de HP se ilustra en test (data snooping
+# declarado). El early stopping de los autoencoders usa un 15% interno del train,
+# no este split.
+TRAIN_END = 2020       # train: 1981/82–2020/21 (incluye el ex-val)
+TEST_START = 2021      # test:  2021/22–2024/25
 
-    # Datos / etiqueta
-    panel_path: str = PANEL_PATH
-    use_ndvi: bool = False               # ablation post-2002
-    use_agro_features: bool = False      # anexar features de dominio (ventana crítica)
-    use_era5_features: bool = False      # anexar features ERA5-Land (suelo + heladas)
-    rolling_window: int = 5              # ventana para z_rinde
-    z_thresh: float = -1.5              # umbral de etiqueta anómala
-
-    # Evaluación: operating point para F1/precision/recall
-    threshold_mode: str = "contamination"   # 'contamination' | 'f1'
-    eval_contamination: float = 0.10         # fracción marcada como anómala
-
-    # Split temporal (sobre campania_inicio, entero)
-    train_start: Optional[int] = None    # límite inferior del train (None = sin límite).
-                                         # Usarlo p. ej. =2002 para controlar el período
-                                         # al comparar con/sin NDVI (que solo existe 2002+).
-    train_end: int = 2017                # train: 1981/82–2017/18
-    val_start: int = 2018                # val: 2018/19–2020/21
-    val_end: int = 2020
-    test_start: int = 2021               # test: 2021/22–2024/25
-
-    # Años excluidos del entrenamiento (>30% deptos anómalos)
-    excluded_train_years: List[int] = field(
-        default_factory=lambda: [1988, 1996, 2008, 2017]
-    )
-
-    # Reproducibilidad
-    random_state: int = 42
-
-    def to_dict(self) -> dict:
-        return asdict(self)
+# --- Años excluidos del train (sequías generalizadas; ver experiments/00) ---
+EXCLUDED_TRAIN_YEARS = [1988, 1996, 2008, 2017]

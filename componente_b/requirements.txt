@@ -1,0 +1,12 @@
+# Componente B — predicción de rinde
+pandas>=1.5
+pyarrow>=10
+numpy>=1.23
+scikit-learn>=1.2
+matplotlib>=3.6
+# Modelos
+torch>=2.0
+xgboost>=2.0
+# xgboost en macOS necesita el runtime de OpenMP: `brew install libomp`.
+# Si al entrenar xgboost hay segfault (exit 139) por conflicto con torch,
+# correr una vez: `python componente_b/fix_openmp_macos.py`.

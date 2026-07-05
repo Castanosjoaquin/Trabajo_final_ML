@@ -1,15 +1,15 @@
 """
-Componente A — Detección de anomalías (región núcleo, soja y maíz).
+Componente A — Detección de anomalías de rinde (soja y maíz).
 
-Paquete compartido para entrenar, evaluar y comparar modelos de detección
-de anomalías de forma estandarizada. Cada modelo produce un RunResult con
-el mismo esquema, persistido vía ResultsStore (run-dirs locales en `runs/`)
-y consumido por la app Streamlit de comparación.
+Paquete mínimo compartido por los notebooks de `experiments/`:
+  - config : constantes (rutas, features, splits, etiqueta).
+  - data   : pipeline de datos (panel → etiqueta → splits → normalización).
+  - models : detectores con interfaz común fit(X) / score_samples(X).
 
-Principio source-only: el panel NUNCA se modifica; todo feature engineering,
-splits y normalización se computan acá.
+Todo lo demás (entrenamiento, evaluación, comparaciones, gráficos) vive
+VISIBLE en los notebooks. Principio source-only: el panel nunca se modifica.
 """
 
-from . import config, data, models, evaluate, embeddings, store, runner  # noqa: F401
+from . import config, data, models  # noqa: F401
 
-__all__ = ["config", "data", "models", "evaluate", "embeddings", "store", "runner"]
+__all__ = ["config", "data", "models"]

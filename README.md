@@ -1,7 +1,12 @@
 # Componente A — Detección de Anomalías Agroclimáticas
 
-Detecta campañas agrícolas anómalas (rinde bajo) usando variables climáticas mensuales.
-Modelo no supervisado: se entrena solo con años normales y puntúa por error de reconstrucción.
+Detecta **campañas agrícolas con rinde anómalo** (soja y maíz, Argentina, 1981–2024)
+usando solo variables climáticas mensuales. Es un problema **no supervisado**: los modelos
+se entrenan únicamente con campañas normales y puntúan cada campaña por cuán "rara" es.
+
+El trabajo está contado y **reproducido** en los notebooks de `componente_a/experiments/`:
+cada uno entrena los modelos de verdad (no lee resultados guardados), así que se puede
+abrir cualquiera, hacer **Run all**, y recrear todo desde cero.
 
 ---
 
@@ -13,416 +18,158 @@ source .venv/bin/activate
 pip install -r componente_a/requirements.txt
 ```
 
-> **Directorio de trabajo:** todo el Componente A vive bajo `componente_a/` y los
-> comandos de abajo se ejecutan **desde ahí** (`cd componente_a`). El venv queda en
-> la raíz del repo (`.venv/`), así que se activa antes de entrar.
+> Todo el Componente A vive bajo `componente_a/` y se corre desde ahí (`cd componente_a`).
+> El venv queda en la raíz del repo (`.venv/`).
 
 ---
 
-## Estructura del proyecto
+## Estructura
 
 ```
 Trabajo_final_ML/
 │
-├── data/                     # Datos COMPARTIDOS (ambos componentes)
-│   └── processed/panel_union.parquet   # Dataset principal del Componente A
-├── data_sources/             # Extracción + MERGE satelital COMPARTIDO (Earth Engine)
-│   ├── extract_avhrr_ndvi.py / merge_avhrr_ndvi.py   # NDVI-AVHRR 1981+
-│   └── extract_era5.py / merge_era5.py               # ERA5-Land: suelo + heladas
+├── data/processed/panel_union.parquet    # Dataset principal (source-only: nunca se modifica)
+├── data_sources/                         # Extracción satelital (Earth Engine): NDVI-AVHRR, ERA5
 │
-├── componente_a/             # TODO el Componente A (se corre desde acá)
+├── componente_a/
+│   ├── src/                              # Paquete mínimo (solo 3 módulos)
+│   │   ├── config.py                     #   Constantes: rutas, features, splits, etiqueta
+│   │   ├── data.py                       #   Pipeline: panel → etiqueta z_rinde → splits → normalización
+│   │   └── models/                       #   Detectores (interfaz común fit / score_samples)
+│   │       ├── base.py                   #     AnomalyDetector (ABC)
+│   │       ├── baselines.py              #     IsolationForest, OneClassSVM
+│   │       ├── ae.py                     #     AE + Denoising AE
+│   │       ├── vae.py                    #     VAE (score recon_prob)
+│   │       ├── ensemble.py               #     EnsembleDetector (seed-ensemble)
+│   │       ├── deep_baselines.py         #     DeepODDetector (métodos modernos, deepod)
+│   │       └── trainer.py                #     Loop de entrenamiento (Adam + early stopping)
 │   │
-│   ├── src/                  # Código fuente (paquete Python `src`)
-│   │   ├── config.py         #   Rutas, splits temporales, lista de features
-│   │   ├── data.py           #   Carga panel, etiqueta proxy, splits, normalización
-│   │   ├── evaluate.py       #   Métricas: PR-AUC, ROC-AUC, Recall@k, F1, Precision@k
-│   │   ├── runner.py         #   Orquestador: fit → score → evaluar → RunResult
-│   │   ├── store.py          #   Persistencia: run-dirs locales en disco
-│   │   ├── embeddings.py     #   Proyecciones 2D con UMAP y t-SNE
-│   │   └── models/
-│   │       ├── base.py       #   Interfaz AnomalyDetector (fit/score_samples/get_config)
-│   │       ├── ae.py         #   AEDetector + DenoisingAEDetector (subclase)
-│   │       ├── vae.py        #   VAEDetector
-│   │       ├── baselines.py  #   IsolationForestDetector
-│   │       ├── hybrid.py     #   AEIForestDetector (AE-latente + IForest)
-│   │       ├── ensemble.py   #   EnsembleDetector (seed-ensemble / hetero)
-│   │       ├── deep_baselines.py  # DeepODDetector (métodos modernos, deepod)
-│   │       └── trainer.py    #   Loop Adam + early stopping + LR schedule
-│   │
-│   ├── training/             # ENTRENAMIENTO
-│   │   ├── train.py          #   Entrena UN config YAML
-│   │   └── batch_train.py    #   Entrena VARIOS configs en paralelo, tabla resumen
-│   │
-│   ├── analyze_errors.py / analyze_labels.py / analyze_datamap.py  # Análisis (→ analysis/)
-│   ├── app_streamlit.py      # App de comparación de modelos (lado a lado)
-│   ├── experiments/          # Notebooks del recorrido completo (la historia del proyecto)
-│   ├── eda/                  # EDA del panel (eda_panel_union.ipynb) + construcción (build_panel_union.py)
-│   │
-│   ├── configs/              # Configs YAML por modelo (ae/ vae/ dae/ hybrid/ ensemble/ iforest/ deepod/)
-│   ├── runs/                 # Resultados guardados localmente, por modelo (gitignored)
-│   ├── analysis/             # Salidas de los analyze_*.py (gitignored)
+│   ├── experiments/                      # EL TRABAJO: notebooks reproducibles (entrenan inline)
+│   │   ├── lab.py                        #   Utilidades: métricas y gráficos (visibles, cortas)
+│   │   └── 00..07_*.ipynb
+│   ├── eda/                              # EDAs + construcción del panel (build_panel_union.py)
+│   ├── tests/                            # test_repro (dataset) + test_smoke (modelos)
 │   └── requirements.txt
 │
-├── docs/                     # Papers de referencia + PDF del proyecto
+├── docs/                                 # Papers de referencia + consigna
 └── README.md
 ```
 
----
-
-## Dataset
-
-- **Panel**: `data/processed/panel_union.parquet`
-- **Filas**: 28 683 en bruto → **21 418** tras deduplicar (dedup en `data.load_panel`)
-- **Features**: 54 (7 variables NASA POWER × 7 meses Sep–Mar + ONI × 5 meses)
-  - Variables: radiación solar, precipitación, humedad, T media/max/min, viento, ONI
-- **Etiqueta proxy**: `z_rinde < -1.5` (z-score del rinde vs media móvil 5 años por departamento y cultivo)
-- **Splits temporales**:
-  - Train: campañas 1981/82 – 2017/18 (solo años normales)
-  - Val:   campañas 2018/19 – 2020/21
-  - Test:  campañas 2021/22 – 2024/25
+**No hay** capa de configs YAML, ni orquestador CLI, ni store de runs: los
+hiperparámetros y el entrenamiento viven **a la vista en los notebooks**. `src/` es solo el
+pipeline de datos + los modelos.
 
 ---
 
-## Métricas
+## El recorrido (notebooks de `experiments/`)
 
-| Métrica | Qué mide | Nota |
-|---------|----------|------|
-| **PR-AUC** | Área bajo la curva Precision-Recall | Principal — mejor que ROC para desbalance (10% anomalías) |
-| **Recall@contam** | % de anomalías reales capturadas en el top-10% por score | "¿Cuántas anomalías detecto si uso el prior de contaminación?" |
-| **ROC-AUC** | Área bajo la curva ROC | Referencia, más optimista por el desbalance |
-| **F1** | F1 de la clase anómala al umbral calibrado | Calibrado por contaminación en val |
-| **Precision@k** | Precisión en los top-k (k = n anomalías reales) | Cuántos de los k más sospechosos son verdaderos positivos |
+| nb | contenido |
+|---|---|
+| `00_datos_y_pipeline` | El panel, la etiqueta `z_rinde`, splits y normalización |
+| `01_evaluacion_y_baselines` | Cómo se mide (PR-AUC, multi-seed) + Isolation Forest y One-Class SVM |
+| `02_ae_y_dae` | Autoencoders AE y DAE (+ IForest/OCSVM sobre su latente) |
+| `03_vae` | VAE: **búsqueda de HP** + score `recon_prob` (+ latente + t-SNE) |
+| `04_ensemble` | Seed-ensemble = **el modelo final** (en ambos cultivos) |
+| `05_techo_estructural` | Por qué nadie pasa de ~0.6 (cross-modelo + Cartography + PCA) |
+| `06_features_nuevas` | Features agro / NDVI / ERA5 × 5 detectores → **ERA5+NDVI mejora al ensemble (modelo final, 0.64)** |
+| `07_leaderboard_y_conclusiones` | Leaderboard final + conclusiones (DeepSVDD como referencia moderna) |
 
-Para comparar modelos mirá primero **PR-AUC** y **Recall@contam** en conjunto.
-
----
-
-## Entrenamiento — `train.py`
-
-Entrena **un solo config** para uno o ambos cultivos.
-
-```bash
-# Correr un config (ambos cultivos)
-python training/train.py configs/ae/ae_v11_cosine_deep.yaml
-
-# Solo un cultivo
-python training/train.py configs/ae/ae_v11_cosine_deep.yaml --cultivo soja
-
-# Override del nombre de la run
-python training/train.py configs/ae/ae_v11_cosine_deep.yaml --name mi_experimento
-```
-
-**Flags disponibles:**
-
-| Flag | Descripción | Default |
-|------|-------------|---------|
-| `--cultivo` | `soja`, `maiz` o `ambos` | valor del YAML |
-| `--name` | Nombre de la run (override) | valor del YAML |
+**Correr todo:** abrir un notebook y "Run all". Con las **10 semillas** del estudio, la
+corrida completa tarda un rato (entrena de verdad). Para una corrida rápida, reducir
+`SEEDS` arriba de cada notebook, o exportar `LAB_SEEDS="42,43,44"` antes de lanzar Jupyter.
 
 ---
 
-## Entrenamiento en batch — `batch_train.py`
+## Los datos
 
-Entrena **varios configs** en secuencia y muestra una tabla resumen comparativa al final.
+- **Panel**: `data/processed/panel_union.parquet` — una fila por (departamento, campaña, cultivo).
+- **Features (X)**: **54** = 7 variables NASA POWER × 7 meses (Sep–Mar) + ONI × 5 meses.
+  No incluyen el rinde.
+- **Etiqueta proxy**: `z_rinde < −1.5` (z-score del rinde vs media móvil de 5 años, por
+  `[provincia, departamento, cultivo]`). Solo para evaluar; el modelo nunca la ve.
+- **Splits temporales**: train ≤2020 (el ex-val 2018–2020 se pliega) · test ≥2021. **No hay validación** (el val era ciego). El train se filtra
+  a solo-normales (se excluyen anomalías y años de sequía generalizada).
 
-```bash
-# Correr todos los AE (ambos cultivos)
-python training/batch_train.py configs/ae/*.yaml
+Todo esto lo arma `src.data.build_crop_dataset(panel_z, cultivo)`, que devuelve
+`X_train / X_test` ya normalizados (sin val — ver limitaciones).
 
-# Solo soja
-python training/batch_train.py configs/ae/*.yaml --cultivo soja
-
-# Paralelo: 4 configs corriendo al mismo tiempo (recomendado para exploración)
-python training/batch_train.py configs/ae/*.yaml --cultivo soja --workers 4
-
-# Comparar AE vs iforest en soja
-python training/batch_train.py configs/ae/ae_v11_cosine_deep.yaml configs/iforest/iforest_v1_base.yaml --cultivo soja
-
-# Correr todos los modelos
-python training/batch_train.py configs/ae/*.yaml configs/vae/*.yaml configs/dae/*.yaml configs/iforest/*.yaml
-```
-
-**Flags disponibles:**
-
-| Flag | Descripción | Default |
-|------|-------------|---------|
-| `--cultivo` | `soja`, `maiz` o `ambos` | `ambos` |
-| `--workers` | Procesos en paralelo. Cada worker entrena un par (config, cultivo). | 1 (secuencial) |
-
-**Salida de ejemplo:**
-```
-──────────────────────────────────────────────
-Config: configs/ae/ae_v11_cosine_deep.yaml
-──────────────────────────────────────────────
-  [SOJA] PR-AUC=0.3741±0.0291  ROC-AUC=0.6596  Rec@k=0.4800  F1=0.4354
-
-============================================================================================
-modelo                         cultivo    PR-AUC   ±std  ROC-AUC  Rec@k      F1  seeds
---------------------------------------------------------------------------------------------
-ae_v11_cosine_deep             soja       0.3741 0.0291   0.6596  0.4800  0.4354     10
-============================================================================================
-```
-
-> **Proyecciones 2D:** ya **no** se calculan al entrenar (eran lentas, ~1-2 min/run).
-> Se computan **on-demand** la primera vez que la app o un notebook las pide
-> (`src.embeddings.compute_embeddings(run_id)`) y se cachean en el run-dir. No
-> necesitan el modelo entrenado: dependen solo de las features y de los scores ya
-> guardados.
-
----
-
-## App de comparación — `app_streamlit.py`
-
-Compara dos runs lado a lado: métricas, curvas PR/ROC, distribución de scores, proyecciones 2D y heatmap departamento × campaña.
-
-```bash
-streamlit run app_streamlit.py
-```
-
-**Uso de la sidebar:**
-- **Runs dir**: directorio raíz de runs (default: `runs/`)
-- **🔄 Recargar runs**: limpia el caché si acabás de correr nuevos modelos
-- **Cultivo**: filtrá por `soja` o `maiz`
-- **Modelo A / Modelo B**: los dos modelos a comparar
-- **Métrica destacada**: la métrica que se resalta en grande con delta
-- **Proyección 2D**: UMAP o t-SNE
-- **Colorear por**: etiqueta real (normal/anómala) o score continuo
-
-> **Proyección 2D on-demand**: la primera vez que abrís un run, la app computa UMAP/t-SNE
-> (~1-2 min) y lo cachea en el run-dir; las siguientes veces es instantáneo.
-
----
-
-## Estructura de un config YAML
-
-Todos los campos tienen defaults razonables; solo sobreescribí lo que cambiás.
-
-### AE / DAE
-
-```yaml
-model: ae           # ae | dae | vae | iforest | ae_iforest
-name: ae_v11        # nombre de la run (aparece en la app)
-cultivo: ambos      # soja | maiz | ambos
-# Arquitectura
-hidden_dims: [128, 64]   # capas ocultas ([] = sin capas, solo bottleneck)
-latent_dim: 16           # dimensión del espacio latente
-activation: elu          # relu | leaky_relu | elu | gelu | tanh
-
-# Score de anomalía (AE / DAE)
-score_mode: mse          # mse (MSE promedio) | max (error máx por feature) | topk (suma top-k)
-top_k: 5                 # solo si score_mode=topk
-
-# Solo para DAE
-corruption: 0.1          # fracción de features a corromper
-noise_type: salt_pepper  # salt_pepper | gaussian
-
-# Optimización
-lr: 0.001
-weight_decay: 0.0001
-dropout: 0.1
-use_batch_norm: true
-grad_clip_norm: 1.0
-lr_schedule: cosine      # null | cosine | plateau
-max_epochs: 300
-patience: 40
-batch_size: 64
-
-# Evaluación
-n_seeds: 10              # semillas para estimación robusta
-threshold_mode: contamination
-eval_contamination: 0.10
-random_state: 42
-```
-
-### VAE
-
-```yaml
-model: vae
-# (mismos campos de arquitectura y optimización que AE, más:)
-beta: 1.0                      # peso del término KL (< 1 prioriza reconstrucción)
-score_mode: recon_prob         # recon_error | recon_prob | neg_elbo
-n_mc_samples: 50               # muestras Monte Carlo para score estocástico
-decoder_dist: gaussian         # gaussian | student_t (colas pesadas, robusto a outliers)
-student_t_df: 4.0              # grados de libertad ν (solo si decoder_dist=student_t)
-```
-
-### Isolation Forest
-
-```yaml
-model: iforest
-n_estimators: 100        # 100 | 200 | 300 (más árboles = menos varianza)
-max_samples: auto
-max_features: 1.0        # 0.3 | 0.5 | 0.7 | 1.0 (bajo = más sensible a anomalías locales)
-contamination: auto
-random_state: 42
-```
-
-### Híbrido AE-latente + Isolation Forest
-
-El AE proyecta a un latente de baja dimensión y el Isolation Forest scorea
-sobre ese latente (no sobre el error de reconstrucción). Combina los campos de
-arquitectura/optimización del AE con los del IForest.
-
-```yaml
-model: ae_iforest
-# Autoencoder (proyección)
-hidden_dims: [32, 16]
-latent_dim: 8
-max_epochs: 200
-# Isolation Forest sobre el latente (scorer)
-n_estimators: 200
-max_features: 1.0        # el latente ya es de baja dimensión
-contamination: auto
-```
-
-### Ensemble (seed-ensemble y heterogéneo)
-
-Combina los scores normalizados (z-score per-miembro) de varios detectores.
-Dos formas: `base` + `n_members` (N copias con semillas distintas → baja la
-varianza) o `members` (modelos distintos → combina señales complementarias).
-
-```yaml
-model: ensemble
-normalize: zscore        # zscore | rank
-combine: mean            # mean | max
-# A) seed-ensemble: N copias del mismo modelo con semillas distintas
-n_members: 10
-base: { model: vae, score_mode: recon_prob, latent_dim: 16, ... }
-# B) hetero-ensemble (alternativa a base/n_members): lista de modelos
-# members:
-#   - { model: vae, score_mode: recon_prob, ... }
-#   - { model: iforest, max_features: 0.3, ... }
-```
-
-### Features agronómicas (flag de experimento)
-
-Bandera a nivel experimento (no del modelo) — aplica a cualquier `model`.
-Anexa features de dominio derivadas de la ventana crítica del cultivo
-(precip, estrés térmico, balance hídrico Hargreaves) a la matriz X.
-
-```yaml
-use_agro_features: true   # default false; per-cultivo (Dic–Feb soja / Nov–Ene maíz)
+```python
+from src import data
+panel_z = data.prepare()                          # panel + etiqueta
+ds = data.build_crop_dataset(panel_z, "soja")     # split + normalización
+# variar el split es un parámetro, no un config:
+ds2 = data.build_crop_dataset(panel_z, "soja", train_end=2015)
 ```
 
 ---
 
-## Resultados actuales (soja, test)
+## Los modelos
 
-Evaluación multi-seed (media±std). **PR-AUC es la métrica principal** (libre de umbral).
+Todos implementan la misma interfaz `AnomalyDetector`:
 
-**Soja (test):**
-| Modelo | PR-AUC | ROC-AUC | Rec@k | seeds |
-|--------|--------|---------|-------|-------|
-| **vae_seedens_v1 ⭐ recomendado** (seed-ens ×10 de vae_v4) | **0.592 ±0.010** | 0.738 | **0.297** | 3×10 |
-| vae_seedens_deep (seed-ens ×10 de vae_v15) | 0.585 ±0.007 | **0.749** | 0.296 | 3×10 |
-| vae_v4_reconprob_lat16 (single) | 0.559 ±0.035 | 0.719 | 0.279 | 10 |
-| iforest_v2_era5 (IForest + ERA5 suelo/heladas) | 0.542 ±0.029 | 0.719 | 0.282 | 10 |
-| iforest_v2_mf03_n200 (sin ERA5) | 0.511 ±0.031 | 0.688 | 0.266 | 10 |
+```python
+from src.models import VAEDetector
+det = VAEDetector(hidden_dims=(128,64), latent_dim=24, score_mode="recon_prob",
+                  n_mc_samples=50, random_state=42)   # config ganadora (nb 3)
+det.fit(ds.X_train)                 # solo campañas normales
+scores = det.score_samples(ds.X_test)   # mayor = más anómalo
+```
 
-**Maíz (test):**
-| Modelo | PR-AUC | ROC-AUC | Rec@k | seeds |
-|--------|--------|---------|-------|-------|
-| **vae_seedens_v1 ⭐** | **0.508 ±0.005** | 0.679 | 0.246 | 3×10 |
-| vae_seedens_deep | 0.500 ±0.003 | 0.669 | 0.237 | 3×10 |
-| iforest_v2_era5 | 0.504 ±0.019 | 0.656 | 0.251 | 10 |
-| iforest_v2_mf03_n200 (sin ERA5) | 0.492 ±0.030 | 0.648 | 0.244 | 10 |
+Disponibles: `IsolationForestDetector`, `OneClassSVMDetector`, `AEDetector`,
+`DenoisingAEDetector`, `VAEDetector`, `EnsembleDetector`, `DeepODDetector`. Los AE/VAE
+además exponen `.encode(X)` (espacio latente).
 
-> **Estado:** el mejor modelo del Componente A es el **seed-ensemble del VAE
-> `recon_prob`** (`vae_seedens_v1`): soja 0.592, maíz 0.508. Las dos decisiones de
-> arquitectura que explican el resultado: el **score probabilístico** (An & Cho
-> 2015) sin regularización pesada, y el **ensemble de 10 semillas** (promedio de
-> scores z-normalizados), que resuelve la varianza (±0.010 vs ±0.035 del single).
+---
+
+## Resultados (test, PR-AUC media±std)
+
+| Modelo (soja, test) | PR-AUC |
+|--------|------|
+| **VAE seed-ensemble ×10 + ERA5+NDVI ⭐** (modelo final) | **0.640 ± 0.003** |
+| VAE seed-ensemble ×10 (solo clima) | 0.616 ± 0.008 |
+| VAE `recon_prob` single | 0.587 ± 0.039 |
+| Isolation Forest (max_features=0.3) | 0.517 ± 0.034 |
+| DeepSVDD (moderno) | 0.512 ± 0.072 |
+| One-Class SVM (RBF, determinista) | 0.477 ± 0.000 |
+
+> El mejor modelo es el **seed-ensemble del VAE `recon_prob`** (config ganadora de la
+> búsqueda multi-seed del nb 3: `hidden_dims=(128,64), latent_dim=24, β=1`) **+ features
+> ERA5+NDVI**. Tres decisiones lo explican:
+> 1. el **score probabilístico** (An & Cho 2015) que aplasta al MSE plano;
+> 2. el **ensemble de 10 semillas**, que baja el desvío a ±0.004 (elegido por media−desvío,
+>    no por una semilla afortunada);
+> 3. sumar **ERA5+NDVI** (estado de suelo + verdor), que mejora +0.024 — **una señal chica
+>    pero real que solo se ve una vez que el ensemble quita el ruido entre semillas** (con
+>    VAEs single, esa mejora quedaba enterrada en la varianza).
 >
-> **Ninguna feature satelital/extra supera al base con el VAE.** ERA5-Land
-> (humedad de suelo + heladas) ayuda **modestamente al IForest** (soja +0.031) pero
-> **perjudica al VAE** (dilución del recon_prob), y el IForest+ERA5 (0.542) sigue
-> debajo del VAE base. Ablaciones NDVI / Student-t / agro / híbrido: ver abajo.
-
-**Ablaciones (no superan al seed-ensemble, útiles para justificar el modelo final):**
-
-- **VAE decoder Student-t** (`vae_studentt_*`): neutro — no baja la varianza ni
-  mejora la media. Las colas pesadas ayudan con train *contaminado*, pero el
-  pipeline ya excluye filas anómalas + años problemáticos → train curado, sin
-  nada que robustecer.
-- **Features agronómicas** (`use_agro_features`: ventana crítica Dic–Feb soja /
-  Nov–Ene maíz + balance hídrico Hargreaves): **ayudan al IForest, perjudican al
-  VAE** (que debe reconstruir más features → recon_prob diluido, más varianza).
-  Con agro sube el `recall_clima_adverso` del IForest, pero el `recall_otros`
-  (anomalías sin firma climática) sigue bajo: **el techo estructural
-  clima→rinde persiste**.
-- **NDVI-AVHRR 1981+** (`use_ndvi`, panel aumentado por Earth Engine): **no
-  aporta** — soja seed-ensemble 0.592→0.561, IForest 0.511→0.503. Refuerza el
-  techo estructural: si ni el verdor de la planta marca esas anomalías de rinde,
-  no son fallas biofísicas observables por satélite. (El NDVI de MODIS se
-  descartó: existe solo desde 2002 y recortar la historia de train cuesta más de
-  lo que aporta.)
+> Lección metodológica: reportar la varianza multi-seed fue clave — sin ella, el aporte de
+> ERA5+NDVI era invisible. `agro` y `NDVI`-solo no ayudan; hace falta la combinación
+> suelo+vegetación. El resto (detectores sobre el latente, deep AD moderno) no supera.
 
 ---
 
-## ⚠️ Limitaciones conocidas
+## Limitaciones conocidas
 
-### 1. *Distribution shift* temporal (val → test)
-
-Los splits son **temporales** (train ≤2017/18, val 2018–2020, test 2021–2024), así
-que val y test pertenecen a **períodos climáticos distintos**. Esto produce un
-*distribution shift* con **dos caras**, ambas importantes para leer las métricas:
-
-- **Los scores se corren hacia arriba.** El modelo aprende lo "normal" hasta 2017;
-  el clima de 2021–24 está cada vez más lejos de ese período → **todo** reconstruye
-  un poco peor → los scores de anomalía suben en bloque. Ejemplo (VAE, soja): score
-  medio **val 3.76 → test 20.22**.
-- **La tasa real de anomalías sube.** `z_rinde < −1.5` marca **~6% en val** pero
-  **~27% en test** (el test incluye la mega-sequía 2022/23). El prior de
-  contaminación del 10% **subestima** la realidad del test.
-
-**Consecuencia — el umbral no transfiere.** El umbral se calibra como el percentil
-90 de los scores de *validación* y se aplica como corte absoluto a *test*. Por el
-shift, ese corte termina marcando **~70% del test** como anómalo (no porque el
-modelo lo crea, sino porque casi todos los scores de test superan un corte fijado en
-val). Por eso:
-
-- La **métrica principal es PR-AUC** (y ROC-AUC), que son **libres de umbral**:
-  miden el *ranking* de los scores y **no se ven afectadas** por el shift. Todas las
-  conclusiones del proyecto se apoyan en PR-AUC.
-- El **F1 / `y_pred` guardados en los runs usan el umbral de val y NO son
-  confiables** (lo documentamos como tal; no se usan para decidir).
-- Las **matrices de confusión de los notebooks NO usan ese `y_pred`**: re-umbralizan
-  sobre los scores del **propio test** (sin usar etiquetas para el corte) y muestran
-  **dos puntos de operación** — `top-10%` (presupuesto de alertas) y `top-tasa real`
-  (~27%). Con el corte bien hecho el VAE da **80% de precisión al top-10%**; el "FP
-  gigante" del corte de val era un artefacto. Ver ep. 1 de `experiments/`
-  (`plot_confusion_grid`, parámetro `op` en `explib`).
-
-### 2. Selección en validación vs. test
-
-El val es tan chico (5–9 anomalías) que sus métricas son ruido (PR-AUC ≈ tasa base):
-no permite seleccionar modelos. A lo largo de los notebooks mostramos *test* (más
-estable) para **ilustrar** comparaciones, con el riesgo de *data snooping* dejado
-explícito. La confianza en el modelo final viene de la consistencia de su ventaja en
-ambos cultivos y de su varianza mínima entre semillas. Ver ep. 1.
-
-### 3. Techo estructural clima → rinde
-
-~70% de las anomalías de rinde tienen causas **no climáticas** (plaga, granizo,
-manejo, ruido de etiqueta) **invisibles a cualquier feature disponible**. El modelo
-solo ve clima, así que estructuralmente no puede superar la fracción de anomalías con
-firma climática (~30%). Cuantificado con `stratified_recall` + `analyze_errors.py`.
-Es un límite del **problema/datos**, no del modelo. Ver eps. 4–5 de `experiments/`.
+1. **Distribution shift temporal**: los scores y la tasa base de anomalías suben del
+   período de train al de test (el clima 2021–24 se aleja del train; el test incluye la
+   sequía 2022/23). Por eso la métrica principal es **PR-AUC** (ranking, libre de umbral) y
+   las matrices de confusión se re-umbralizan por split (ver `01`).
+2. **Sin validación / data snooping**: probamos un val 2018–2020 pero era **ciego** (sus
+   anomalías no tienen firma climática → PR-AUC ≈ azar para todos los modelos, no
+   discrimina). Lo plegamos al train, así que la selección de modelos e HP se **ilustra en
+   test**, con el *data snooping* declarado (ver `01`, `03`).
+3. **Techo estructural**: buena parte de las anomalías de rinde tienen causas no climáticas
+   (plaga, granizo, manejo) invisibles a las features. Existe (~0.64, no llegamos a 0.8+),
+   pero **no es infranqueable**: sumar suelo+verdor (ERA5+NDVI) lo corre un poco (`06`).
+   Superarlo más requeriría otra clase de datos (sanidad, granizo, manejo).
 
 ---
 
+## Tests
 
-## Agregar un modelo nuevo
+```bash
+cd componente_a && python -m pytest tests/ -q
+```
 
-1. Implementar la interfaz `AnomalyDetector` en `src/models/`:
-   ```python
-   class MiDetector(AnomalyDetector):
-       model_type = "mi_modelo"
-       def fit(self, X): ...
-       def score_samples(self, X): ...
-       def get_config(self): ...
-   ```
-2. Exportarlo en `src/models/__init__.py`
-3. Agregarlo al `build_detector()` en `training/train.py`
-4. Crear config en `configs/mi_modelo/mi_modelo_v1.yaml`
-5. Las runs se guardarán en `runs/mi_modelo/` automáticamente
+`test_repro.py` hashea el dataset que sale del pipeline (guarda contra cambios accidentales);
+`test_smoke.py` corre todos los detectores sobre datos sintéticos.
