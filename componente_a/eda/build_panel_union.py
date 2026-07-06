@@ -590,9 +590,9 @@ GAUL = "FAO/GAUL/2015/level2"
 _SAT_MONTHS = {9: "sep", 10: "oct", 11: "nov", 12: "dic", 1: "ene", 2: "feb", 3: "mar"}
 NDVI_SCALE, NDVI_SCALE_M = 0.0001, 5000
 ERA5_SW = ["volumetric_soil_water_layer_1", "volumetric_soil_water_layer_2",
-           "volumetric_soil_water_layer_3", "volumetric_soil_water_layer_4"]
-ERA5_W = [0.07, 0.21, 0.72 * 0.28, 0.72 * 0.72]   # espesores 0-7,7-28,28-100 cm (aprox)
-FREEZE_K, ERA5_SCALE_M = 273.15, 11132
+           "volumetric_soil_water_layer_3"]          # zona radicular 0-100 cm (3 capas)
+ERA5_W = [0.07, 0.21, 0.72]                           # espesores 0-7, 7-28, 28-100 cm
+FREEZE_K, ERA5_SCALE_M = 273.15, 9000                 # escala nativa ERA5-Land
 
 
 def _norm_ascii(s: pd.Series) -> pd.Series:
@@ -681,7 +681,7 @@ def load_era5() -> pd.DataFrame:
         return c.select("temperature_2m_min").map(lambda im: im.lt(FREEZE_K)).sum().rename("frost")
 
     rows = []
-    for year in range(1981, 2026):                 # chunk por año
+    for year in range(1981, 2025):                 # chunk por año (campañas 1981–2024)
         y = ee.Number(year); d = lambda yy, m: ee.Date.fromYMD(yy, m, 1)
         img = (rootzone(era5.filterDate(d(y, 9), d(y, 12))).rename("sm_planting")
                .addBands(rootzone(era5.filterDate(d(y, 6), d(y, 9))).rename("sm_winter"))
