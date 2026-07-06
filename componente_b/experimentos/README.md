@@ -51,7 +51,7 @@ por encima de "cada depto rinde lo de siempre".
 ## Reproducir
 
 ```bash
-pip install -r ../requirements.txt nbformat nbconvert ipykernel
+pip install -r ../../requirements.txt
 python fix_openmp_macos.py                      # macOS: ver ../modelos/README.md
 python experimentos/_build_notebooks.py         # (re)genera los .ipynb
 jupyter nbconvert --to notebook --execute --inplace experimentos/*.ipynb

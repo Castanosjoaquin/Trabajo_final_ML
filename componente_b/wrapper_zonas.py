@@ -62,7 +62,7 @@ class WrapperPorZona:
     """
 
     def __init__(self, model_cls: Type[Regressor], params: Optional[Dict] = None,
-                 cultivo: str = "soja", dataset: str = "base",
+                 cultivo: str = "soja",
                  use_agro: bool = True, enc_smooth: float = 10.0,
                  n_zonas: int = 6, method: str = "geo", seed: int = 42,
                  metric: str = "rmse", n_splits: int = 4,
@@ -70,7 +70,6 @@ class WrapperPorZona:
         self.model_cls = model_cls
         self.params = dict(params or {})
         self.cultivo = cultivo
-        self.dataset = dataset
         self.use_agro = use_agro
         self.enc_smooth = enc_smooth
         self.n_zonas = n_zonas
@@ -103,8 +102,7 @@ class WrapperPorZona:
         panel = datos.assign_zonas(datos.load_panel(self.dataset),
                                    n_zonas=self.n_zonas, method=self.method,
                                    seed=self.seed)
-        self.ds_pool = datos.build_reg_dataset(panel, self.cultivo,
-                                               dataset=self.dataset, **kw)
+        self.ds_pool = datos.build_reg_dataset(panel, self.cultivo, **kw)
         self.model_pool = self.model_cls(**self.params).fit(
             self.ds_pool.X_train, self.ds_pool.y_train)
 
@@ -128,7 +126,7 @@ class WrapperPorZona:
 
         # --- 3. datasets y CV de los modelos por zona ---
         self.zds = datos.build_zona_datasets(
-            self.cultivo, dataset=self.dataset, n_zonas=self.n_zonas,
+            self.cultivo, n_zonas=self.n_zonas,
             method=self.method, min_train=self.min_train, min_test=self.min_test,
             seed=self.seed, **kw)
 

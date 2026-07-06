@@ -73,7 +73,7 @@ def _normalize_per_depto(df: pd.DataFrame, clim_cols, geo, normal_mask: np.ndarr
 # ===========================================================================
 # Extracción de features del VAE (con caché)
 # ===========================================================================
-def vae_features(cultivo: str, dataset: str = "base", latent_dim: int = 16,
+def vae_features(cultivo: str, latent_dim: int = 16,
                  score_seeds: Sequence[int] = (42, 43, 44), latent_seed: int = 42,
                  max_epochs: int = 150, force: bool = False) -> dict:
     """Entrena el VAE del Componente A y devuelve, alineadas al RegDataset:
@@ -87,15 +87,16 @@ def vae_features(cultivo: str, dataset: str = "base", latent_dim: int = 16,
     os.makedirs(_CACHE_DIR, exist_ok=True)
     # "v2": el fix de la etiqueta por cultivo (merge con "cultivo" en la clave)
     # invalida los caches anteriores; el sufijo evita reusar .npz viejos.
-    tag = f"{cultivo}_{dataset}_lat{latent_dim}_ep{max_epochs}_ns{len(score_seeds)}_v2"
+    # "v3": panel unificado (era5+ndvi por defecto) → invalida caches previos.
+    tag = f"{cultivo}_lat{latent_dim}_ep{max_epochs}_ns{len(score_seeds)}_v3"
     cache = os.path.join(_CACHE_DIR, f"{tag}.npz")
     if os.path.exists(cache) and not force:
         d = np.load(cache)
         return {k: d[k] for k in d.files}
 
     # Mismo frame determinístico que el RegDataset → alineación garantizada.
-    panel = datos.load_panel(dataset)
-    df, tr_mask, te_mask, clim_cols, geo = datos.crop_frame(panel, cultivo, dataset)
+    panel = datos.load_panel()
+    df, tr_mask, te_mask, clim_cols, geo = datos.crop_frame(panel, cultivo)
 
     # Filas normales de train (para entrenar el VAE): sin anomalías ni años excluidos.
     # OJO: "cultivo" DEBE estar en la clave del merge — compute_z_rinde da una

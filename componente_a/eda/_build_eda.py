@@ -218,12 +218,11 @@ Hay señal climática real en el panel — la pregunta de los experimentos es *c
 radiación (`allsky`), precipitación (`prectotcorr`), humedad relativa (`rh2m`),
 temperatura media/máx/mín (`t2m*`) y viento (`ws2m`). **No incluyen el rinde.**
 
-> Sobre el NDVI: el viejo NDVI de MODIS se **retiró** del panel (existía solo desde
-> 2002 y 3 de sus 4 columnas eran constantes por departamento — cero señal temporal).
-> El NDVI que sí se evalúa es el **AVHRR 1981+**, en su propio EDA (`eda_ndvi_avhrr`) y
-> como ablación en `experiments/05`."""),
+> El **panel unificado** incluye, además del clima, **NDVI-AVHRR (1981+)** y **ERA5-Land**
+> (humedad de suelo, heladas) — entran acá por defecto en la lista de features. El viejo NDVI
+> de MODIS se retiró (solo desde 2002 y casi sin señal temporal)."""),
 
-    code("""feats = cdata.build_feature_list(panel, use_ndvi=False)
+    code("""feats = cdata.build_feature_list(panel)   # clima + NDVI + ERA5 (panel unificado)
 print(f"{len(feats)} features")
 corr = panel[feats].corr()
 fig, ax = plt.subplots(figsize=(9, 7.5))

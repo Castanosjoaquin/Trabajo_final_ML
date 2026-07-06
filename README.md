@@ -15,7 +15,7 @@ abrir cualquiera, hacer **Run all**, y recrear todo desde cero.
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r componente_a/requirements.txt
+pip install -r requirements.txt
 ```
 
 > Todo el Componente A vive bajo `componente_a/` y se corre desde ahí (`cd componente_a`).
@@ -28,8 +28,8 @@ pip install -r componente_a/requirements.txt
 ```
 Trabajo_final_ML/
 │
-├── data/processed/panel_union.parquet    # Dataset principal (source-only: nunca se modifica)
-├── data_sources/                         # Extracción satelital (Earth Engine): NDVI-AVHRR, ERA5
+├── data/processed/panel_union.parquet    # Dataset ÚNICO: clima + NDVI + ERA5 (source-only)
+│                                         #   lo construye componente_a/eda/build_panel_union.py
 │
 ├── componente_a/
 │   ├── src/                              # Paquete mínimo (solo 3 módulos)
@@ -48,10 +48,10 @@ Trabajo_final_ML/
 │   │   ├── lab.py                        #   Utilidades: métricas y gráficos (visibles, cortas)
 │   │   └── 00..07_*.ipynb
 │   ├── eda/                              # EDAs + construcción del panel (build_panel_union.py)
-│   ├── tests/                            # test_repro (dataset) + test_smoke (modelos)
-│   └── requirements.txt
+│   └── tests/                            # test_repro (dataset) + test_smoke (modelos)
 │
 ├── docs/                                 # Papers de referencia + consigna
+├── requirements.txt                      # dependencias del proyecto (A + B)
 └── README.md
 ```
 

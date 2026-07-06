@@ -15,9 +15,9 @@ import os
 # para no depender del cwd.
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(_REPO_ROOT, "data")
+# Panel ÚNICO del proyecto: base (rinde + clima) + NDVI-AVHRR + ERA5-Land, ya
+# unificado por build_panel_union.py. No hay más variantes de dataset.
 PANEL_PATH = os.path.join(DATA_DIR, "processed", "panel_union.parquet")
-PANEL_NDVI_PATH = os.path.join(DATA_DIR, "processed", "panel_union_ndvi.parquet")
-PANEL_ERA5_PATH = os.path.join(DATA_DIR, "processed", "panel_union_era5.parquet")
 
 # --- Cultivos soportados ---
 CULTIVOS = ["soja", "maiz"]
@@ -38,8 +38,8 @@ CLIM_PREFIXES = [
     "oni",                # ONI (ENSO) — solo meses disponibles en el panel
     "chirps_precip",      # precipitación CHIRPS (no está en el panel actual)
 ]
-# NDVI: el único usado es el AVHRR mensual (1981+, `ndvi_avhrr_<mes>`) del panel
-# aumentado por merge_avhrr_ndvi.py. El NDVI viejo de MODIS se RETIRÓ del panel
+# NDVI: el único usado es el AVHRR mensual (1981+, `ndvi_avhrr_<mes>`), integrado en
+# el panel unificado por build_panel_union.py. El NDVI viejo de MODIS se RETIRÓ
 # (2026-07): existía solo desde 2002 y 3 de sus 4 columnas eran estáticas por depto.
 
 # --- Features ERA5-Land (estado del suelo + heladas), del merge externo ---

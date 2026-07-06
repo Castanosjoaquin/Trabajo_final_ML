@@ -1,0 +1,27 @@
+# Trabajo final ML — dependencias del proyecto (Componentes A y B)
+pandas>=1.5
+pyarrow>=10
+numpy>=1.23
+scipy>=1.10
+scikit-learn>=1.2
+matplotlib>=3.6
+
+# Componente A — comparador / app y baselines modernos
+streamlit>=1.30
+umap-learn>=0.5
+deepod>=0.1          # baselines modernos (DeepSVDD)
+
+# Deep learning (AE / VAE / red neuronal)
+torch>=2.0
+
+# Componente B — regresión de rinde
+xgboost>=2.0
+
+# Notebooks (generar y ejecutar los experimentos)
+nbformat
+nbconvert
+ipykernel
+
+# Nota macOS: xgboost necesita el runtime de OpenMP (`brew install libomp`). Si al
+# entrenar xgboost hay segfault (exit 139) por conflicto con torch, correr una vez:
+#   python componente_b/fix_openmp_macos.py

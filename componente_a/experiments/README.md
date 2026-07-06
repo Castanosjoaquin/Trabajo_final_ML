@@ -9,13 +9,12 @@ Todos los números salen de los runs actuales (mismo panel, misma evaluación).
 | nb | notebook | pregunta que responde |
 |---|---|---|
 | 0 | `00_el_problema_y_los_datos` | El problema, el panel, la etiqueta proxy `z_rinde` (y sus decisiones de diseño), splits y normalización |
-| 1 | `01_evaluacion_y_baseline` | Por qué PR-AUC multi-seed, el *distribution shift* del umbral, por qué val no permite seleccionar, y el baseline (IForest tuneado, 0.511) |
+| 1 | `01_evaluacion_y_baselines` | Cómo se evalúa (PR-AUC multi-seed, *distribution shift* del umbral, por qué no hay val) y **todos los baselines**: estadísticos (z-score, Mahalanobis) y de modelos (IForest, One-Class SVM), con la presentación estándar `lab.tabla` |
 | 2 | `02_reconstruccion_ae_a_vae` | AE (los HP no eran el cuello) → score max/top-k (refutado) → DAE → híbrido AE+IForest (refutado) → **VAE `recon_prob`**: el salto es el *score*, no la arquitectura |
 | 3 | `03_varianza_y_seed_ensemble` | De dónde viene la varianza del VAE (MC no, reg no, Student-t no) y cómo la elimina el **seed-ensemble ×10** → modelo final (soja 0.592, maíz 0.508) |
 | 4 | `04_el_techo_estructural` | ¿Por qué nadie pasa de ~0.6? Cross-modelo (todos fallan en las mismas anomalías, sin firma climática), Dataset Cartography, auditoría de etiqueta, t-SNE |
 | 5 | `05_features_nuevas` | Features agro, NDVI-AVHRR y ERA5: ayudan al IForest, perjudican al VAE, ninguna supera al base → el techo se confirma |
 | 6 | `06_modernos_leaderboard_y_conclusiones` | Benchmark justo vs deepod (DeepSVDD/ICL/NeuTraL), leaderboard final, el modelo final por dentro, limitaciones y conclusiones |
-| 8 | `08_baselines_zscore_mahalanobis` | Los dos baselines estadísticos de la propuesta (**z-score multivariado** y **distancia de Mahalanobis**) evaluados en soja y maíz, contra IForest y el seed-ensemble VAE |
 
 ## Reproducibilidad: entrenar en el notebook
 
@@ -39,7 +38,7 @@ explib.describe_architecture("configs/vae/vae_v4_reconprob_lat16.yaml")
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt nbformat nbconvert ipykernel deepod
+pip install -r ../../requirements.txt
 jupyter notebook experiments/        # leer / correr
 ```
 

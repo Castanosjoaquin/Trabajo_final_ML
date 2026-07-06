@@ -8,24 +8,22 @@ Proyecto final de Machine Learning sobre rinde de **soja y maíz** en Argentina 
 
 ### Fuentes de datos
 
-El dataset se construye combinando cinco fuentes públicas, cada una con su script en `data_sources/` o en `componente_a/eda/build_panel_union.py` (el builder canónico):
+El dataset se construye combinando cinco fuentes públicas, todas integradas en el builder canónico `componente_a/eda/build_panel_union.py`:
 
 - **MAGyP (rindes)** — Estimaciones agrícolas de `datos.magyp.gob.ar` (CSVs `magyp_soja.csv` / `magyp_maiz.csv`). Aportan el target `rinde_kgha` por departamento y campaña. Se filtran las series con al menos 20 campañas por (departamento, provincia, cultivo) y **no se imputa** ningún valor.
 - **NASA POWER (clima diario)** — API REST de `power.larc.nasa.gov`. Se descargan 7 variables (T2M, T2M_MAX, T2M_MIN, PRECTOTCORR, RH2M, ALLSKY_SFC_SW_DWN, WS2M) en el centroide de cada departamento y se agregan a valores mensuales para los 7 meses de la campaña (septiembre a marzo): **7 × 7 = 49 columnas**.
 - **ONI (ENSO)** — Índice Oceánico de El Niño de NOAA. Se usan 5 meses (oct, nov, dic, ene, feb): **5 columnas**.
-- **NDVI AVHRR/VIIRS** (`data_sources/extract_avhrr_ndvi.py`) — vía **Google Earth Engine**, uniendo `NOAA/CDR/AVHRR/NDVI/V5` (1981–2013) con `NOAA/CDR/VIIRS/NDVI/V1` (2014+). Compuesto de máximo mensual (MVC) promediado sobre el polígono de cada departamento (FAO GAUL nivel 2), meses sep–mar: **7 columnas**. Se eligió AVHRR en lugar de MODIS justamente para no recortar el train a 2002+ (el NDVI MODIS original fue retirado del pipeline: solo existía desde 2002 y 3 de sus 4 columnas eran estáticas por departamento).
-- **ERA5-Land** (`data_sources/extract_era5.py`) — vía Earth Engine (`ECMWF/ERA5_LAND/DAILY_AGGR`): **4 features** por depto × campaña: humedad de suelo en siembra (`sm_planting`, sep–nov) y en invierno (`sm_winter`, jun–ago), días de helada (`frost_days`, sep–mar) y heladas tempranas (`frost_days_early`, sep–nov).
+- **NDVI AVHRR/VIIRS** (paso 6b de `build_panel_union.py`) — vía **Google Earth Engine**, uniendo `NOAA/CDR/AVHRR/NDVI/V5` (1981–2013) con `NOAA/CDR/VIIRS/NDVI/V1` (2014+). Compuesto de máximo mensual (MVC) promediado sobre el polígono de cada departamento (FAO GAUL nivel 2), meses sep–mar: **7 columnas**. Se eligió AVHRR en lugar de MODIS justamente para no recortar el train a 2002+ (el NDVI MODIS original fue retirado del pipeline: solo existía desde 2002 y 3 de sus 4 columnas eran estáticas por departamento).
+- **ERA5-Land** (paso 6b de `build_panel_union.py`) — vía Earth Engine (`ECMWF/ERA5_LAND/DAILY_AGGR`): **4 features** por depto × campaña: humedad de suelo en siembra (`sm_planting`, sep–nov) y en invierno (`sm_winter`, jun–ago), días de helada (`frost_days`, sep–mar) y heladas tempranas (`frost_days_early`, sep–nov).
 
 Los centroides departamentales salen de 26 departamentos núcleo con coordenadas fijas más geocodificación vía Nominatim/OSM para el resto.
 
-### Merge y variantes del panel
+### El panel unificado
 
-`componente_a/eda/build_panel_union.py` produce el panel base `data/processed/panel_union.parquet` (**28.683 filas × 66 columnas**, campañas 1981–2024). Los scripts `merge_avhrr_ndvi.py` y `merge_era5.py` agregan las columnas satelitales de forma no destructiva, generando dos variantes:
+`componente_a/eda/build_panel_union.py` produce el **único** panel del proyecto,
+`data/processed/panel_union.parquet` (clima + NDVI + ERA5 en un solo archivo, **77 columnas**, campañas 1981–2024). Las columnas satelitales se extraen de GEE e integran en el mismo builder (paso 6b); las filas sin cobertura satelital se descartan al construir (**27.862 filas**). Ya no hay variantes `base` / `ndvi` / `era5` separadas.
 
-- `panel_union_ndvi.parquet` — 28.683 × 73 (+7 columnas `ndvi_avhrr_<mes>`).
-- `panel_union_era5.parquet` — 28.683 × 70 (+4 columnas ERA5).
-
-Al cargar los datos (`componente_a/src/data.py`) se hace un **dedup** por (provincia, departamento, campaña, cultivo) que elimina duplicados espurios del join geográfico: 28.683 → **21.418 filas** efectivas.
+Al cargar los datos (`componente_a/src/data.py`) se hace un **dedup** por (provincia, departamento, campaña, cultivo) que elimina duplicados espurios del join geográfico.
 
 ### EDA y feature engineering
 

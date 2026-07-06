@@ -46,13 +46,6 @@ from src import config as _A_config  # noqa: E402
 TRAIN_END = 2020
 TEST_START = 2021
 
-# Datasets de features disponibles:
-#   'base'      : solo clima mensual (NASA POWER + ONI) — panel_union.
-#   'era5_ndvi' : clima + NDVI-AVHRR mensual + ERA5-Land (humedad de suelo, heladas),
-#                 fusionando panel_union_ndvi y panel_union_era5.
-DATASETS = ("base", "era5_ndvi")
-
-
 @dataclass
 class RegDataset:
     """Datos de un cultivo listos para regresión de rinde.
@@ -106,35 +99,22 @@ def _filter_momento(clim_cols: List[str], momento: str) -> List[str]:
     raise ValueError(f"momento desconocido: {momento!r}. Opciones: {MOMENTOS}")
 
 
-def load_panel(dataset: str = "base") -> pd.DataFrame:
-    """Panel deduplicado con el set de features del `dataset` elegido.
-
-    'base' delega directo en el Componente A. 'era5_ndvi' fusiona las columnas
-    extra de los dos paneles aumentados (NDVI y ERA5) sobre el panel base,
-    uniendo por la clave geográfica-temporal (con provincia, para no mezclar
-    departamentos homónimos)."""
-    if dataset == "base":
-        return _A_data.load_panel()
-    if dataset == "era5_ndvi":
-        # Cada panel viene ya deduplicado por load_panel del Componente A.
-        base_ndvi = _A_data.load_panel(_A_config.PANEL_NDVI_PATH, use_ndvi=True)
-        era5 = _A_data.load_panel(_A_config.PANEL_ERA5_PATH, use_era5=True)
-        keys = [c for c in ["provincia", "departamento", "campania_inicio", "cultivo"]
-                if c in base_ndvi.columns]
-        return base_ndvi.merge(era5[keys + list(_A_config.ERA5_COLS)], on=keys, how="left")
-    raise ValueError(f"dataset desconocido: {dataset!r}. Opciones: {DATASETS}")
+def load_panel() -> pd.DataFrame:
+    """Panel ÚNICO del proyecto (base + NDVI + ERA5), deduplicado. Delega en el
+    Componente A, que ya incluye NDVI/ERA5 por defecto en el panel unificado."""
+    return _A_data.load_panel()
 
 
-def crop_frame(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
+def crop_frame(panel: pd.DataFrame, cultivo: str,
                train_end: int = TRAIN_END, test_start: int = TEST_START):
-    """Filas de un cultivo en orden DETERMINÍSTICO, con sus features climáticas.
+    """Filas de un cultivo en orden DETERMINÍSTICO, con sus features climáticas
+    (clima + NDVI + ERA5, del panel unificado).
 
     Devuelve (df, tr_mask, te_mask, clim_cols, geo). El orden fijo (ordenar por
     geo + campania_inicio y resetear el índice) es lo que garantiza que el
     RegDataset (`datos`) y las features del VAE (`latente`) queden ALINEADOS fila
     a fila aunque partan de paneles ordenados distinto."""
-    aug = dataset != "base"
-    clim_cols = _A_data.build_feature_list(panel, use_ndvi=aug, use_era5=aug)
+    clim_cols = _A_data.build_feature_list(panel)
     geo = ["provincia", "departamento"] if "provincia" in panel.columns else ["departamento"]
     df = (panel[panel["cultivo"] == cultivo]
           .dropna(subset=clim_cols + ["rinde_kgha"])
@@ -145,7 +125,7 @@ def crop_frame(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
     return df, tr_mask, te_mask, clim_cols, geo
 
 
-def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
+def build_reg_dataset(panel: pd.DataFrame, cultivo: str,
                       use_depto_encoding: bool = True, use_year: bool = True,
                       use_agro: bool = False, enc_smooth: float = 0.0,
                       use_lags: int = 0, momento: str = "full",
@@ -153,10 +133,9 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
                       test_start: int = TEST_START) -> RegDataset:
     """Arma el RegDataset de un cultivo: split temporal, features y escalado.
 
-    `dataset` selecciona el set de features climáticas ('base' o 'era5_ndvi') y
-    debe coincidir con el del `panel` que se pasa (ver load_panel). `use_agro`
-    agrega las features agronómicas de ventana crítica del Componente A (balance
-    hídrico, estrés térmico; ver `add_agro_features`).
+    Las features climáticas salen del panel unificado (clima + NDVI + ERA5).
+    `use_agro` agrega las features agronómicas de ventana crítica del Componente A
+    (balance hídrico, estrés térmico; ver `add_agro_features`).
 
     `enc_smooth` (m del m-estimate) suaviza el target encoding del departamento
     hacia la media global de train: enc = (n·media_depto + m·media_global)/(n+m).
@@ -180,7 +159,7 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
         raise ValueError("use_agro=True requiere momento='full': las ventanas "
                          "críticas agronómicas usan clima hasta marzo.")
     df, tr_mask, te_mask, clim_cols, geo = crop_frame(
-        panel, cultivo, dataset, train_end, test_start)
+        panel, cultivo, train_end, test_start)
 
     feature_cols = _filter_momento(clim_cols, momento)
 
@@ -257,12 +236,12 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
     )
 
 
-def prepare(cultivo: str, dataset: str = "base", **kwargs) -> RegDataset:
-    """Atajo: carga el panel del `dataset` y arma el RegDataset del cultivo."""
-    return build_reg_dataset(load_panel(dataset), cultivo, dataset=dataset, **kwargs)
+def prepare(cultivo: str, **kwargs) -> RegDataset:
+    """Atajo: carga el panel unificado y arma el RegDataset del cultivo."""
+    return build_reg_dataset(load_panel(), cultivo, **kwargs)
 
 
-def build_zona_datasets(cultivo: str, dataset: str = "base", n_zonas: int = 6,
+def build_zona_datasets(cultivo: str, n_zonas: int = 6,
                         method: str = "geo", min_train: int = 100, min_test: int = 20,
                         seed: int = 42, **kwargs) -> dict:
     """Un RegDataset por zona (para entrenar un modelo por zona).
@@ -271,10 +250,10 @@ def build_zona_datasets(cultivo: str, dataset: str = "base", n_zonas: int = 6,
     propio split temporal, codificación de depto y escalado (todo calculado dentro
     de la zona). Descarta zonas con pocas filas de train/test. `kwargs` se pasan a
     `build_reg_dataset` (p. ej. `use_agro=True`). Devuelve {zona: RegDataset}."""
-    panel = assign_zonas(load_panel(dataset), n_zonas=n_zonas, method=method, seed=seed)
+    panel = assign_zonas(load_panel(), n_zonas=n_zonas, method=method, seed=seed)
     out = {}
     for z in sorted(panel["zona"].dropna().unique()):
-        ds = build_reg_dataset(panel[panel["zona"] == z], cultivo, dataset=dataset, **kwargs)
+        ds = build_reg_dataset(panel[panel["zona"] == z], cultivo, **kwargs)
         if len(ds.y_train) >= min_train and len(ds.y_test) >= min_test:
             out[z] = ds
     return out

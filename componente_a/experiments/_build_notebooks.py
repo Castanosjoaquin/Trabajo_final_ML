@@ -29,6 +29,7 @@ SETUP = """import lab                      # utilidades: métricas y gráficos (
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
 from src import config, data
 from src.models import (IsolationForestDetector, OneClassSVMDetector,
+                        ZScoreDetector, MahalanobisDetector,
                         AEDetector, DenoisingAEDetector, VAEDetector,
                         EnsembleDetector, DeepODDetector)
 plt.rcParams["figure.dpi"] = 110
@@ -135,8 +136,10 @@ se puntúa con `score_samples()` (mayor = más anómalo) y se compara contra `ds
 # ===========================================================================
 # 01 — Evaluación y baselines
 # ===========================================================================
-build("01_evaluacion_y_baselines.ipynb", "1 · Cómo se evalúa + baselines (IForest, One-Class SVM)", [
-    md("""Antes de los modelos profundos, fijamos **cómo se mide** y dos baselines clásicos.
+build("01_evaluacion_y_baselines.ipynb", "1 · Cómo se evalúa + baselines (estadísticos y de modelos)", [
+    md("""Antes de los modelos profundos, fijamos **cómo se mide** y los baselines. Van en
+orden de complejidad creciente: primero los **estadísticos** (z-score, Mahalanobis —
+sin aprendizaje), después los **de modelos** (Isolation Forest, One-Class SVM).
 
 **Métrica principal: PR-AUC** (área Precision-Recall, libre de umbral). Razones:
 - El **F1 con umbral fijo engaña**: el umbral se calibra en val (tasa ~6%) pero en test
@@ -152,53 +155,114 @@ build("01_evaluacion_y_baselines.ipynb", "1 · Cómo se evalúa + baselines (IFo
   semillas** — es un screening de muchas configuraciones, se declara donde se hace.
 
 `lab.metrics(scores, y)` devuelve PR-AUC, ROC-AUC, precisión@k y recall al top-10%;
-`lab.evaluate(make_detector, ds, seeds)` corre esas semillas y da (media, desvío)."""),
+`lab.tabla(resultados)` es la **presentación estándar** del proyecto (fila = modelo,
+métricas `media±std`)."""),
     code(SETUP),
     code(DATOS),
-    md("""## 1.1 · Isolation Forest — el baseline
-Ensamble de árboles que aísla puntos raros; no neuronal, varianza baja. El único
-hiperparámetro con efecto real fue `max_features=0.3` (cada árbol mira un subconjunto de
-las 54 features). Lo entrenamos y evaluamos a la vista:"""),
-    code("""iforest = IsolationForestDetector(n_estimators=200, max_features=0.3).fit(ds.X_train)
-scores_if = iforest.score_samples(ds.X_test)      # mayor = más anómalo
-lab.metrics(scores_if, ds.y_test)"""),
-    md("""## 1.2 · One-Class SVM — frontera no lineal
-Aprende una frontera que envuelve a los datos normales; lo de afuera es anómalo. Con
-**kernel RBF (gaussiano)** la frontera es no lineal. Comparamos RBF vs lineal para ver
-que la no-linealidad importa:"""),
-    code("""for kernel in ["rbf", "linear"]:
-    oc = OneClassSVMDetector(kernel=kernel, nu=0.1).fit(ds.X_train)
-    m = lab.metrics(oc.score_samples(ds.X_test), ds.y_test)
-    print(f"OCSVM {kernel:7s}  PR-AUC={m['pr_auc']:.3f}  ROC={m['roc_auc']:.3f}")"""),
-    md("""**El kernel lineal fracasa** y el **RBF (gaussiano) es competitivo con el IForest**
-(comparar los PR-AUC impresos arriba). La frontera no lineal es imprescindible.
+    md("""## 1.1 · Baselines estadísticos: z-score y Mahalanobis
+Puramente estadísticos, sin aprendizaje ni redes; solo necesitan media (y, en Mahalanobis,
+covarianza) del train normal. Ambos son **deterministas** (sin semilla → ±0.000).
 
-## 1.3 · El umbral no transfiere entre períodos (distribution shift)
-El PR-AUC mide el *ranking* y es libre de umbral. Pero para una matriz de confusión hace
-falta un **corte**, y un umbral absoluto no transfiere entre períodos: los scores se corren
-hacia arriba entre el período de entrenamiento y el de test (2021–24) → un corte fijo marca
-~70% del test. Por eso re-umbralizamos sobre los scores del **propio test** en dos puntos:
-top-10% (presupuesto de alertas) y top-tasa real (~27%)."""),
-    code("""fig, axs = plt.subplots(1, 2, figsize=(7.5, 3.4))
-for ax, q in zip(axs, [0.10, "base"]):
-    print("IForest", lab.confusion_top(scores_if, ds.y_test, q, ax=ax, titulo="IForest"))
+- **Z-score multivariado** (`ZScoreDetector`): `z=(x−media)/desvío` por feature; el score es
+  el promedio (`mean`) o el máximo (`max`) de `|z|` entre las 54 features. No ve correlaciones.
+- **Mahalanobis** (`MahalanobisDetector`): distancia con la **covarianza completa**
+  (encogimiento Ledoit-Wolf para invertirla estable con 54 features) — "z-score con
+  correlaciones".
+
+Los resultados se muestran con `lab.tabla`, la **presentación estándar del proyecto** (una
+fila por modelo, métricas `media±std`)."""),
+    code("""estadisticos = {
+    "ZScore (mean)": [lab.metrics(ZScoreDetector(agg="mean").fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
+    "ZScore (max)":  [lab.metrics(ZScoreDetector(agg="max").fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
+    "Mahalanobis":   [lab.metrics(MahalanobisDetector(shrinkage=None).fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
+}
+lab.tabla(estadisticos)"""),
+    md("""## 1.2 · Baselines de modelos: Isolation Forest y One-Class SVM
+El siguiente escalón: modelos que *aprenden* la región normal.
+
+- **Isolation Forest** — ensamble de árboles que aísla puntos raros; estocástico, así que va
+  **multi-seed** (3 semillas acá para el "Run all"; el estudio usa 10). El único HP con
+  efecto real fue `max_features=0.3`.
+- **One-Class SVM** — frontera que envuelve a los normales; con kernel **RBF** es no lineal.
+  Comparamos RBF vs lineal para ver que la no-linealidad importa (determinista)."""),
+    code("""modelos = {
+    "IForest": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3,
+                random_state=s).fit(ds.X_train).score_samples(ds.X_test), ds.y_test)
+                for s in SEEDS[:3]],
+    "OCSVM (rbf)":    [lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
+                                   .fit(ds.X_train).score_samples(ds.X_test), ds.y_test)],
+    "OCSVM (linear)": [lab.metrics(OneClassSVMDetector(kernel="linear", nu=0.1)
+                                   .fit(ds.X_train).score_samples(ds.X_test), ds.y_test)],
+}
+lab.tabla(modelos)"""),
+    md("""**El kernel lineal fracasa** y el **RBF es competitivo con el IForest**: la frontera no
+lineal es imprescindible. Y el **z-score (mean)** de 1.1, sin aprender nada, ya juega en la
+misma liga que el IForest (lo interpretamos en 1.5)."""),
+    md("""## 1.3 · Comparación de todos los baselines (soja y maíz)
+Todos los baselines juntos, en la tabla estándar. Acá **solo comparamos baselines entre sí**
+(el listón a superar); los modelos de reconstrucción del nb 2 en adelante se miden contra
+este piso en sus propios notebooks."""),
+    code("""def baselines_dict(dset):
+    return {
+        "ZScore (mean)": [lab.metrics(ZScoreDetector(agg="mean").fit(dset.X_train)
+                                      .score_samples(dset.X_test), dset.y_test)],
+        "ZScore (max)":  [lab.metrics(ZScoreDetector(agg="max").fit(dset.X_train)
+                                      .score_samples(dset.X_test), dset.y_test)],
+        "Mahalanobis":   [lab.metrics(MahalanobisDetector(shrinkage=None).fit(dset.X_train)
+                                      .score_samples(dset.X_test), dset.y_test)],
+        "IForest": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3,
+                    random_state=s).fit(dset.X_train).score_samples(dset.X_test), dset.y_test)
+                    for s in SEEDS[:3]],
+        "OCSVM (rbf)": [lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
+                                    .fit(dset.X_train).score_samples(dset.X_test), dset.y_test)],
+    }
+
+res = {"soja": baselines_dict(ds), "maíz": baselines_dict(dsm)}
+lab.tabla(res["soja"])"""),
+    md("Y en maíz:"),
+    code("""lab.tabla(res["maíz"])"""),
+    code("""fig, axs = plt.subplots(1, 2, figsize=(12, 4))
+for ax, (nombre, r) in zip(axs, res.items()):
+    lab.plot_leaderboard(lab.leaderboard(r), ax=ax, titulo=f"PR-AUC (test, {nombre})")
 plt.tight_layout(); plt.show()"""),
-    md("""## 1.4 · Por qué no hay validación (y por qué comparamos en test)
-El diseño clásico separa un set de validación para seleccionar modelos/hiperparámetros. Acá
-**no lo usamos**, por una razón concreta: probamos con un val 2018–2020 y resultó **ciego**.
-Sus anomalías son de años **sin sequía grande** → sin firma climática (justo las del techo
-estructural, nb 5) → el PR-AUC en ese val daba **≈ la tasa base (azar), igual para todos los
-modelos**. No discriminaba nada: seleccionar ahí habría sido tirar una moneda.
+    md("""## 1.4 · Matrices de confusión de los baselines
+El PR-AUC mide el *ranking* (libre de umbral). Para una matriz de confusión hace falta un
+**corte**, y un umbral absoluto no transfiere entre períodos (los scores se corren hacia
+arriba en 2021–24 → un corte fijo marca ~70% del test). Por eso re-umbralizamos sobre el
+**propio test** al top-tasa real (~27%, `q="base"`), para **todos los baselines** (soja):"""),
+    code("""scores_conf = {
+    "ZScore (mean)": ZScoreDetector(agg="mean").fit(ds.X_train).score_samples(ds.X_test),
+    "Mahalanobis":   MahalanobisDetector(shrinkage=None).fit(ds.X_train).score_samples(ds.X_test),
+    "IForest":       IsolationForestDetector(n_estimators=200, max_features=0.3,
+                                             random_state=42).fit(ds.X_train).score_samples(ds.X_test),
+    "OCSVM (rbf)":   OneClassSVMDetector(kernel="rbf", nu=0.1).fit(ds.X_train).score_samples(ds.X_test),
+}
+fig, axs = plt.subplots(1, 4, figsize=(15, 3.4))
+for ax, (nombre, sc) in zip(axs, scores_conf.items()):
+    lab.confusion_top(sc, ds.y_test, "base", ax=ax, titulo=nombre)
+plt.tight_layout(); plt.show()"""),
+    md("""## 1.5 · Interpretación + por qué no hay validación
 
-Dos consecuencias:
-1. **El val se pliega al train** → 3 años más de campañas normales, y el train queda más
-   cerca del clima de test.
-2. **Las comparaciones y la selección de HP (nb 3) se ilustran en test**, con el *data
-   snooping* declarado como limitación. La confianza en el modelo final no viene del número
-   puntual sino de la **consistencia entre cultivos** y la **varianza mínima entre semillas**.
+**El z-score (mean) queda a la par del Isolation Forest** (en soja incluso lo supera
+levemente) pese a no aprender nada: la señal detectable es la **sequía**, que corre muchas
+features climáticas a la vez → promediar `|z|` es casi un "índice de sequía" a mano. El `max`
+se hunde (una sola feature rara ≠ anomalía de rinde), y **Mahalanobis queda por debajo**:
+des-pondera justo las direcciones de mayor varianza (donde vive la firma de sequía). Lección
+de siempre: *rareza climática ≠ anomalía de rinde*.
 
-**Baseline a superar: el Isolation Forest de arriba** (su PR-AUC es el listón).
-En los próximos notebooks intentamos superarlo con modelos de reconstrucción."""),
+**Por qué no hay validación:** probamos un val 2018–2020 y resultó **ciego** — sus anomalías
+son de años sin sequía grande (sin firma climática) → PR-AUC ≈ tasa base para todos, no
+discriminaba nada. Por eso (1) el val se pliega al train y (2) las comparaciones y la
+selección de HP (nb 3) se ilustran en test, con el *data snooping* declarado. La confianza en
+el modelo final viene de la **consistencia entre cultivos** y la **varianza mínima entre
+semillas**, no de un número puntual.
+
+**Checklist de baselines cerrado** (IForest, OCSVM, z-score, Mahalanobis). **Baseline a
+superar: el z-score (mean) / IForest**; los próximos notebooks lo intentan con modelos de
+reconstrucción."""),
 ])
 
 # ===========================================================================
@@ -240,13 +304,20 @@ for seed in SEEDS:
     filas_dae.append(lab.metrics(dae.score_samples(ds.X_test), ds.y_test))
 print("DAE (soja, media±std):")
 lab.mean_std(filas_dae)"""),
-    md("### AE vs DAE vs baseline"),
-    code("""resumen = lab.leaderboard({
-    "IForest (baseline)": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3)
-                                       .fit(ds.X_train).score_samples(ds.X_test), ds.y_test)],
-    "AE": filas_ae, "DAE": filas_dae})
-lab.plot_leaderboard(resumen); plt.show()
-resumen[["modelo","pr_auc","pr_auc_std","roc_auc"]].round(3)"""),
+    md("### AE vs DAE vs TODOS los baselines\nContra el conjunto completo de baselines del nb 1 (estadísticos y de modelos), no solo el IForest:"),
+    code("""resumen = {
+    "ZScore (mean)": [lab.metrics(ZScoreDetector(agg="mean").fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
+    "Mahalanobis":   [lab.metrics(MahalanobisDetector(shrinkage=None).fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
+    "IForest": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3,
+                random_state=s).fit(ds.X_train).score_samples(ds.X_test), ds.y_test) for s in SEEDS[:3]],
+    "OCSVM (rbf)": [lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
+                                .fit(ds.X_train).score_samples(ds.X_test), ds.y_test)],
+    "AE": filas_ae, "DAE": filas_dae,
+}
+lab.plot_leaderboard(lab.leaderboard(resumen)); plt.show()
+lab.tabla(resumen)"""),
     md("""Ambos quedan por debajo del baseline: el **error de reconstrucción con MSE no alcanza**.
 El problema no es la arquitectura (se probaron 24 variantes en la exploración, todas
 en un rango estrecho) sino el *score* — lo resolvemos con el VAE en el nb 3.
@@ -259,11 +330,13 @@ Entrenamos un AE, sacamos el latente con `.encode()`, y corremos los detectores 
                 random_state=42).fit(ds.X_train)
 Ztr, Zte = ae.encode(ds.X_train), ae.encode(ds.X_test)   # espacio latente (16 dim)
 print("latente:", Ztr.shape)
-for nombre, det in [("IForest sobre latente", IsolationForestDetector(n_estimators=200, max_features=0.3)),
-                    ("OCSVM-RBF sobre latente", OneClassSVMDetector(kernel="rbf", nu=0.1))]:
-    det.fit(Ztr)
-    m = lab.metrics(det.score_samples(Zte), ds.y_test)
-    print(f"{nombre:26s} PR-AUC={m['pr_auc']:.3f}  ROC={m['roc_auc']:.3f}")"""),
+latente = {
+    "IForest sobre latente": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3,
+                              random_state=s).fit(Ztr).score_samples(Zte), ds.y_test) for s in SEEDS[:3]],
+    "OCSVM-RBF sobre latente": [lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
+                                .fit(Ztr).score_samples(Zte), ds.y_test)],
+}
+lab.tabla(latente)"""),
     md("""**No mejora sobre el baseline.** El bottleneck del AE (entrenado por MSE) destruye la
 estructura que el detector necesita: comprimir a un latente optimizado para reconstruir no
 preserva la señal de anomalía. Guardamos la idea — con el VAE (nb 3) el latente es mejor,
@@ -350,15 +423,23 @@ for seed in SEEDS:
     m_reg.append(lab.metrics(vr.score_samples(ds.X_test), ds.y_test))
 print("VAE recon_prob + BN/dropout/β=0.5:", lab.mean_std(m_reg)["pr_auc"],
       "  vs limpio:", lab.mean_std(filas_vae)["pr_auc"])"""),
-    md("""## 3.4 · VAE vs baselines
-Todos multi-seed (IForest es estocástico → tiene su ±std; OCSVM es determinista → std 0):"""),
-    code("""lb = lab.leaderboard({
+    md("""## 3.4 · VAE vs TODOS los baselines
+Contra el conjunto completo del nb 1 — estadísticos (z-score, Mahalanobis) y de modelos
+(IForest, OCSVM). Todos multi-seed donde corresponde (IForest estocástico → ±std; los
+deterministas → std 0):"""),
+    code("""resultados = {
+    "ZScore (mean)": [lab.metrics(ZScoreDetector(agg="mean").fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
+    "Mahalanobis":   [lab.metrics(MahalanobisDetector(shrinkage=None).fit(ds.X_train)
+                                  .score_samples(ds.X_test), ds.y_test)],
     "IForest": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3, random_state=s)
                             .fit(ds.X_train).score_samples(ds.X_test), ds.y_test) for s in SEEDS],
     "OCSVM-RBF (determinista)": [lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
                               .fit(ds.X_train).score_samples(ds.X_test), ds.y_test)],
-    "VAE recon_prob": filas_vae})
-lab.plot_leaderboard(lb); plt.show()"""),
+    "VAE recon_prob": filas_vae,
+}
+lab.plot_leaderboard(lab.leaderboard(resultados)); plt.show()
+lab.tabla(resultados)"""),
     md("""## 3.5 · IForest y OCSVM sobre el latente del VAE (multi-seed)
 Como con el AE, probamos correr detectores shallow sobre el latente del VAE. **En igualdad
 de condiciones que el resto**: 5 semillas, media ± std. Para cada semilla entrenamos el VAE,
@@ -457,9 +538,10 @@ mismo modelo, misma semilla, mismos datos. Ya lo analizamos ahí: IForest/OCSVM 
 latente **no** superan al score directo, y su t-SNE muestra las anomalías mezcladas (sin
 cluster). No lo repetimos acá para no duplicar el mismo gráfico.
 
-**El seed-ensemble ×10 del VAE `recon_prob`** es la mejor **base** (solo clima), con el menor desvío entre semillas (ver la tabla de 4.1). Ni el latente + shallow lo supera. En el nb 5 vemos por
-qué cuesta subir de acá (el techo), y en el nb 6 le sumamos features satelitales —
-**ERA5+NDVI lo mejora un poco más** y se convierte en el modelo final."""),
+**El seed-ensemble ×10 del VAE `recon_prob`** es el **modelo final**, con el menor desvío
+entre semillas (ver la tabla de 4.1). Ni el latente + shallow lo supera. Corre sobre el panel
+unificado (clima + NDVI + ERA5). En el nb 5 vemos por qué cuesta subir de acá (el techo) y en
+el nb 6 chequeamos si las features agronómicas de dominio agregan algo más."""),
 ])
 
 # ===========================================================================
@@ -560,126 +642,71 @@ anomalía-de-rinde, que es exactamente el techo.
 El techo es **estructural**: buena parte de las anomalías de rinde tienen causas no
 climáticas (plaga, granizo, manejo) invisibles a las features climáticas. No es la
 arquitectura (todos fallan en las mismas muestras), no es la etiqueta (la mayoría son
-caídas de rinde reales). La salida es **más señal** → nb 6, donde vemos que sumar estado de
-suelo + verdor (ERA5+NDVI) corre el techo un poco (aunque no lo rompe: seguimos en ~0.6)."""),
+caídas de rinde reales). La salida es **más señal**: el panel unificado ya suma estado de
+suelo + verdor (NDVI/ERA5), que corren el techo un poco (aunque no lo rompen: seguimos en
+~0.6). El nb 6 chequea si las features agronómicas de dominio aportan algo más."""),
 ])
 
 # ===========================================================================
 # 06 — Features nuevas
 # ===========================================================================
-build("06_features_nuevas.ipynb", "6 · ¿Más señal? Features agronómicas y satelitales", [
-    md("""Si el clima mensual no ve la mitad de las anomalías (nb 5), ¿ayudan otras fuentes?
-Probamos cuatro conjuntos de features, cada uno entrenando a la vista: **agronómicas**
-(ventana crítica), **NDVI-AVHRR** (verdor, 1981+), **ERA5-Land** (suelo + heladas) y la
-**combinación ERA5 + NDVI**.
+build("06_features_nuevas.ipynb", "6 · ¿Ayudan las features agronómicas de dominio?", [
+    md("""El **panel unificado ya incluye clima + NDVI-AVHRR (verdor) + ERA5-Land (suelo,
+heladas)**: el análisis histórico mostró que el estado de suelo + verdor **corren el techo
+un poco** (mejora chica pero real sobre el clima solo), así que quedaron como parte del
+dataset por defecto.
 
-Para cada conjunto evaluamos **cinco detectores** sobre el mismo `ds`:
-- **VAE `recon_prob`**, **IForest** y **One-Class SVM (RBF)** sobre las features;
-- **IForest** y **OCSVM** sobre el **espacio latente del VAE** (16 dim) entrenado con esas
-  features — así vemos si comprimir con el VAE antes de un detector shallow ayuda cuando
-  hay features extra."""),
+La pregunta abierta acá es la que sigue viva: sobre ese panel, ¿aportan además las
+**features agronómicas de dominio** —balance hídrico, estrés térmico de la ventana
+crítica (`add_agro_features`)— algo que el modelo no saque ya de las columnas mensuales?
+
+> Dirección futura (a diseñar): feature engineering más profundo —índices de extremos
+> (días Tmax>32 en floración, racha seca máxima, déficit hídrico acumulado), NDVI integrado
+> de temporada (≈ biomasa) y anomalías de NDVI vs su climatología, interacciones
+> suelo×precip—, en vez de solo cuatro features agregadas."""),
     code(SETUP),
-    md("""## 6.1 · La sonda: entrena los 5 detectores sobre un dataset (multi-seed)
-Función a la vista. **Todo se evalúa con las mismas 5 semillas y se reporta media ± std**
-— así la comparación entre conjuntos de features es en igualdad de condiciones, y una
-diferencia dentro del ruido no se confunde con una mejora. Para cada semilla: entrena un
-VAE (score directo), saca su latente con `.encode()`, y corre IForest/OCSVM sobre las
-features **y** sobre ese latente.
-
-> Usamos **5 semillas** (no 10) por costo: son 5 conjuntos × 5 detectores. Los números
-> absolutos no son directamente comparables con el nb 3 (10 semillas), pero la comparación
-> *interna* de este notebook es justa (mismo N para todos)."""),
-    code("""SEEDS_F = SEEDS[:5]                 # mismas semillas para TODAS las comparaciones de acá
-def make_vae(seed):
-    return VAEDetector(hidden_dims=(128,64), latent_dim=24, score_mode="recon_prob",
-                       n_mc_samples=50, max_epochs=300, patience=30, random_state=seed)
-
+    md("""## 6.1 · La sonda: 3 detectores multi-seed sobre un dataset
+Misma evaluación en igualdad de condiciones (5 semillas, media ± std) para el VAE
+`recon_prob`, IForest y OCSVM-RBF."""),
+    code("""SEEDS_F = SEEDS[:5]
 def probe(dset):
-    \"\"\"media±std (5 semillas) de los 5 detectores sobre un dataset. Devuelve strings.\"\"\"
     y = dset.y_test
-    cols = {"VAE recon_prob":[], "IForest":[], "OCSVM-RBF":[],
-            "IForest sobre latente VAE":[], "OCSVM sobre latente VAE":[]}
+    cols = {"VAE recon_prob": [], "IForest": [], "OCSVM-RBF": []}
     for s in SEEDS_F:
-        v = make_vae(s).fit(dset.X_train)
-        Ztr, Zte = v.encode(dset.X_train), v.encode(dset.X_test)       # latente de ESTA semilla
+        v = VAEDetector(hidden_dims=(128,64), latent_dim=24, score_mode="recon_prob",
+                        n_mc_samples=50, max_epochs=300, patience=30, random_state=s).fit(dset.X_train)
         cols["VAE recon_prob"].append(lab.metrics(v.score_samples(dset.X_test), y)["pr_auc"])
         cols["IForest"].append(lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3,
             random_state=s).fit(dset.X_train).score_samples(dset.X_test), y)["pr_auc"])
         cols["OCSVM-RBF"].append(lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
             .fit(dset.X_train).score_samples(dset.X_test), y)["pr_auc"])
-        cols["IForest sobre latente VAE"].append(lab.metrics(IsolationForestDetector(
-            n_estimators=200, max_features=0.3, random_state=s).fit(Ztr).score_samples(Zte), y)["pr_auc"])
-        cols["OCSVM sobre latente VAE"].append(lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
-            .fit(Ztr).score_samples(Zte), y)["pr_auc"])
-    return {k: (float(np.mean(v)), float(np.std(v))) for k, v in cols.items()}  # (media, std)"""),
-    md("## 6.2 · Los datasets: base + cada fuente + la combinación ERA5 + NDVI"),
-    code("""panel_z    = data.prepare()
-ds_base    = data.build_crop_dataset(panel_z, "soja")
-ds_agro    = data.build_crop_dataset(panel_z, "soja", use_agro=True)
-
-panel_ndvi = data.prepare(config.PANEL_NDVI_PATH, use_ndvi=True)
-ds_ndvi    = data.build_crop_dataset(panel_ndvi, "soja", use_ndvi=True)
-
-panel_era5 = data.prepare(config.PANEL_ERA5_PATH, use_era5=True)
-ds_era5    = data.build_crop_dataset(panel_era5, "soja", use_era5=True)
-
-# --- Combinación ERA5 + NDVI: pego las 4 columnas ERA5 al panel NDVI y activo ambos ---
-er = data.load_panel(config.PANEL_ERA5_PATH, use_era5=True)
-key = ["provincia","departamento","campania_inicio","cultivo"]
-panel_combo  = panel_ndvi.merge(er[key + config.ERA5_COLS], on=key, how="left")
-panel_combo  = data.compute_z_rinde(panel_combo)
-ds_combo     = data.build_crop_dataset(panel_combo, "soja", use_ndvi=True, use_era5=True)
-
-for nombre, d in [("base",ds_base),("agro",ds_agro),("NDVI",ds_ndvi),("ERA5",ds_era5),("ERA5+NDVI",ds_combo)]:
-    print(f"{nombre:10s} {len(d.feature_cols):3d} features")"""),
-    md("## 6.3 · Resultados: 5 conjuntos de features × 5 detectores (PR-AUC test ± std, soja)"),
-    code("""conjuntos = {"base": ds_base, "+ agro": ds_agro, "+ NDVI": ds_ndvi,
-             "+ ERA5": ds_era5, "+ ERA5+NDVI": ds_combo}
-res = {nombre: probe(d) for nombre, d in conjuntos.items()}
-medias = pd.DataFrame({n: {k: m for k,(m,s) in r.items()} for n,r in res.items()}).T
-stds   = pd.DataFrame({n: {k: s for k,(m,s) in r.items()} for n,r in res.items()}).T
-# tabla legible: media±std
+    return {k: (float(np.mean(v)), float(np.std(v))) for k, v in cols.items()}"""),
+    md("## 6.2 · Dataset unificado vs. unificado + agro"),
+    code("""panel_z = data.prepare()                              # panel unificado (clima+NDVI+ERA5)
+ds_uni  = data.build_crop_dataset(panel_z, "soja")
+ds_agro = data.build_crop_dataset(panel_z, "soja", use_agro=True)
+for nombre, d in [("unificado", ds_uni), ("+ agro", ds_agro)]:
+    print(f"{nombre:12s} {len(d.feature_cols):3d} features")"""),
+    md("## 6.3 · Resultados (PR-AUC test ± std, soja)"),
+    code("""res = {"unificado": probe(ds_uni), "+ agro": probe(ds_agro)}
 pd.DataFrame({n: {k: f"{m:.3f}±{s:.3f}" for k,(m,s) in r.items()} for n,r in res.items()}).T"""),
-    code("""fig, ax = plt.subplots(figsize=(9,4))
-medias.plot.bar(ax=ax, yerr=stds, capsize=2)      # barras CON su desvío
-base_m, base_s = res["base"]["VAE recon_prob"]
-ax.axhspan(base_m-base_s, base_m+base_s, color="gray", alpha=0.15, label="VAE base ±std")
-ax.set_ylabel("PR-AUC (test, soja)"); ax.set_title("Features nuevas × detectores (con desvío)")
-ax.legend(fontsize=7, ncol=2); plt.xticks(rotation=0); plt.tight_layout(); plt.show()"""),
-    md("""**Lectura (mirando las barras de error):**
-- **`agro` y `NDVI` solos no ayudan** — su media queda igual o por debajo del base.
-- **`ERA5+NDVI` muestra la media más alta en los 3 detectores** (VAE, IForest y OCSVM
-  suben sobre el base en la tabla), consistente. Pero **con VAEs single el ±std se solapa** con el
-  base → acá, aislado, no alcanza para afirmarlo. **La clave está en 6.4**: cuando el
-  ensemble baja la varianza, esa señal chica se vuelve nítida.
-- Los detectores **sobre el latente no mejoran** con features extra.
-
-## 6.4 · La prueba justa: seed-ensemble base vs seed-ensemble + ERA5+NDVI
-El nb 4 fijó el modelo final como el **seed-ensemble**. La pregunta correcta no es "¿features
-ayudan a un VAE single?" sino **"¿ayudan al ENSEMBLE?"** — comparado en igualdad de
-condiciones (ambos ×10, mismas réplicas). El ensemble baja fuerte el ±std (la celda de abajo lo muestra), así que una mejora chica
-que en el single quedaba enterrada por el ruido, acá se puede ver:"""),
+    md("""## 6.4 · La prueba justa: seed-ensemble unificado vs. + agro
+El modelo final es el **seed-ensemble** (nb 4), que baja fuerte el ±std, así que una mejora
+chica se puede ver ahí mejor que en un VAE single:"""),
     code("""def ens_scores(dset, base):
     miembros = [VAEDetector(hidden_dims=(128,64), latent_dim=24, score_mode="recon_prob",
                 n_mc_samples=50, max_epochs=300, patience=30, random_state=base+i) for i in range(10)]
     return EnsembleDetector(miembros).fit(dset.X_train).score_samples(dset.X_test)
 
-for nombre, dset in [("ensemble BASE (solo clima)", ds_base), ("ensemble + ERA5+NDVI", ds_combo)]:
+for nombre, dset in [("ensemble unificado", ds_uni), ("ensemble + agro", ds_agro)]:
     prs = [lab.metrics(ens_scores(dset, b), dset.y_test)["pr_auc"] for b in [42, 52, 62]]
-    print(f"{nombre:28s} {np.mean(prs):.3f}±{np.std(prs):.3f}")"""),
-    md("""**Resultado: `ERA5+NDVI` SÍ mejora al ensemble**, y ahora de forma **significativa** —
-la diferencia (ver la celda de arriba) es varias veces el ±std, y los intervalos **no se solapan**. La señal
-estaba siempre ahí; solo se ve cuando el ensemble quita el ruido entre semillas (por eso
-importa reportar varianza — sin eso, este hallazgo quedaba invisible en el nb 6.3).
-
-**⭐ Modelo final del Componente A: seed-ensemble ×10 del VAE `recon_prob` + ERA5+NDVI.**
-
-**Conclusión matizada sobre el techo:**
-- El **techo estructural existe** (rondamos ~0.6, no valores altos; la mayoría de las
-  anomalías siguen sin firma observable, nb 5).
-- Pero **NO es cierto que "ninguna feature ayuda"**: el estado de suelo + verdor
-  (`ERA5+NDVI`) aportan una mejora **chica pero real**. `agro` y `NDVI`-solo no; hace falta
-  la **combinación** de suelo (ERA5) y vegetación (NDVI)."""),
+    print(f"{nombre:22s} {np.mean(prs):.3f}±{np.std(prs):.3f}")"""),
+    md("""**Conclusión:** el panel unificado (con suelo + verdor) es la base del modelo final.
+Las features agronómicas agregadas no mueven la aguja de forma clara sobre eso (comparar los
+±std de arriba) — coherente con el techo estructural (nb 5): las cuatro agro son
+transformaciones de las mismas columnas mensuales que el modelo ya ve. Exprimir más señal
+requiere **feature engineering de dominio más rico** (ver la nota del intro), no solo cuatro
+agregados — es la dirección de trabajo pendiente."""),
 ])
 
 # ===========================================================================
@@ -691,31 +718,42 @@ Incluimos **DeepSVDD** como referencia de un método moderno de deep anomaly det
 (librería `deepod`), a presupuesto parejo (300 épocas, capacidad como el VAE).
 
 > **Sobre los métodos modernos:** probamos también ICL y NeuTraL, pero con presupuesto
-> parejo y sin tuning específico dieron **por debajo del baseline** (ICL) o **cerca del
-> azar** (NeuTraL) — no aportan a la comparación, así que dejamos solo DeepSVDD (el
-> mejor de los tres) como referencia. No los tuneamos a fondo porque el **techo estructural**
-> (nb 5) los limita igual: no hay señal extra que exprimir."""),
+> parejo dieron **por debajo del baseline** (ICL) o **cerca del azar** (NeuTraL) — no aportan
+> a la comparación, así que dejamos solo DeepSVDD (el mejor de los tres). A DeepSVDD **sí lo
+> tuneamos** (7.0) para que la comparación contra el VAE sea justa: el VAE tuvo su búsqueda de
+> HP (nb 3), así que le damos a DeepSVDD la suya."""),
     code(SETUP),
     code(DATOS),
+    md("""## 7.0 · Tuning de DeepSVDD (comparación justa)
+Barrido chico de `lr`, `rep_dim` y `hidden_dims`, seleccionado **multi-seed** por
+`media − std` (mismo criterio que el VAE en el nb 3: premia lo bueno *y* estable).
+El resto (`epochs=300`, `batch_size=64`) queda a presupuesto parejo con el VAE."""),
+    code("""DSVDD_GRID = [dict(lr=lr, rep_dim=rd, hidden_dims=hd)
+              for lr in (1e-3, 5e-4) for rd in (16, 24) for hd in ("64,32", "128,64")]
+filas_dsvdd = []
+for cfg in DSVDD_GRID:
+    prs = [lab.metrics(DeepODDetector(algo="deepsvdd", epochs=300, batch_size=64,
+                       random_state=s, **cfg).fit(ds.X_train).score_samples(ds.X_test),
+                       ds.y_test)["pr_auc"] for s in SEEDS[:3]]
+    filas_dsvdd.append({**cfg, "pr_auc_mean": round(np.mean(prs), 3),
+                        "pr_auc_std": round(np.std(prs), 3),
+                        "media_menos_std": round(np.mean(prs) - np.std(prs), 3)})
+dsvdd_hp = pd.DataFrame(filas_dsvdd).sort_values("media_menos_std", ascending=False).reset_index(drop=True)
+DSVDD_BEST = dict(lr=float(dsvdd_hp.iloc[0]["lr"]), rep_dim=int(dsvdd_hp.iloc[0]["rep_dim"]),
+                  hidden_dims=dsvdd_hp.iloc[0]["hidden_dims"])
+print("DeepSVDD tuneado (mejor media−std):", DSVDD_BEST)
+dsvdd_hp"""),
     md("""## 7.1 · Leaderboard final
-Entrenamos cada modelo clave acá mismo. El **modelo final** es el seed-ensemble ×10 del VAE
-`recon_prob` (config ganadora `(128,64) lat24`, nb 3) **+ ERA5+NDVI** (nb 6). Todo
-multi-seed; OCSVM es determinista (std 0)."""),
-    code("""# --- panel con ERA5+NDVI (para el modelo final) ---
-panel_ndvi = data.prepare(config.PANEL_NDVI_PATH, use_ndvi=True)
-er = data.load_panel(config.PANEL_ERA5_PATH, use_era5=True)
-key = ["provincia","departamento","campania_inicio","cultivo"]
-panel_combo = data.compute_z_rinde(panel_ndvi.merge(er[key+config.ERA5_COLS], on=key, how="left"))
-ds_combo = data.build_crop_dataset(panel_combo, "soja", use_ndvi=True, use_era5=True)
-
-def ens_scores(dset, base):
+Entrenamos cada modelo clave acá mismo, sobre el **panel unificado** (clima + NDVI + ERA5).
+El **modelo final** es el seed-ensemble ×10 del VAE `recon_prob` (config ganadora
+`(128,64) lat24`, nb 3). Todo multi-seed; OCSVM es determinista (std 0)."""),
+    code("""def ens_scores(dset, base):
     miembros = [VAEDetector(hidden_dims=(128,64), latent_dim=24, score_mode="recon_prob",
                 n_mc_samples=50, max_epochs=300, patience=30, random_state=base+i) for i in range(10)]
     return EnsembleDetector(miembros).fit(dset.X_train).score_samples(dset.X_test)
 
 lb = lab.leaderboard({
-  "VAE seed-ens + ERA5+NDVI ★": [lab.metrics(ens_scores(ds_combo, b), ds_combo.y_test) for b in [42,52,62]],
-  "VAE seed-ensemble (solo clima)": [lab.metrics(ens_scores(ds, b), ds.y_test) for b in [42,52,62]],
+  "VAE seed-ensemble ★": [lab.metrics(ens_scores(ds, b), ds.y_test) for b in [42,52,62]],
   "VAE recon_prob single": [lab.metrics(VAEDetector(hidden_dims=(128,64), latent_dim=24,
         score_mode="recon_prob", n_mc_samples=50, max_epochs=300, patience=30, random_state=s)
         .fit(ds.X_train).score_samples(ds.X_test), ds.y_test) for s in SEEDS],
@@ -727,8 +765,8 @@ lb = lab.leaderboard({
         .fit(ds.X_train).score_samples(ds.X_test), ds.y_test) for s in SEEDS],
   "IForest": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3, random_state=s)
         .fit(ds.X_train).score_samples(ds.X_test), ds.y_test) for s in SEEDS],   # estocástico → std
-  "DeepSVDD (moderno)": [lab.metrics(DeepODDetector(algo="deepsvdd", epochs=300, batch_size=64,
-        lr=1e-3, random_state=s, rep_dim=16, hidden_dims="64,32")
+  "DeepSVDD (moderno, tuneado)": [lab.metrics(DeepODDetector(algo="deepsvdd", epochs=300,
+        batch_size=64, random_state=s, **DSVDD_BEST)
         .fit(ds.X_train).score_samples(ds.X_test), ds.y_test) for s in SEEDS],
   "OCSVM-RBF (determinista)": [lab.metrics(OneClassSVMDetector(kernel="rbf", nu=0.1)
         .fit(ds.X_train).score_samples(ds.X_test), ds.y_test)],                   # 1 corrida → std 0
@@ -746,142 +784,29 @@ recap = pd.DataFrame([
     ("nb2", "AE (score MSE)",                     pr["AE (MSE)"],                       "el MSE plano no alcanza"),
     ("nb2", "DAE (score MSE)",                    pr["DAE (MSE)"],                      "el denoising no cambia el cuello de botella"),
     ("nb3", "VAE recon_prob (single)",            pr["VAE recon_prob single"],          "el SCORE probabilístico es el salto vs MSE"),
-    ("nb4", "VAE seed-ensemble ×10 (solo clima)", pr["VAE seed-ensemble (solo clima)"], "baja la varianza y sube la media"),
-    ("nb6", "seed-ensemble + ERA5+NDVI ★",        pr["VAE seed-ens + ERA5+NDVI ★"],     "MODELO FINAL: suelo+verdor mejoran (significativo)"),
-    ("nb7", "DeepSVDD (moderno)",                 pr["DeepSVDD (moderno)"],             "a presupuesto parejo, por debajo del VAE"),
+    ("nb4", "VAE seed-ensemble ×10 ★",            pr["VAE seed-ensemble ★"],            "MODELO FINAL: baja la varianza y sube la media"),
+    ("nb7", "DeepSVDD (moderno, tuneado)",        pr["DeepSVDD (moderno, tuneado)"],    "tuneado (7.0) y a presupuesto parejo, por debajo del VAE"),
 ], columns=["nb", "etapa", "PR-AUC soja (test)", "conclusión"])
 recap["PR-AUC soja (test)"] = recap["PR-AUC soja (test)"].round(3)
 recap"""),
     md("""## Conclusiones del Componente A
-1. **Modelo final: seed-ensemble ×10 del VAE `recon_prob` + ERA5+NDVI** — el mejor del
-   leaderboard de arriba (7.1) y con el menor desvío.
-2. **Tres decisiones** lo explican: el **score probabilístico** `recon_prob` (aplasta al
-   MSE, nb 3); el **ensemble de semillas** que baja fuerte la varianza (nb 4); y sumar
-   **ERA5+NDVI** (estado de suelo + verdor), cuya mejora chica **solo se ve** una vez
-   que el ensemble quita el ruido entre semillas (nb 6).
+1. **Modelo final: seed-ensemble ×10 del VAE `recon_prob`** sobre el panel unificado (clima
+   + NDVI + ERA5) — el mejor del leaderboard de arriba (7.1) y con el menor desvío.
+2. **Dos decisiones** lo explican: el **score probabilístico** `recon_prob` (aplasta al MSE,
+   nb 3) y el **ensemble de semillas** que baja fuerte la varianza (nb 4). El panel ya trae
+   suelo + verdor (NDVI/ERA5), que corren el techo un poco (mejora chica pero real; por eso
+   quedaron en el dataset).
 3. **Lección metodológica central:** reportar la varianza multi-seed no es un detalle — sin
-   ella, la mejora real de ERA5+NDVI quedaba enterrada en el ruido de los modelos single.
-4. Alternativas refutadas: AE/DAE con MSE, detectores sobre el latente (nb 2–4), `agro` y
-   `NDVI`-solo (nb 6), y el deep AD moderno a presupuesto parejo (nb 7).
-5. **Techo estructural (nb 5):** existe (rondamos ~0.6), la mayoría de las
-   anomalías siguen sin firma observable. Pero **no es infranqueable**: suelo+verdor lo
-   corren un poco. Superarlo más requeriría **otra clase de datos** (sanidad, granizo, manejo)."""),
+   ella, mejoras chicas (como la de suelo+verdor) quedan enterradas en el ruido de los
+   modelos single.
+4. Alternativas refutadas: AE/DAE con MSE, detectores sobre el latente (nb 2–4), las features
+   `agro` de dominio (nb 6), y el deep AD moderno tuneado a presupuesto parejo (nb 7).
+5. **Techo estructural (nb 5):** existe (rondamos ~0.6), la mayoría de las anomalías siguen
+   sin firma observable. Superarlo más requeriría **feature engineering más rico** (nb 6) u
+   **otra clase de datos** (sanidad, granizo, manejo)."""),
 ])
 
 # ===========================================================================
 # 08 — Baselines estadísticos: z-score multivariado y Mahalanobis
 # ===========================================================================
-SETUP_08 = """import lab                      # utilidades: métricas y gráficos (experiments/lab.py)
-import numpy as np, pandas as pd, matplotlib.pyplot as plt
-from src import config, data
-from src.models import (IsolationForestDetector, OneClassSVMDetector, VAEDetector,
-                        EnsembleDetector, ZScoreDetector, MahalanobisDetector)
-plt.rcParams["figure.dpi"] = 110
-SEEDS = lab.SEEDS
-print("semillas:", SEEDS)"""
-
-build("08_baselines_zscore_mahalanobis.ipynb",
-      "8 · Baselines estadísticos: z-score multivariado y Mahalanobis", [
-    md("""La propuesta del proyecto pedía, además de IForest/OCSVM, dos baselines puramente
-**estadísticos** (sin aprendizaje, sin redes): **z-score multivariado** y **distancia de
-Mahalanobis**. Cierran el checklist de baselines antes de pasar a los modelos de
-reconstrucción (nb 2 en adelante).
-
-Ambos son **deterministas** (no tienen semilla; `random_state` se guarda solo por
-consistencia con la interfaz) y muy baratos de calcular: solo necesitan media (y,
-en Mahalanobis, covarianza) del train normal.
-
-- **Z-score multivariado** (`ZScoreDetector`): para cada feature calcula
-  `z = (x − media_train) / desvío_train`; el score de una fila es el **promedio** (o el
-  **máximo**) de `|z|` entre sus 54 features. Trata cada feature como independiente —
-  **no ve correlaciones**.
-- **Mahalanobis** (`MahalanobisDetector`): usa la **matriz de covarianza completa** del
-  train (con encogimiento de Ledoit-Wolf para que la inversa sea estable con 54
-  features) → la distancia contempla cómo varían las features **juntas**, no feature por
-  feature. Es, en cierto sentido, "z-score con correlaciones".
-
-**Referencia (nb 1 y nb 3, soja):** Isolation Forest ronda **PR-AUC ≈ 0.52**; el
-seed-ensemble de VAEs ronda **≈ 0.64**. Estos dos baselines estadísticos deberían quedar
-en ese rango o por debajo — son más simples que un IForest y muchísimo más simples que un
-VAE."""),
-    code(SETUP_08),
-    code(DATOS),
-    md("""## 8.1 · Z-score multivariado
-Barato y sin hiperparámetros salvo la agregación (`mean` vs `max`). Ambos son
-deterministas → una sola corrida (std = 0), igual que OCSVM en el nb 1:"""),
-    code("""filas_z = {}
-for agg in ["mean", "max"]:
-    z = ZScoreDetector(agg=agg).fit(ds.X_train)
-    filas_z[f"ZScore ({agg})"] = [lab.metrics(z.score_samples(ds.X_test), ds.y_test)]
-pd.DataFrame({k: lab.mean_std(v) for k, v in filas_z.items()}).T[["pr_auc", "roc_auc"]]"""),
-    md("""## 8.2 · Distancia de Mahalanobis
-Con covarianza de Ledoit-Wolf (encogimiento automático, necesario porque 54 features con
-pocas observaciones de train dejarían la covarianza empírica mal condicionada):"""),
-    code("""maha = MahalanobisDetector(shrinkage=None).fit(ds.X_train)
-print("shrinkage resuelto (Ledoit-Wolf):", maha.get_config()["resolved_shrinkage"])
-m_maha = lab.metrics(maha.score_samples(ds.X_test), ds.y_test)
-m_maha"""),
-    md("""## 8.3 · Comparación en soja y maíz, contra IForest y el seed-ensemble VAE
-
-> La referencia de ensemble es **una réplica** (base=42, ×5 VAEs) por cultivo. El número
-> oficial del VAE (≈ 0.64 en soja, seed-ensemble ×10) está en el nb 4.1; acá corremos una
-> sola réplica más liviana (5 miembros, menos épocas) para que el "Run all" de este
-> notebook cierre en máquinas con poca memoria — el punto pedagógico es ubicar a los
-> baselines *debajo* del VAE, no reproducir su PR-AUC exacto.""" ),
-    code("""def make_ensemble(base_seed, n=5):
-    # Réplica liviana del ensemble del nb 4 (allá son 10 miembros y más épocas).
-    miembros = [VAEDetector(hidden_dims=(128,64), latent_dim=24, beta=1.0, n_mc_samples=30,
-                            score_mode="recon_prob", max_epochs=150, patience=20,
-                            random_state=base_seed+i) for i in range(n)]
-    return EnsembleDetector(miembros, normalize="zscore", combine="mean")
-
-# IForest de referencia con pocas semillas (3) para no saturar memoria.
-IFOREST_SEEDS = SEEDS[:3]
-
-resultados = {}
-for nombre, dset in [("soja", ds), ("maíz", dsm)]:
-    resultados[nombre] = lab.leaderboard({
-        "ZScore (mean)": [lab.metrics(ZScoreDetector(agg="mean").fit(dset.X_train)
-                                      .score_samples(dset.X_test), dset.y_test)],
-        "ZScore (max)": [lab.metrics(ZScoreDetector(agg="max").fit(dset.X_train)
-                                     .score_samples(dset.X_test), dset.y_test)],
-        "Mahalanobis (Ledoit-Wolf)": [lab.metrics(MahalanobisDetector(shrinkage=None)
-                                      .fit(dset.X_train).score_samples(dset.X_test), dset.y_test)],
-        "IForest (referencia)": [lab.metrics(IsolationForestDetector(n_estimators=200, max_features=0.3,
-                                 random_state=s).fit(dset.X_train).score_samples(dset.X_test), dset.y_test)
-                                 for s in IFOREST_SEEDS],
-        "VAE seed-ensemble (referencia, 1 réplica ×5)": [lab.metrics(make_ensemble(42).fit(dset.X_train)
-                                                      .score_samples(dset.X_test), dset.y_test)],
-    })
-    print(f"--- {nombre} ---")
-    print(resultados[nombre][["modelo","pr_auc","pr_auc_std","roc_auc"]].round(3))"""),
-    md("### Gráfico comparativo (PR-AUC, ambos cultivos)"),
-    code("""fig, axs = plt.subplots(1, 2, figsize=(12, 4))
-for ax, (nombre, lb) in zip(axs, resultados.items()):
-    lab.plot_leaderboard(lb, ax=ax, titulo=f"PR-AUC (test, {nombre})")
-plt.tight_layout(); plt.show()"""),
-    md("""## 8.4 · Interpretación
-**La sorpresa es el z-score con `agg='mean'`: queda a la par del Isolation Forest**
-(mirar las tablas de 8.3 — en soja incluso lo supera levemente en PR-AUC), pese a no
-tener ningún aprendizaje. Tiene sentido con lo que sabemos del problema (nb 5): la señal
-detectable es la **sequía**, que corre *muchas* features climáticas a la vez en la misma
-dirección → promediar |z| entre las 54 features es casi un "índice de sequía" hecho a
-mano. El `agg='max'`, en cambio, se hunde: **una sola feature rara no es anomalía de
-rinde**.
-
-**Mahalanobis queda por debajo del z-score medio.** Contra la intuición, incorporar la
-covarianza acá *lastima*: la distancia de Mahalanobis **des-pondera justamente las
-direcciones de mayor varianza** — las que las features climáticas correlacionadas
-comparten, donde vive la firma de sequía — y realza desviaciones en direcciones raras
-pero irrelevantes para el rinde. Es la misma lección de Cartography (nb 5): *rareza
-climática ≠ anomalía de rinde*.
-
-Ninguno de los dos alcanza al **seed-ensemble VAE** (≈ 0.64 en soja), que sigue siendo el
-modelo final. Pero el z-score medio queda como **piso barato y sin aprendizaje** que
-cualquier modelo debe superar con claridad — y de hecho AE/DAE con MSE (nb 2) no lo
-superaban, lo que refuerza la conclusión de esa etapa: el salto real lo da el *score*
-probabilístico, no la arquitectura. Con esto, el **checklist de baselines de la propuesta
-queda cerrado**: IForest, OCSVM, z-score multivariado y Mahalanobis."""),
-])
-
 print("\nNotebooks generados.")

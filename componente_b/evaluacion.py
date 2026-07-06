@@ -240,6 +240,24 @@ def tabla_comparativa(filas: List[Dict], ordenar_por: str = "rmse") -> pd.DataFr
     return df.sort_values(ordenar_por, ascending=(ordenar_por != "r2")).reset_index(drop=True)
 
 
+# Métricas que se muestran por defecto en el Componente B (regresión). El resto
+# (mape, smape) se calcula igual pero no se muestra salvo pedido.
+COLS_STD = ("rmse", "r2", "mae")
+
+
+def tabla(filas, cols=COLS_STD) -> pd.DataFrame:
+    """Presentación ESTÁNDAR de métricas de regresión (Componente B): un DataFrame
+    con una fila por modelo y las columnas reducidas (RMSE, R², MAE), ordenado por
+    la primera. Es la forma única de mostrar métricas — reemplaza los `print(f"MAE=
+    ...")` sueltos. `filas` = lista de dicts de `evaluar` (o un solo dict)."""
+    if isinstance(filas, dict):
+        filas = [filas]
+    df = pd.DataFrame(filas)
+    id_cols = [c for c in ("modelo", "variante") if c in df.columns]
+    df = df.sort_values(cols[0], ascending=(cols[0] != "r2")).reset_index(drop=True)
+    return df[id_cols + list(cols)].round(3)
+
+
 # ===========================================================================
 # Datasets (base vs era5+ndvi) + estrategias con el latente del Componente A
 # ===========================================================================
@@ -258,55 +276,37 @@ def cv_score(model_cls, params: Dict, ds, metric: str = "rmse",
     return float(np.mean(scores))
 
 
-def comparar_datasets_y_latente(model_cls, params: Dict, cultivo: str,
-                                fixed: Optional[Dict] = None,
-                                vae_kwargs: Optional[Dict] = None,
-                                ordenar_por: str = "rmse",
-                                n_splits: int = 4):
-    """Toma una configuración YA elegida y la evalúa, en test, sobre:
+def comparar_latente(model_cls, params: Dict, cultivo: str,
+                     fixed: Optional[Dict] = None,
+                     vae_kwargs: Optional[Dict] = None,
+                     ordenar_por: str = "rmse", ds=None):
+    """Toma una configuración YA elegida y la evalúa, en test, sobre el dataset
+    (único, unificado) y las tres estrategias que reusan el mejor detector del
+    Componente A (VAE recon_prob, vía `latente.vae_features`): + espacio latente,
+    solo el espacio latente, y + la categórica `es_anomalo`.
 
-      1. dataset 'base' (solo clima),
-      2. dataset 'era5_ndvi' (clima + NDVI + ERA5),
-      3–5. sobre el mejor dataset de (1)/(2): + latente del VAE, solo el espacio
-           latente, y + la categórica `es_anomalo`.
-
-    El "mejor" dataset se elige por CV temporal DENTRO de train (`cv_score`), no
-    por la métrica de test: elegir mirando test sería seleccionar sobre el test
-    set (leakage de selección) e inflaría el resultado reportado. El test solo
-    se usa para las filas informativas de la tabla.
-
-    El latente y el `es_anomalo` salen del mejor detector del Componente A (VAE
-    recon_prob) vía `latente.vae_features`. Devuelve (tabla, mejor_dataset).
+    Devuelve la tabla comparativa (ordenada por `ordenar_por`).
     """
     import datos, latente                     # import perezoso (torch/VAE)
     fixed = fixed or {}
     vae_kwargs = vae_kwargs or {}
+    if ds is None:
+        ds = datos.prepare(cultivo)
 
     def _fit_eval(nombre, dv):
         model = model_cls(**{**fixed, **params}).fit(dv.X_train, dv.y_train)
         return {"variante": nombre, "n_feats": dv.X_train.shape[1],
                 **metricas(dv.y_test, model.predict(dv.X_test))}
 
-    # (1)-(2) los dos datasets: métrica de test (reporte) + CV en train (decisión)
-    dss = {name: datos.prepare(cultivo, dataset=name) for name in datos.DATASETS}
-    filas = [_fit_eval(name, dss[name]) for name in datos.DATASETS]
-
-    cv = {name: cv_score(model_cls, params, dss[name], metric=ordenar_por,
-                         n_splits=n_splits, fixed=fixed) for name in datos.DATASETS}
-    for f in filas:
-        f[f"cv_{ordenar_por}"] = cv[f["variante"]]
-    mejor = (max if ordenar_por == "r2" else min)(cv, key=cv.get)
-    ds = dss[mejor]
-
-    # (3)-(5) estrategias con el latente del VAE sobre el mejor dataset
-    vf = latente.vae_features(cultivo, dataset=mejor, **vae_kwargs)
-    filas.append(_fit_eval(f"{mejor} + latente", latente.concat_latente(ds, vf)))
-    filas.append(_fit_eval("solo latente",       latente.solo_latente(ds, vf)))
-    filas.append(_fit_eval(f"{mejor} + es_anomalo", latente.add_es_anomalo(ds, vf)))
-
-    tabla = pd.DataFrame(filas).sort_values(
+    vf = latente.vae_features(cultivo, **vae_kwargs)
+    filas = [
+        _fit_eval("dataset unificado", ds),
+        _fit_eval("+ latente", latente.concat_latente(ds, vf)),
+        _fit_eval("solo latente", latente.solo_latente(ds, vf)),
+        _fit_eval("+ es_anomalo", latente.add_es_anomalo(ds, vf)),
+    ]
+    return pd.DataFrame(filas).sort_values(
         ordenar_por, ascending=(ordenar_por != "r2")).reset_index(drop=True)
-    return tabla, mejor
 
 
 # ===========================================================================

@@ -150,13 +150,13 @@ if __name__ == "__main__":
                       if k != "n_jobs"}
             print("[integracion] usando XGBoost retuneado (CV honesta)")
 
-    ds = datos.prepare("soja", dataset="base", use_agro=True, enc_smooth=10.0)
+    ds = datos.prepare("soja", use_agro=True, enc_smooth=10.0)
     model = XGBoostRegressor(**params).fit(ds.X_train, ds.y_train)
     y_pred = model.predict(ds.X_test)
     print("test:", {k: round(v, 3) for k, v in ev.metricas(ds.y_test, y_pred).items()})
 
     # 1. consistencia cruzada (el VAE se cachea en .latente_cache)
-    vf = latente.vae_features("soja", dataset="base")
+    vf = latente.vae_features("soja")
     print("consistencia cruzada:", consistencia_cruzada(ds, y_pred, vf))
 
     # 2-3. contrafactual + pérdida 2022/23 (en las anomalías del VAE y en total)

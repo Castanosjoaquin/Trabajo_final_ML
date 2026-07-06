@@ -106,6 +106,25 @@ def leaderboard(resultados: dict[str, list[dict]]) -> pd.DataFrame:
     return out
 
 
+# Métricas que se muestran por defecto en TODO el proyecto (Componente A). El resto
+# (prec_at_k, recall_at_contam) se calcula igual pero no se muestra salvo pedido.
+COLS_STD = ("pr_auc", "roc_auc")
+
+
+def tabla(resultados: dict[str, list[dict]], cols=COLS_STD) -> pd.DataFrame:
+    """Presentación ESTÁNDAR de resultados del Componente A: un DataFrame con una
+    fila por modelo y las métricas como 'media±std'. Es la forma única de mostrar
+    métricas en el proyecto — reemplaza imprimir dicts crudos o `print(f"...")`
+    sueltos, para que toda tabla de resultados se vea igual.
+
+    resultados = {nombre_modelo: [métricas por semilla]} (una sola corrida vale; los
+    modelos deterministas dan ±0.000). Ordena por la primera métrica (desc)."""
+    lb = leaderboard(resultados).sort_values(cols[0], ascending=False)
+    filas = {r["modelo"]: {c: f"{r[c]:.3f}±{r[c + '_std']:.3f}" for c in cols}
+             for _, r in lb.iterrows()}
+    return pd.DataFrame(filas).T
+
+
 # ===========================================================================
 # Gráficos
 # ===========================================================================

@@ -33,10 +33,11 @@ from .config import (CLIM_PREFIXES, CRITICAL_MONTHS, ERA5_COLS, MESES,
 _REQUIRED_BASE = ["cultivo", "campania", "campania_inicio", "departamento", "rinde_kgha"]
 
 
-def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = False,
-                       use_era5: bool = False) -> List[str]:
+def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = True,
+                       use_era5: bool = True) -> List[str]:
     """Lista explícita de columnas que entran en X (promedios mensuales Sep–Mar
-    de las variables climáticas). Solo incluye las que realmente existen."""
+    de las variables climáticas + NDVI + ERA5). Solo incluye las que realmente
+    existen en el panel. Con el panel unificado, NDVI y ERA5 vienen por defecto."""
     cols: List[str] = []
     for pfx in CLIM_PREFIXES:
         for mes in MESES:
@@ -44,8 +45,7 @@ def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = False,
             if col in panel.columns:
                 cols.append(col)
     if use_ndvi:
-        # NDVI-AVHRR mensual (1981+, `ndvi_avhrr_<mes>`, del panel aumentado por
-        # merge_avhrr_ndvi.py).
+        # NDVI-AVHRR mensual (1981+, `ndvi_avhrr_<mes>`), ya en el panel unificado.
         cols += [f"ndvi_avhrr_{mes}" for mes in MESES
                  if f"ndvi_avhrr_{mes}" in panel.columns]
     if use_era5:
@@ -53,8 +53,8 @@ def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = False,
     return cols
 
 
-def load_panel(panel_path: str = PANEL_PATH, use_ndvi: bool = False,
-               use_era5: bool = False) -> pd.DataFrame:
+def load_panel(panel_path: str = PANEL_PATH, use_ndvi: bool = True,
+               use_era5: bool = True) -> pd.DataFrame:
     """Carga el panel, valida columnas y deduplica.
 
     Un `panel_path` relativo se resuelve contra la raíz del repo (donde vive
@@ -113,8 +113,8 @@ def compute_z_rinde(panel: pd.DataFrame, rolling_window: int = ROLLING_WINDOW,
     return df
 
 
-def prepare(panel_path: str = PANEL_PATH, use_ndvi: bool = False,
-            use_era5: bool = False) -> pd.DataFrame:
+def prepare(panel_path: str = PANEL_PATH, use_ndvi: bool = True,
+            use_era5: bool = True) -> pd.DataFrame:
     """Pipeline corto: carga el panel + computa la etiqueta. Devuelve panel_z."""
     return compute_z_rinde(load_panel(panel_path, use_ndvi, use_era5))
 
@@ -228,7 +228,7 @@ def _normalize_per_depto(df_in: pd.DataFrame, stats: pd.DataFrame,
 
 
 def build_crop_dataset(panel_z: pd.DataFrame, cultivo: str,
-                       use_ndvi: bool = False, use_era5: bool = False,
+                       use_ndvi: bool = True, use_era5: bool = True,
                        use_agro: bool = False,
                        train_start: Optional[int] = None,
                        train_end: int = TRAIN_END,

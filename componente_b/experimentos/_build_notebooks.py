@@ -43,15 +43,13 @@ print(f'{CULTIVO}: {len(ds.feature_cols)} features | '
 # Componente A (VAE recon_prob).
 def _ds_latente_md():
     return new_markdown_cell("""\
-## Ambos datasets + el mejor modelo del Componente A
+## El mejor modelo del Componente A como features
 
-Con la **configuración final ya elegida**, evaluamos en test:
-
-1. dataset `base` (solo clima) vs `era5_ndvi` (clima + NDVI + ERA5), y
-2. sobre el que mejor anduvo, tres estrategias que reusan el **mejor detector del
-   Componente A** (el VAE `recon_prob`, que aprendió a representar el clima
-   "normal"): concatenar su **espacio latente**, hacer la regresión **solo en el
-   latente**, y agregar la categórica **`es_anomalo`** (su score umbralado).
+Con la **configuración final ya elegida**, evaluamos en test el dataset (único,
+unificado: clima + NDVI + ERA5) contra tres estrategias que reusan el **mejor
+detector del Componente A** (el VAE `recon_prob`, que aprendió a representar el
+clima "normal"): concatenar su **espacio latente**, hacer la regresión **solo en
+el latente**, y agregar la categórica **`es_anomalo`** (su score umbralado).
 
 El latente/score se computan en `latente.py` (y se cachean). *La primera corrida
 entrena el VAE, así que tarda unos minutos.*""")
@@ -59,11 +57,10 @@ entrena el VAE, así que tarda unos minutos.*""")
 
 def ds_latente_code(model_name, params_var, fixed="None"):
     return new_code_cell(
-        f"tabla_ds, mejor = ev.comparar_datasets_y_latente(\n"
+        f"tabla_lat = ev.comparar_latente(\n"
         f"    {model_name}, {params_var}, CULTIVO, fixed={fixed},\n"
         f"    vae_kwargs=dict(score_seeds=(42, 43, 44)))\n"
-        f"print('Mejor dataset base:', mejor)\n"
-        f"tabla_ds")
+        f"tabla_lat")
 
 
 DS_LATENTE_MD = _ds_latente_md()
@@ -129,26 +126,18 @@ ds.meta_test.head(3)"""),
 Para regresión reportamos cuatro métricas (definidas en `evaluacion.metricas`):
 **MAE** y **RMSE** en kg/ha (RMSE castiga más los errores grandes), **R²** (varianza
 explicada; 0 = tan bueno como predecir la media, negativo = peor) y **MAPE** (error
-porcentual).
-
-Evaluamos los baselines sobre **los dos datasets**: `base` (solo clima) y
-`era5_ndvi` (clima + NDVI-AVHRR + ERA5-Land: humedad de suelo y heladas). Los
-baselines no miran las features climáticas —solo la media y la media por depto—,
-así que sirven de sanity check de que ambos datasets comparten la misma estructura
-de rinde; las features extra recién pesan cuando entra un modelo (nbs 02–04)."""),
+porcentual)."""),
         code("""\
-filas = []
-for dsname in datos.DATASETS:
-    d = datos.prepare(CULTIVO, dataset=dsname)
-    filas.append(ev.evaluar(f'media global [{dsname}]',  ev.pred_media(d),      d))
-    filas.append(ev.evaluar(f'media x depto [{dsname}]', ev.pred_media_depto(d), d))
+filas = [
+    ev.evaluar('media global',  ev.pred_media(ds),      ds),
+    ev.evaluar('media x depto',  ev.pred_media_depto(ds), ds),
+]
 tabla_base = ev.tabla_comparativa(filas, ordenar_por='rmse')
 tabla_base"""),
         md("""\
 La **media por departamento** ya explica bastante más varianza que la media global:
 casi todo el poder predictivo "fácil" del rinde es *dónde* está el campo, no el
-clima del año. Ese es el número que cualquier modelo con clima tiene que superar.
-(Los dos datasets dan casi lo mismo en los baselines, como era de esperar.)"""),
+clima del año. Ese es el número que cualquier modelo con clima tiene que superar."""),
         md("""\
 ## Regresión lineal (OLS, sin regularizar)
 
@@ -220,14 +209,10 @@ el test. Estas son las **métricas del modelo final**."""),
         code("""\
 modelo = LinearRegressor(**best).fit(ds.X_train, ds.y_train)
 pred = modelo.predict(ds.X_test)
-
-m = ev.metricas(ds.y_test, pred)
 print('Config final:', modelo.get_config())
-print(f\"\\nMAE  = {m['mae']:.1f} kg/ha\")
-print(f\"RMSE = {m['rmse']:.1f} kg/ha\")
-print(f\"R²   = {m['r2']:.3f}\")
-print(f\"MAPE = {m['mape']:.1f} %\")
-print(f\"\\nvs baseline media x depto: RMSE {ev.metricas(ds.y_test, ev.pred_media_depto(ds))['rmse']:.1f}\")"""),
+# Métricas del modelo final vs el baseline, en la tabla estándar (RMSE/R²/MAE)
+ev.tabla([ev.evaluar('Lineal (final)', pred, ds),
+          ev.evaluar('baseline media x depto', ev.pred_media_depto(ds), ds)])"""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(11, 5))
 ev.plot_pred_vs_real(ds.y_test, pred, f'Lineal {best[\"penalty\"]} (final)',
@@ -299,12 +284,8 @@ test. **Métricas del modelo final:**"""),
         code("""\
 modelo = XGBoostRegressor(**best, random_state=42).fit(ds.X_train, ds.y_train)
 pred = modelo.predict(ds.X_test)
-
-m = ev.metricas(ds.y_test, pred)
-print(f\"MAE  = {m['mae']:.1f} kg/ha\")
-print(f\"RMSE = {m['rmse']:.1f} kg/ha\")
-print(f\"R²   = {m['r2']:.3f}\")
-print(f\"MAPE = {m['mape']:.1f} %\")"""),
+ev.tabla([ev.evaluar('XGBoost (final)', pred, ds),
+          ev.evaluar('baseline media x depto', ev.pred_media_depto(ds), ds)])"""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(11, 5))
 ev.plot_pred_vs_real(ds.y_test, pred, 'XGBoost (final)', color=ev.C_XGB, ax=axes[0])
@@ -375,12 +356,8 @@ test. **Métricas del modelo final:**"""),
 modelo = NeuralNetRegressor(**best, l1_lambda=0.0, max_epochs=250, patience=30,
                             random_state=42).fit(ds.X_train, ds.y_train)
 pred = modelo.predict(ds.X_test)
-
-m = ev.metricas(ds.y_test, pred)
-print(f\"MAE  = {m['mae']:.1f} kg/ha\")
-print(f\"RMSE = {m['rmse']:.1f} kg/ha\")
-print(f\"R²   = {m['r2']:.3f}\")
-print(f\"MAPE = {m['mape']:.1f} %\")"""),
+ev.tabla([ev.evaluar('Red neuronal (final)', pred, ds),
+          ev.evaluar('baseline media x depto', ev.pred_media_depto(ds), ds)])"""),
         code("""\
 fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
 ev.plot_pred_vs_real(ds.y_test, pred, 'Red neuronal (final)', color=ev.C_NN, ax=axes[0])
@@ -422,9 +399,9 @@ reportados en los notebooks 02, 03 y 04.
         md("## Mejores configuraciones (de los notebooks 02–04)"),
         code("""\
 best_linear = {'penalty': 'lasso', 'alpha': 10.0}
-best_xgb = {'max_depth': 3, 'learning_rate': 0.05, 'n_estimators': 200,
-            'subsample': 0.7, 'colsample_bytree': 1.0, 'min_child_weight': 1,
-            'reg_lambda': 5.0, 'reg_alpha': 1.0, 'gamma': 1.0}
+best_xgb = {'max_depth': 3, 'learning_rate': 0.03, 'n_estimators': 400,
+            'subsample': 0.7, 'colsample_bytree': 0.8, 'min_child_weight': 5,
+            'reg_lambda': 1.0, 'reg_alpha': 0.0, 'gamma': 1.0}
 best_nn = {'hidden_dims': (64, 32), 'dropout': 0.5, 'weight_decay': 1e-3, 'lr': 3e-3}"""),
         md("## Entrenamiento y evaluación en test"),
         code("""\
@@ -436,8 +413,8 @@ preds['XGBoost'] = XGBoostRegressor(**best_xgb, random_state=42).fit(ds.X_train,
 preds['Red neuronal'] = NeuralNetRegressor(**best_nn, max_epochs=250, patience=30,
                                            random_state=42).fit(ds.X_train, ds.y_train).predict(ds.X_test)
 
-tabla = ev.tabla_comparativa([ev.evaluar(k, v, ds) for k, v in preds.items()],
-                             ordenar_por='rmse')
+filas = [ev.evaluar(k, v, ds) for k, v in preds.items()]
+tabla = ev.tabla(filas)     # presentación estándar (RMSE/R²/MAE), la reusan los plots
 tabla"""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
@@ -484,11 +461,11 @@ clima a este nivel de agregación.
    VAE marca casi todo el test (el score sube por *distribution shift*, no por
    anomalía real).
 
-**Sobre las features extra y el latente** (nbs 02–04): ERA5/NDVI mueven poco la
-aguja, y el **latente del VAE empeora** la regresión (y solo-latente es lo peor):
-ese latente resume el clima *normalizado por depto*, así que tira la señal espacial
-y de tendencia que es justo la que más predice. `es_anomalo` tampoco ayuda, dominado
-por el shift. Coherente con el techo del Componente A."""),
+**Sobre el latente del Componente A** (nbs 02–04): concatenar el **latente del VAE**
+suele empeorar la regresión (y solo-latente es lo peor): ese latente resume el clima
+*normalizado por depto*, así que tira la señal espacial y de tendencia que es justo la
+que más predice. `es_anomalo` tampoco ayuda, dominado por el *distribution shift*.
+Coherente con el techo del Componente A."""),
         md("""\
 ## ¿Qué podemos modificar para mejorar?
 
@@ -737,8 +714,8 @@ def fit_xgb(ds):
     return XGBoostRegressor(**BEST, random_state=42).fit(ds.X_train, ds.y_train)
 
 # Panel con zonas + dataset pooled de referencia (base + agro).
-panel = datos.assign_zonas(datos.load_panel('base'), n_zonas=N_ZONAS, method='geo')
-ds_pool = datos.build_reg_dataset(panel, CULTIVO, dataset='base', use_agro=True)
+panel = datos.assign_zonas(datos.load_panel(), n_zonas=N_ZONAS, method='geo')
+ds_pool = datos.build_reg_dataset(panel, CULTIVO, use_agro=True)
 print(f'{CULTIVO}: pooled train={len(ds_pool.y_train)} test={len(ds_pool.y_test)} '
       f'| {N_ZONAS} zonas geográficas')"""),
         md("## Composición de las zonas\n\nCada zona agrupa departamentos cercanos; las ordenamos de norte a sur (por latitud)."),
@@ -772,7 +749,7 @@ Para cada zona: su propio split temporal, codificación de depto, escalado y XGB
 (todo calculado dentro de la zona). Reportamos la métrica por zona y la global
 uniendo los tests de todas las zonas (que juntos son el test completo)."""),
         code("""\
-zds = datos.build_zona_datasets(CULTIVO, dataset='base', n_zonas=N_ZONAS,
+zds = datos.build_zona_datasets(CULTIVO, n_zonas=N_ZONAS,
                                 method='geo', use_agro=True)
 filas, yt_all, yp_all = [], [], []
 for z, dz in zds.items():

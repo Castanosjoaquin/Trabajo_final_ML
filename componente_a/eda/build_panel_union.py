@@ -7,10 +7,12 @@ Características:
   - MIN_CAMPANAS por cultivo (default 20), sin REGION_NUCLEO hardcodeado.
   - Centroides via Nominatim (OSM) con caché local; los 26 del núcleo se preservan tal cual.
   - Columna 'region' para ablations (núcleo vs resto).
-  - Fuentes: MAGyP (rinde) + ONI + NASA POWER + CHIRPS. El NDVI de MODIS se retiró
-    (2026-07); el NDVI-AVHRR 1981+ se agrega aparte con merge_avhrr_ndvi.py.
+  - Fuentes: MAGyP (rinde) + ONI + NASA POWER + CHIRPS + NDVI-AVHRR + ERA5-Land.
+    NDVI y ERA5 se extraen de GEE acá mismo (paso 6b, mismo auth que CHIRPS) y se
+    mergean al panel; las filas sin cobertura satelital se descartan. El NDVI de
+    MODIS se retiró (2026-07). Antes NDVI/ERA5 vivían en data_sources/ (borrado).
   - Sin imputación de rinde: se reportan faltantes al final.
-  - Output: data/processed/panel_union.parquet
+  - Output: data/processed/panel_union.parquet (panel ÚNICO del proyecto).
 
 Uso:
     python eda/build_panel_union.py                      # MIN_CAMPANAS=20
@@ -430,8 +432,8 @@ def load_oni() -> pd.DataFrame:
 
 # NOTA (2026-07): el NDVI de MODIS se RETIRÓ del panel. Existía solo desde 2002 y
 # 3 de sus 4 columnas eran estáticas por departamento (cero señal temporal). El
-# único NDVI que se usa hoy es el AVHRR mensual 1981+ (`ndvi_avhrr_<mes>`), que se
-# agrega aparte con data_sources/merge_avhrr_ndvi.py sobre este panel.
+# único NDVI que se usa es el AVHRR/VIIRS mensual 1981+ (`ndvi_avhrr_<mes>`), que
+# se extrae e integra en el paso 6b de este mismo builder.
 
 
 # ── Paso 5: CHIRPS ────────────────────────────────────────────────────────
@@ -578,11 +580,155 @@ def load_chirps_for(centroides: pd.DataFrame) -> pd.DataFrame:
     return wide
 
 
+# ── Paso 6: NDVI-AVHRR + ERA5-Land (satelital, GEE) ───────────────────────
+# Antes vivían en data_sources/ (extract_*.py exportaban a Drive + merge_*.py).
+# Acá se folden al builder usando el MISMO auth de GEE que CHIRPS y el mismo
+# patrón de getInfo chunkeado (por año), para no exceder el límite de 5000
+# elementos que obligaba al export a Drive. Reduce sobre los polígonos GAUL
+# nivel-2 del país (media por departamento), como los scripts originales.
+GAUL = "FAO/GAUL/2015/level2"
+_SAT_MONTHS = {9: "sep", 10: "oct", 11: "nov", 12: "dic", 1: "ene", 2: "feb", 3: "mar"}
+NDVI_SCALE, NDVI_SCALE_M = 0.0001, 5000
+ERA5_SW = ["volumetric_soil_water_layer_1", "volumetric_soil_water_layer_2",
+           "volumetric_soil_water_layer_3", "volumetric_soil_water_layer_4"]
+ERA5_W = [0.07, 0.21, 0.72 * 0.28, 0.72 * 0.72]   # espesores 0-7,7-28,28-100 cm (aprox)
+FREEZE_K, ERA5_SCALE_M = 273.15, 11132
+
+
+def _norm_ascii(s: pd.Series) -> pd.Series:
+    """Nombres para el join: sin acentos, mayúsculas, espacios colapsados."""
+    def one(x):
+        x = unicodedata.normalize("NFKD", str(x)).encode("ascii", "ignore").decode()
+        return " ".join(x.upper().split())
+    return s.map(one)
+
+
+def load_ndvi_avhrr() -> pd.DataFrame:
+    """NDVI-AVHRR/VIIRS mensual (Sep–Mar, 1981+) medio por departamento → tabla
+    ancha `ndvi_avhrr_<mes>`. Cachea en data/processed/ndvi_avhrr_wide.parquet."""
+    out = PROC / "ndvi_avhrr_wide.parquet"
+    if out.exists():
+        log.info("NDVI-AVHRR: usando caché %s", out)
+        return pd.read_parquet(out)
+    try:
+        ee = _ee_init()
+    except Exception as e:
+        log.error("Earth Engine no disponible: %s. Saltando NDVI.", e)
+        return pd.DataFrame()
+
+    deptos = ee.FeatureCollection(GAUL).filter(ee.Filter.eq("ADM0_NAME", "Argentina"))
+    col = (ee.ImageCollection("NOAA/CDR/AVHRR/NDVI/V5").select("NDVI")
+           .merge(ee.ImageCollection("NOAA/CDR/VIIRS/NDVI/V1").select("NDVI")))
+    empty = ee.Image.constant(0).rename("ndvi").updateMask(ee.Image.constant(0))
+    rows = []
+    for year in range(1981, 2026):                 # chunk por año (evita >5000 elems)
+        def per_month(m):
+            m = ee.Number(m)
+            start = ee.Date.fromYMD(year, m, 1); end = start.advance(1, "month")
+            c = col.filterDate(start, end)
+            img = ee.Image(ee.Algorithms.If(c.size().gt(0),
+                    c.max().multiply(NDVI_SCALE).rename("ndvi"), empty))
+            fc = img.reduceRegions(deptos, ee.Reducer.mean(), NDVI_SCALE_M)
+            return fc.map(lambda f: f.set("month", m))
+        flat = ee.FeatureCollection(ee.List(list(_SAT_MONTHS)).map(per_month)).flatten()
+        try:
+            info = _gee_getinfo_retry(flat, descripcion=f"NDVI {year}")
+        except Exception as e:
+            log.warning("NDVI: saltando %d (%s)", year, e); continue
+        for ft in info["features"]:
+            p = ft["properties"]
+            if p.get("mean") is None:
+                continue
+            rows.append({"provincia": p.get("ADM1_NAME"), "departamento": p.get("ADM2_NAME"),
+                         "year": year, "month": int(p["month"]), "ndvi": p["mean"]})
+    if not rows:
+        return pd.DataFrame()
+    df = pd.DataFrame(rows)
+    df["campania_inicio"] = np.where(df["month"] >= 9, df["year"], df["year"] - 1)
+    df["mes"] = df["month"].map(_SAT_MONTHS)
+    wide = (df.pivot_table(index=["provincia", "departamento", "campania_inicio"],
+                           columns="mes", values="ndvi", aggfunc="mean").reset_index())
+    wide.columns.name = None
+    wide = wide.rename(columns={m: f"ndvi_avhrr_{m}" for m in _SAT_MONTHS.values()})
+    wide.to_parquet(out, index=False)
+    return wide
+
+
+def load_era5() -> pd.DataFrame:
+    """Features ERA5-Land por campaña (humedad de suelo siembra/invierno, días de
+    helada) medias por departamento. Cachea en data/processed/era5_wide.parquet."""
+    out = PROC / "era5_wide.parquet"
+    if out.exists():
+        log.info("ERA5: usando caché %s", out)
+        return pd.read_parquet(out)
+    try:
+        ee = _ee_init()
+    except Exception as e:
+        log.error("Earth Engine no disponible: %s. Saltando ERA5.", e)
+        return pd.DataFrame()
+
+    deptos = ee.FeatureCollection(GAUL).filter(ee.Filter.eq("ADM0_NAME", "Argentina"))
+    era5 = ee.ImageCollection("ECMWF/ERA5_LAND/DAILY_AGGR")
+
+    def rootzone(c):
+        img = c.select(ERA5_SW).mean()
+        out_i = img.select(ERA5_SW[0]).multiply(ERA5_W[0])
+        for b, w in zip(ERA5_SW[1:], ERA5_W[1:]):
+            out_i = out_i.add(img.select(b).multiply(w))
+        return out_i.rename("sm")
+
+    def frost(c):
+        return c.select("temperature_2m_min").map(lambda im: im.lt(FREEZE_K)).sum().rename("frost")
+
+    rows = []
+    for year in range(1981, 2026):                 # chunk por año
+        y = ee.Number(year); d = lambda yy, m: ee.Date.fromYMD(yy, m, 1)
+        img = (rootzone(era5.filterDate(d(y, 9), d(y, 12))).rename("sm_planting")
+               .addBands(rootzone(era5.filterDate(d(y, 6), d(y, 9))).rename("sm_winter"))
+               .addBands(frost(era5.filterDate(d(y, 9), d(y.add(1), 4))).rename("frost_days"))
+               .addBands(frost(era5.filterDate(d(y, 9), d(y, 12))).rename("frost_days_early")))
+        fc = img.reduceRegions(deptos, ee.Reducer.mean(), ERA5_SCALE_M)
+        try:
+            info = _gee_getinfo_retry(fc, descripcion=f"ERA5 {year}")
+        except Exception as e:
+            log.warning("ERA5: saltando %d (%s)", year, e); continue
+        for ft in info["features"]:
+            p = ft["properties"]
+            rows.append({"provincia": p.get("ADM1_NAME"), "departamento": p.get("ADM2_NAME"),
+                         "campania_inicio": year,
+                         **{k: p.get(k) for k in ERA5_COLS}})
+    if not rows:
+        return pd.DataFrame()
+    wide = pd.DataFrame(rows).dropna(subset=ERA5_COLS, how="all")
+    wide.to_parquet(out, index=False)
+    return wide
+
+
+ERA5_COLS = ["sm_planting", "sm_winter", "frost_days", "frost_days_early"]
+
+
+def _merge_satelital(panel: pd.DataFrame, sat: pd.DataFrame, cols) -> pd.DataFrame:
+    """Merge de features satelitales al panel por (provincia, departamento,
+    campania_inicio) con nombres normalizados (sin acentos/mayúsculas)."""
+    if not len(sat):
+        return panel
+    panel = panel.copy()
+    panel["_p"], panel["_d"] = _norm_ascii(panel["provincia"]), _norm_ascii(panel["departamento"])
+    sat = sat.copy()
+    sat["_p"], sat["_d"] = _norm_ascii(sat["provincia"]), _norm_ascii(sat["departamento"])
+    key = ["_p", "_d", "campania_inicio"]
+    merged = panel.merge(sat[key + list(cols)], on=key, how="left").drop(columns=["_p", "_d"])
+    log.info("satelital mergeado (+%d cols): cobertura %.1f%%",
+             len(cols), 100 * merged[cols[0]].notna().mean())
+    return merged
+
+
 # ── Ensamble ──────────────────────────────────────────────────────────────
 
 def build_panel_union(
     min_campanas: int = 20,
     skip_chirps: bool = False,
+    skip_satelital: bool = False,
 ) -> pd.DataFrame:
     log.info("=" * 60)
     log.info("BUILD PANEL UNION (min_campanas=%d) — iniciando", min_campanas)
@@ -641,6 +787,20 @@ def build_panel_union(
         panel = panel.merge(chirps, on=["departamento","campania_inicio"], how="left")
         log.info("CHIRPS mergeado: %d columnas", len(panel.columns))
 
+    # 6b. Satelital: NDVI-AVHRR + ERA5-Land (GEE). Se descartan las filas sin
+    # cobertura satelital (panel unificado sin NaN en NDVI/ERA5).
+    if not skip_satelital:
+        ndvi = load_ndvi_avhrr()
+        ndvi_cols = [c for c in ndvi.columns if c.startswith("ndvi_avhrr_")]
+        panel = _merge_satelital(panel, ndvi, ndvi_cols)
+        era5 = load_era5()
+        panel = _merge_satelital(panel, era5, ERA5_COLS)
+        sat_cols = ndvi_cols + [c for c in ERA5_COLS if c in panel.columns]
+        if sat_cols:
+            n0 = len(panel)
+            panel = panel.dropna(subset=sat_cols).reset_index(drop=True)
+            log.info("descarte filas sin cobertura satelital: %d -> %d", n0, len(panel))
+
     # 7. Reporte de faltantes (sin imputar)
     out_path = PROC / "panel_union.parquet"
     panel.to_parquet(out_path, index=False)
@@ -677,10 +837,13 @@ if __name__ == "__main__":
                     help="Mínimo de campañas con rinde válido por (depto, prov, cultivo) [default: 20]")
     ap.add_argument("--skip-chirps", action="store_true",
                     help="Saltar descarga de CHIRPS (útil si EE no está configurado)")
+    ap.add_argument("--skip-satelital", action="store_true",
+                    help="Saltar NDVI-AVHRR + ERA5-Land (GEE). El panel queda sin esas features")
     args = ap.parse_args()
 
     panel = build_panel_union(
         min_campanas=args.min_campanas,
         skip_chirps=args.skip_chirps,
+        skip_satelital=args.skip_satelital,
     )
     print(f"\nPanel guardado: data/processed/panel_union.parquet  ({panel.shape})")
