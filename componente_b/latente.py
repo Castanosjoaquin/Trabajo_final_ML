@@ -17,6 +17,13 @@ El VAE se entrena con la config ganadora del Componente A (recon_prob, latente 1
 β=1) sobre las filas NORMALES de train, con las features climáticas normalizadas
 por departamento (igual que en el Componente A). El resultado se cachea en disco
 (`.latente_cache/`) porque es lo caro de recomputar entre notebooks.
+
+Caveat metodológico (auditoría): esos hiperparámetros "ganadores" del Componente A
+(latent_dim=16, β=1, recon_prob) se seleccionaron ilustrando en el test de A
+(data snooping declarado en `componente_a/src/config.py`). No es una fuga del
+test de B, pero la elección de arquitectura hereda ese sesgo; si se quisiera
+eliminar, habría que re-seleccionarlos con validación temporal dentro del train
+de A.
 """
 from __future__ import annotations
 
@@ -78,7 +85,9 @@ def vae_features(cultivo: str, dataset: str = "base", latent_dim: int = 16,
     `score_seeds` (el ensemble de semillas es lo que estabiliza el score en el
     Componente A). Resultado cacheado en `.latente_cache/`."""
     os.makedirs(_CACHE_DIR, exist_ok=True)
-    tag = f"{cultivo}_{dataset}_lat{latent_dim}_ep{max_epochs}_ns{len(score_seeds)}"
+    # "v2": el fix de la etiqueta por cultivo (merge con "cultivo" en la clave)
+    # invalida los caches anteriores; el sufijo evita reusar .npz viejos.
+    tag = f"{cultivo}_{dataset}_lat{latent_dim}_ep{max_epochs}_ns{len(score_seeds)}_v2"
     cache = os.path.join(_CACHE_DIR, f"{tag}.npz")
     if os.path.exists(cache) and not force:
         d = np.load(cache)
@@ -89,8 +98,12 @@ def vae_features(cultivo: str, dataset: str = "base", latent_dim: int = 16,
     df, tr_mask, te_mask, clim_cols, geo = datos.crop_frame(panel, cultivo, dataset)
 
     # Filas normales de train (para entrenar el VAE): sin anomalías ni años excluidos.
+    # OJO: "cultivo" DEBE estar en la clave del merge — compute_z_rinde da una
+    # etiqueta por cultivo, y sin él el drop_duplicates se quedaba con la fila de
+    # maíz (orden alfabético) y soja heredaba anomalías ajenas (bug de leakage
+    # cruzado detectado en la auditoría).
     panel_z = _A_data.compute_z_rinde(panel)
-    key = geo + ["campania_inicio"]
+    key = geo + ["campania_inicio", "cultivo"]
     z = df[key].merge(panel_z[key + ["anomalia"]].drop_duplicates(key), on=key, how="left")
     anom = z["anomalia"].fillna(0).values.astype(int)
     excl = df["campania_inicio"].isin(list(_A_config.EXCLUDED_TRAIN_YEARS)).values

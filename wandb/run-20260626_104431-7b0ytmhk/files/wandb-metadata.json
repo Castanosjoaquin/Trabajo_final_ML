@@ -1,0 +1,39 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "CPython 3.13.14",
+  "startedAt": "2026-06-26T13:44:31.375243Z",
+  "args": [
+    "configs/ae.yaml"
+  ],
+  "program": "C:\\Users\\balta\\Documents\\ML\\Trabajo_final_ML\\train.py",
+  "codePath": "train.py",
+  "codePathLocal": "train.py",
+  "git": {
+    "remote": "https://github.com/Castanosjoaquin/Trabajo_final_ML.git",
+    "commit": "dd1cc53b6eb0e131524075293f01123b41965778"
+  },
+  "root": "C:\\Users\\balta\\Documents\\ML\\Trabajo_final_ML",
+  "host": "MSI",
+  "executable": "C:\\Users\\balta\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe",
+  "cpu_count": 6,
+  "cpu_count_logical": 12,
+  "gpu": "GeForce GTX 1050 Ti with Max-Q Design",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "142015983616",
+      "used": "108655599616"
+    }
+  },
+  "memory": {
+    "total": "8428204032"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "GeForce GTX 1050 Ti with Max-Q Design",
+      "uuid": "GPU-6f3ebc79-047a-2bbb-e89a-7f29df00119e"
+    }
+  ],
+  "cudaVersion": "10.1",
+  "writerId": "yijvu7rodauyko3tdowjq48wwsfpzvky"
+}

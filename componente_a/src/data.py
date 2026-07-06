@@ -85,7 +85,8 @@ def load_panel(panel_path: str = PANEL_PATH, use_ndvi: bool = False,
     n0 = len(panel)
     panel = panel.drop_duplicates(subset=dedup_key).reset_index(drop=True)
     if len(panel) < n0:
-        print(f"[data] dedup panel: {n0} → {len(panel)} filas "
+        # ASCII a propósito: la consola de Windows (cp1252) no banca "→".
+        print(f"[data] dedup panel: {n0} -> {len(panel)} filas "
               f"({n0 - len(panel)} duplicados espurios por lat/lon eliminados)")
     return panel
 

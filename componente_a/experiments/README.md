@@ -15,6 +15,7 @@ Todos los números salen de los runs actuales (mismo panel, misma evaluación).
 | 4 | `04_el_techo_estructural` | ¿Por qué nadie pasa de ~0.6? Cross-modelo (todos fallan en las mismas anomalías, sin firma climática), Dataset Cartography, auditoría de etiqueta, t-SNE |
 | 5 | `05_features_nuevas` | Features agro, NDVI-AVHRR y ERA5: ayudan al IForest, perjudican al VAE, ninguna supera al base → el techo se confirma |
 | 6 | `06_modernos_leaderboard_y_conclusiones` | Benchmark justo vs deepod (DeepSVDD/ICL/NeuTraL), leaderboard final, el modelo final por dentro, limitaciones y conclusiones |
+| 8 | `08_baselines_zscore_mahalanobis` | Los dos baselines estadísticos de la propuesta (**z-score multivariado** y **distancia de Mahalanobis**) evaluados en soja y maíz, contra IForest y el seed-ensemble VAE |
 
 ## Reproducibilidad: entrenar en el notebook
 

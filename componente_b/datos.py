@@ -77,7 +77,33 @@ class RegDataset:
     depto_mean: pd.Series                  # rinde medio por (prov, depto) en train
 
 
-_META_COLS = ["provincia", "departamento", "campania", "campania_inicio", "rinde_kgha", "zona"]
+_META_COLS = ["provincia", "departamento", "campania", "campania_inicio",
+              "rinde_kgha", "sup_sembrada_ha", "zona"]
+
+# Momentos de predicción del calendario agrícola (ver build_reg_dataset):
+#   'full'        : toda la campaña Sep–Mar (comportamiento histórico).
+#   'pre_siembra' : solo lo conocible/estimable antes de sembrar — ONI (la
+#                   propuesta lo incluye: en la práctica es el pronóstico ENSO)
+#                   y humedad de suelo de invierno (sm_winter, Jun–Ago). Más las
+#                   features estructurales (depto_enc, year, lags del rinde).
+#   'pre_cosecha' : clima y NDVI observados hasta febrero (sin marzo), para
+#                   pronosticar antes de la cosecha.
+MOMENTOS = ("full", "pre_siembra", "pre_cosecha")
+
+
+def _filter_momento(clim_cols: List[str], momento: str) -> List[str]:
+    """Restringe las columnas climáticas/satelitales al momento de predicción."""
+    if momento == "full":
+        return list(clim_cols)
+    if momento == "pre_cosecha":
+        # Afuera todo lo con sufijo _mar y el ERA5 estacional que llega a marzo
+        # (frost_days cuenta heladas Sep–Mar; frost_days_early es Sep–Nov y queda).
+        return [c for c in clim_cols
+                if not c.endswith("_mar") and c != "frost_days"]
+    if momento == "pre_siembra":
+        return [c for c in clim_cols
+                if c.startswith("oni_") or c == "sm_winter"]
+    raise ValueError(f"momento desconocido: {momento!r}. Opciones: {MOMENTOS}")
 
 
 def load_panel(dataset: str = "base") -> pd.DataFrame:
@@ -121,7 +147,8 @@ def crop_frame(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
 
 def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
                       use_depto_encoding: bool = True, use_year: bool = True,
-                      use_agro: bool = False,
+                      use_agro: bool = False, enc_smooth: float = 0.0,
+                      use_lags: int = 0, momento: str = "full",
                       train_end: int = TRAIN_END,
                       test_start: int = TEST_START) -> RegDataset:
     """Arma el RegDataset de un cultivo: split temporal, features y escalado.
@@ -129,23 +156,73 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str, dataset: str = "base",
     `dataset` selecciona el set de features climáticas ('base' o 'era5_ndvi') y
     debe coincidir con el del `panel` que se pasa (ver load_panel). `use_agro`
     agrega las features agronómicas de ventana crítica del Componente A (balance
-    hídrico, estrés térmico; ver `add_agro_features`)."""
+    hídrico, estrés térmico; ver `add_agro_features`).
+
+    `enc_smooth` (m del m-estimate) suaviza el target encoding del departamento
+    hacia la media global de train: enc = (n·media_depto + m·media_global)/(n+m).
+    Con m=0 se recupera la media cruda (comportamiento histórico de los
+    notebooks); m≈10 protege a los deptos con pocas campañas en train, cuyas
+    medias crudas son ruidosas — recomendado al modelar por zona, donde los n
+    por depto se achican.
+
+    `use_lags` (k>0) agrega los k lags del rinde (`rinde_lag1..k`, con shift —
+    NUNCA el año actual) y la media móvil de 5 campañas previas (`rinde_ma5`),
+    las features autorregresivas que pide la propuesta. Los NaN del arranque de
+    cada serie (primeras k campañas del depto) se rellenan con la media de
+    train. Nota: si a un depto le falta una campaña intermedia, el lag es la
+    última campaña DISPONIBLE (no el año calendario exacto).
+
+    `momento` restringe las features al calendario agrícola (ver MOMENTOS):
+    'pre_siembra' deja solo ONI + sm_winter + estructurales; 'pre_cosecha'
+    excluye marzo. Con momento != 'full' no se admite `use_agro` (las ventanas
+    críticas agronómicas llegan a marzo y filtrarían clima futuro)."""
+    if momento != "full" and use_agro:
+        raise ValueError("use_agro=True requiere momento='full': las ventanas "
+                         "críticas agronómicas usan clima hasta marzo.")
     df, tr_mask, te_mask, clim_cols, geo = crop_frame(
         panel, cultivo, dataset, train_end, test_start)
 
-    feature_cols = list(clim_cols)
+    feature_cols = _filter_momento(clim_cols, momento)
 
     # --- Features agronómicas de dominio (ventana crítica del cultivo) ---
     if use_agro:
         df, agro_cols = _A_data.add_agro_features(df, cultivo)
         feature_cols += agro_cols
 
+    # --- Lags del rinde (autorregresivas, sin filtrar el año actual) ---
+    lag_cols: List[str] = []
+    if use_lags > 0:
+        g = df.groupby(geo)["rinde_kgha"]
+        for k in range(1, use_lags + 1):
+            col = f"rinde_lag{k}"
+            df[col] = g.shift(k)
+            lag_cols.append(col)
+        df["rinde_ma5"] = df.groupby(geo)["rinde_kgha"].transform(
+            lambda s: s.shift(1).rolling(5, min_periods=1).mean())
+        lag_cols.append("rinde_ma5")
+        feature_cols += lag_cols
+
     tr = df[tr_mask].copy()
     te = df[te_mask].copy()
 
+    if lag_cols:
+        # Relleno de los NaN del arranque de serie con la media de TRAIN (stat
+        # de train → sin fuga hacia test; solo toca las primeras campañas).
+        fill = float(tr["rinde_kgha"].mean())
+        tr[lag_cols] = tr[lag_cols].fillna(fill)
+        te[lag_cols] = te[lag_cols].fillna(fill)
+
     # --- Codificación del departamento por su rinde medio en train (sin leakage) ---
-    depto_mean = tr.groupby(geo)["rinde_kgha"].mean()
     y_train_mean = float(tr["rinde_kgha"].mean())
+    grp = tr.groupby(geo)["rinde_kgha"]
+    if enc_smooth > 0:
+        # m-estimate: encoge la media del depto hacia la global según cuántas
+        # campañas de train lo respaldan (n chico → más cerca de la global).
+        agg = grp.agg(["mean", "size"])
+        depto_mean = ((agg["size"] * agg["mean"] + enc_smooth * y_train_mean)
+                      / (agg["size"] + enc_smooth))
+    else:
+        depto_mean = grp.mean()
     if use_depto_encoding:
         def _enc(d: pd.DataFrame) -> np.ndarray:
             keys = list(d[geo].itertuples(index=False, name=None))
