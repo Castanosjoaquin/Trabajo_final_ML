@@ -42,7 +42,7 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Rutas ──────────────────────────────────────────────────────────────────
-ROOT  = Path(__file__).resolve().parent.parent
+ROOT  = Path(__file__).resolve().parents[2]
 RAW   = ROOT / "data" / "raw"
 PROC  = ROOT / "data" / "processed"
 for d in [RAW, PROC]:
@@ -168,7 +168,11 @@ def load_magyp_full(min_campanas: int) -> pd.DataFrame:
         df["provincia"] = df["provincia"].apply(normalizar).str.upper()
         df["departamento"] = df["departamento"].apply(normalizar)
         # Fix nombre canónico
-        df["departamento"] = df["departamento"].replace({"Constitucion": "Villa Constitucion"})
+        df["departamento"] = df["departamento"].replace({
+            "Constitucion": "Villa Constitucion",
+            "Major Luis J. Fontana": "Mayor Luis Jorge Fontana",
+            "Mayor Luis J. Fontana": "Mayor Luis Jorge Fontana",
+        })
 
         df["campania_inicio"] = df["campania"].apply(campaign_year)
         for col in ["sup_sembrada_ha", "sup_cosechada_ha", "produccion_tn", "rinde_kgha"]:
@@ -508,34 +512,76 @@ def load_chirps_for(centroides: pd.DataFrame) -> pd.DataFrame:
             continue
 
         log.info("CHIRPS: %s .. %s", start.date(), end.date())
-        col = (ee.ImageCollection(CHIRPS_DATASET).select(CHIRPS_BAND)
-               .filterDate(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")))
 
-        def per_image(img):
-            fecha = img.date().format("YYYY-MM-dd")
-            fc = col.map(lambda i: i)  # dummy — se reemplaza abajo
-            fc = img.reduceRegions(collection=points, reducer=ee.Reducer.first(), scale=scale)
-            return fc.map(lambda f: f.set("fecha", fecha))
+        # Partimos el mes en chunks para no superar el límite de GEE.
+        # Cada elemento ≈ 1 día x 1 departamento.
+        # Usamos 4000 como margen de seguridad frente al límite de 5000.
+        n_points = max(1, len(centroides))
+        target_elements = 4000
+        chunk_days = max(1, int(target_elements // n_points))
 
-        flat = ee.FeatureCollection(col.map(per_image)).flatten()
-        try:
-            info = _gee_getinfo_retry(flat, descripcion=f"CHIRPS {start.date()}..{end.date()}")
-        except Exception as e:
-            log.warning("CHIRPS: saltando %s..%s (%s)", start.date(), end.date(), e)
-            periodo = siguiente
-            continue
+        chunk_start = start
 
-        rows = []
-        for feat in info["features"]:
-            p = feat["properties"]
-            rows.append({
-                "departamento": p.get("departamento"),
-                "fecha": p.get("fecha"),
-                "precip_mm": p.get(CHIRPS_BAND, p.get("first", np.nan)),
-            })
-        if rows:
-            frames.append(pd.DataFrame(rows))
-        time.sleep(1)
+        while chunk_start < end:
+            chunk_end = min(chunk_start + pd.Timedelta(days=chunk_days), end)
+
+            log.info(
+                "CHIRPS chunk: %s .. %s (%d días)",
+                chunk_start.date(),
+                chunk_end.date(),
+                (chunk_end - chunk_start).days,
+            )
+
+            col_chunk = (
+                ee.ImageCollection(CHIRPS_DATASET)
+                .select(CHIRPS_BAND)
+                .filterDate(
+                    chunk_start.strftime("%Y-%m-%d"),
+                    chunk_end.strftime("%Y-%m-%d"),
+                )
+            )
+
+            def per_image(img):
+                fecha = img.date().format("YYYY-MM-dd")
+                fc = img.reduceRegions(
+                    collection=points,
+                    reducer=ee.Reducer.first(),
+                    scale=scale,
+                )
+                return fc.map(lambda f: f.set("fecha", fecha))
+
+            flat = ee.FeatureCollection(col_chunk.map(per_image)).flatten()
+
+            try:
+                info = _gee_getinfo_retry(
+                    flat,
+                    descripcion=f"CHIRPS {chunk_start.date()}..{chunk_end.date()}",
+                )
+            except Exception as e:
+                log.warning(
+                    "CHIRPS: saltando chunk %s..%s (%s)",
+                    chunk_start.date(),
+                    chunk_end.date(),
+                    e,
+                )
+                chunk_start = chunk_end
+                continue
+
+            rows = []
+            for feat in info["features"]:
+                p = feat["properties"]
+                rows.append({
+                    "departamento": p.get("departamento"),
+                    "fecha": p.get("fecha"),
+                    "precip_mm": p.get(CHIRPS_BAND, p.get("first", np.nan)),
+                })
+
+            if rows:
+                frames.append(pd.DataFrame(rows))
+
+            time.sleep(1)
+            chunk_start = chunk_end
+
         periodo = siguiente
 
     if not frames:
@@ -622,6 +668,7 @@ def load_ndvi_avhrr() -> pd.DataFrame:
     empty = ee.Image.constant(0).rename("ndvi").updateMask(ee.Image.constant(0))
     rows = []
     for year in range(1981, 2026):                 # chunk por año (evita >5000 elems)
+        log.info("NDVI-AVHRR: procesando año %d", year)
         def per_month(m):
             m = ee.Number(m)
             start = ee.Date.fromYMD(year, m, 1); end = start.advance(1, "month")
@@ -682,6 +729,7 @@ def load_era5() -> pd.DataFrame:
 
     rows = []
     for year in range(1981, 2025):                 # chunk por año (campañas 1981–2024)
+        log.info("ERA5: procesando campaña %d", year)
         y = ee.Number(year); d = lambda yy, m: ee.Date.fromYMD(yy, m, 1)
         img = (rootzone(era5.filterDate(d(y, 9), d(y, 12))).rename("sm_planting")
                .addBands(rootzone(era5.filterDate(d(y, 6), d(y, 9))).rename("sm_winter"))
