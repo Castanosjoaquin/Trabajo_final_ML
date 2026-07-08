@@ -1,0 +1,2103 @@
+cultivo,provincia,departamento,campania,rinde_real_kgha,rinde_pred_kgha,modelo,anomaly_score,es_anomalo
+soja,BUENOS AIRES,25 De Mayo,2021/22,2817.0,2955.9,Random Forest,141.8439,0
+soja,BUENOS AIRES,25 De Mayo,2022/23,1549.0,2460.0,Random Forest,2904.0664,1
+soja,BUENOS AIRES,25 De Mayo,2023/24,2501.0,3104.1,Random Forest,135.5356,0
+soja,BUENOS AIRES,25 De Mayo,2024/25,2800.0,2856.7,Random Forest,125.5202,0
+soja,BUENOS AIRES,9 De Julio,2021/22,3028.0,3282.3,Random Forest,115.7535,0
+soja,BUENOS AIRES,9 De Julio,2022/23,1370.0,2589.9,Random Forest,3851.9685,1
+soja,BUENOS AIRES,9 De Julio,2023/24,3265.0,3191.3,Random Forest,193.4592,0
+soja,BUENOS AIRES,9 De Julio,2024/25,2963.0,3078.1,Random Forest,133.3633,0
+soja,BUENOS AIRES,Adolfo Alsina,2021/22,2800.0,1883.6,Random Forest,139.6002,0
+soja,BUENOS AIRES,Adolfo Alsina,2022/23,2456.0,1493.0,Random Forest,1891.1282,1
+soja,BUENOS AIRES,Adolfo Alsina,2023/24,2654.0,1900.6,Random Forest,118.866,0
+soja,BUENOS AIRES,Adolfo Alsina,2024/25,2952.0,1672.8,Random Forest,116.8793,0
+soja,BUENOS AIRES,Adolfo Gonzales Chaves,2021/22,1434.0,1897.7,Random Forest,136.1673,0
+soja,BUENOS AIRES,Adolfo Gonzales Chaves,2022/23,2500.0,1710.9,Random Forest,241.9513,0
+soja,BUENOS AIRES,Adolfo Gonzales Chaves,2023/24,2274.0,1976.0,Random Forest,111.286,0
+soja,BUENOS AIRES,Adolfo Gonzales Chaves,2024/25,2678.0,1812.1,Random Forest,187.8281,0
+soja,BUENOS AIRES,Alberti,2021/22,2740.0,3063.4,Random Forest,140.6978,0
+soja,BUENOS AIRES,Alberti,2022/23,1265.0,2657.1,Random Forest,4715.5903,1
+soja,BUENOS AIRES,Alberti,2023/24,3093.0,3151.7,Random Forest,204.3724,0
+soja,BUENOS AIRES,Alberti,2024/25,2899.0,2980.8,Random Forest,181.1471,0
+soja,BUENOS AIRES,Arrecifes,2021/22,2929.0,3341.5,Random Forest,157.8592,0
+soja,BUENOS AIRES,Arrecifes,2022/23,1737.0,2266.4,Random Forest,2890.522,1
+soja,BUENOS AIRES,Arrecifes,2023/24,3549.0,3441.0,Random Forest,153.1187,0
+soja,BUENOS AIRES,Arrecifes,2024/25,3165.0,3045.0,Random Forest,130.0734,0
+soja,BUENOS AIRES,Ayacucho,2021/22,1920.0,2167.2,Random Forest,137.4497,0
+soja,BUENOS AIRES,Ayacucho,2022/23,1409.0,2094.1,Random Forest,652.4709,0
+soja,BUENOS AIRES,Ayacucho,2023/24,2017.0,2314.1,Random Forest,100.5774,0
+soja,BUENOS AIRES,Ayacucho,2024/25,1963.0,1983.5,Random Forest,151.8724,0
+soja,BUENOS AIRES,Azul,2021/22,2081.0,2181.6,Random Forest,148.2677,0
+soja,BUENOS AIRES,Azul,2022/23,2209.0,2195.6,Random Forest,441.8986,0
+soja,BUENOS AIRES,Azul,2023/24,2615.0,2321.3,Random Forest,104.5933,0
+soja,BUENOS AIRES,Azul,2024/25,2543.0,1981.9,Random Forest,171.6175,0
+soja,BUENOS AIRES,Balcarce,2021/22,1878.0,2094.1,Random Forest,167.4189,0
+soja,BUENOS AIRES,Balcarce,2022/23,2465.0,2256.7,Random Forest,419.7577,0
+soja,BUENOS AIRES,Balcarce,2023/24,2387.0,2248.2,Random Forest,114.1228,0
+soja,BUENOS AIRES,Balcarce,2024/25,2710.0,2313.6,Random Forest,159.0878,0
+soja,BUENOS AIRES,Baradero,2021/22,2712.0,3262.9,Random Forest,172.2018,0
+soja,BUENOS AIRES,Baradero,2022/23,1491.0,2289.7,Random Forest,3293.9985,1
+soja,BUENOS AIRES,Baradero,2023/24,3443.0,3285.3,Random Forest,160.8949,0
+soja,BUENOS AIRES,Baradero,2024/25,2781.0,3062.6,Random Forest,160.1171,0
+soja,BUENOS AIRES,Benito Juarez,2021/22,1842.0,1983.4,Random Forest,140.6515,0
+soja,BUENOS AIRES,Benito Juarez,2022/23,2036.0,1827.6,Random Forest,383.6391,0
+soja,BUENOS AIRES,Benito Juarez,2023/24,2490.0,2151.3,Random Forest,113.4052,0
+soja,BUENOS AIRES,Benito Juarez,2024/25,2356.0,1863.5,Random Forest,160.6732,0
+soja,BUENOS AIRES,Bolivar,2021/22,2755.0,2912.1,Random Forest,151.463,0
+soja,BUENOS AIRES,Bolivar,2022/23,2128.0,2524.2,Random Forest,4806.1216,1
+soja,BUENOS AIRES,Bolivar,2023/24,2813.0,2954.7,Random Forest,194.0712,0
+soja,BUENOS AIRES,Bolivar,2024/25,2657.0,2526.7,Random Forest,174.478,0
+soja,BUENOS AIRES,Bragado,2021/22,3076.0,3247.4,Random Forest,129.4228,0
+soja,BUENOS AIRES,Bragado,2022/23,1392.0,2766.3,Random Forest,4704.7803,1
+soja,BUENOS AIRES,Bragado,2023/24,3231.0,3173.2,Random Forest,203.9171,0
+soja,BUENOS AIRES,Bragado,2024/25,2932.0,3046.7,Random Forest,131.9498,0
+soja,BUENOS AIRES,Brandsen,2021/22,2450.0,2845.6,Random Forest,151.3517,0
+soja,BUENOS AIRES,Brandsen,2022/23,1600.0,1739.3,Random Forest,12709.787,1
+soja,BUENOS AIRES,Brandsen,2023/24,2450.0,2813.9,Random Forest,399.3344,0
+soja,BUENOS AIRES,Brandsen,2024/25,2638.0,2696.7,Random Forest,161.9123,0
+soja,BUENOS AIRES,Campana,2021/22,3083.0,3148.1,Random Forest,149.1557,0
+soja,BUENOS AIRES,Campana,2022/23,1639.0,2729.5,Random Forest,4455.4336,1
+soja,BUENOS AIRES,Campana,2023/24,3362.0,3138.8,Random Forest,234.3038,0
+soja,BUENOS AIRES,Campana,2024/25,2949.0,2917.7,Random Forest,170.0008,0
+soja,BUENOS AIRES,Canuelas,2021/22,3008.0,3071.5,Random Forest,117.44,0
+soja,BUENOS AIRES,Canuelas,2022/23,1447.0,2033.4,Random Forest,2883.9111,1
+soja,BUENOS AIRES,Canuelas,2023/24,3008.0,2886.1,Random Forest,159.8076,0
+soja,BUENOS AIRES,Canuelas,2024/25,2508.0,2592.6,Random Forest,118.06,0
+soja,BUENOS AIRES,Capitan Sarmiento,2021/22,2979.0,3330.8,Random Forest,161.4236,0
+soja,BUENOS AIRES,Capitan Sarmiento,2022/23,1630.0,2371.6,Random Forest,2539.8809,1
+soja,BUENOS AIRES,Capitan Sarmiento,2023/24,3644.0,3401.2,Random Forest,198.9808,0
+soja,BUENOS AIRES,Capitan Sarmiento,2024/25,3048.0,3041.2,Random Forest,129.9319,0
+soja,BUENOS AIRES,Carlos Casares,2021/22,3590.0,2913.8,Random Forest,111.2241,0
+soja,BUENOS AIRES,Carlos Casares,2022/23,1982.0,2452.0,Random Forest,2878.3145,1
+soja,BUENOS AIRES,Carlos Casares,2023/24,3149.0,3071.7,Random Forest,175.7394,0
+soja,BUENOS AIRES,Carlos Casares,2024/25,3610.0,2957.7,Random Forest,129.4302,0
+soja,BUENOS AIRES,Carlos Tejedor,2021/22,3520.0,2831.3,Random Forest,110.2671,0
+soja,BUENOS AIRES,Carlos Tejedor,2022/23,1784.0,2015.8,Random Forest,1473.28,1
+soja,BUENOS AIRES,Carlos Tejedor,2023/24,2679.0,2740.8,Random Forest,124.6146,0
+soja,BUENOS AIRES,Carlos Tejedor,2024/25,3236.0,2716.7,Random Forest,161.4465,0
+soja,BUENOS AIRES,Carmen De Areco,2021/22,2902.0,3232.6,Random Forest,157.8537,0
+soja,BUENOS AIRES,Carmen De Areco,2022/23,1234.0,2243.3,Random Forest,4193.4805,1
+soja,BUENOS AIRES,Carmen De Areco,2023/24,2796.0,3244.6,Random Forest,196.434,0
+soja,BUENOS AIRES,Carmen De Areco,2024/25,2969.0,3040.0,Random Forest,129.9197,0
+soja,BUENOS AIRES,Castelli,2021/22,2420.0,2456.1,Random Forest,115.9165,0
+soja,BUENOS AIRES,Castelli,2022/23,1463.0,2180.8,Random Forest,1119.2633,0
+soja,BUENOS AIRES,Castelli,2023/24,2000.0,2530.4,Random Forest,124.0898,0
+soja,BUENOS AIRES,Castelli,2024/25,2056.0,2363.4,Random Forest,144.9649,0
+soja,BUENOS AIRES,Chacabuco,2021/22,3045.0,3372.5,Random Forest,138.922,0
+soja,BUENOS AIRES,Chacabuco,2022/23,1592.0,2775.9,Random Forest,5413.7036,1
+soja,BUENOS AIRES,Chacabuco,2023/24,3263.0,3375.8,Random Forest,184.9844,0
+soja,BUENOS AIRES,Chacabuco,2024/25,3346.0,3178.8,Random Forest,131.9568,0
+soja,BUENOS AIRES,Chascomus,2021/22,2879.0,2907.2,Random Forest,132.0016,0
+soja,BUENOS AIRES,Chascomus,2022/23,1424.0,1744.2,Random Forest,2746.8096,1
+soja,BUENOS AIRES,Chascomus,2023/24,3176.0,2916.1,Random Forest,113.941,0
+soja,BUENOS AIRES,Chascomus,2024/25,2698.0,2685.2,Random Forest,139.0412,0
+soja,BUENOS AIRES,Chivilcoy,2021/22,3116.0,3257.7,Random Forest,127.7449,0
+soja,BUENOS AIRES,Chivilcoy,2022/23,1579.0,2314.1,Random Forest,4666.4077,1
+soja,BUENOS AIRES,Chivilcoy,2023/24,3131.0,3316.9,Random Forest,164.4424,0
+soja,BUENOS AIRES,Chivilcoy,2024/25,2534.0,3045.8,Random Forest,114.4948,0
+soja,BUENOS AIRES,Colon,2021/22,3435.0,3346.0,Random Forest,139.9887,0
+soja,BUENOS AIRES,Colon,2022/23,1929.0,2112.6,Random Forest,2333.0964,1
+soja,BUENOS AIRES,Colon,2023/24,3999.0,3377.9,Random Forest,200.7562,0
+soja,BUENOS AIRES,Colon,2024/25,3435.0,3106.1,Random Forest,128.9603,0
+soja,BUENOS AIRES,Coronel Dorrego,2021/22,1076.0,1458.3,Random Forest,153.7432,0
+soja,BUENOS AIRES,Coronel Dorrego,2022/23,2200.0,1415.5,Random Forest,130.5498,0
+soja,BUENOS AIRES,Coronel Dorrego,2023/24,990.0,1304.8,Random Forest,97.995,0
+soja,BUENOS AIRES,Coronel Dorrego,2024/25,1948.0,1451.7,Random Forest,175.4524,0
+soja,BUENOS AIRES,Coronel Pringles,2021/22,1688.0,1651.1,Random Forest,142.8843,0
+soja,BUENOS AIRES,Coronel Pringles,2022/23,1934.0,1537.2,Random Forest,233.5288,0
+soja,BUENOS AIRES,Coronel Pringles,2023/24,1540.0,1685.5,Random Forest,95.365,0
+soja,BUENOS AIRES,Coronel Pringles,2024/25,2163.0,1720.4,Random Forest,167.2034,0
+soja,BUENOS AIRES,Coronel Suarez,2021/22,2048.0,2074.9,Random Forest,157.265,0
+soja,BUENOS AIRES,Coronel Suarez,2022/23,2345.0,1897.0,Random Forest,375.3961,0
+soja,BUENOS AIRES,Coronel Suarez,2023/24,2559.0,2166.5,Random Forest,128.6051,0
+soja,BUENOS AIRES,Coronel Suarez,2024/25,1879.0,1929.7,Random Forest,183.9085,0
+soja,BUENOS AIRES,Daireaux,2021/22,2620.0,2791.8,Random Forest,120.4772,0
+soja,BUENOS AIRES,Daireaux,2022/23,2032.0,2565.9,Random Forest,795.354,0
+soja,BUENOS AIRES,Daireaux,2023/24,2867.0,3011.0,Random Forest,129.551,0
+soja,BUENOS AIRES,Daireaux,2024/25,2613.0,2672.3,Random Forest,146.8103,0
+soja,BUENOS AIRES,Dolores,2021/22,2500.0,2415.1,Random Forest,99.0268,0
+soja,BUENOS AIRES,Dolores,2022/23,2000.0,2299.5,Random Forest,955.7319,0
+soja,BUENOS AIRES,Dolores,2023/24,2300.0,2470.7,Random Forest,116.7078,0
+soja,BUENOS AIRES,Dolores,2024/25,1867.0,2386.2,Random Forest,135.2935,0
+soja,BUENOS AIRES,Exaltacion De La Cruz,2021/22,3107.0,3277.9,Random Forest,142.1162,0
+soja,BUENOS AIRES,Exaltacion De La Cruz,2022/23,1715.0,2384.6,Random Forest,4419.992,1
+soja,BUENOS AIRES,Exaltacion De La Cruz,2023/24,3321.0,3288.5,Random Forest,145.0295,0
+soja,BUENOS AIRES,Exaltacion De La Cruz,2024/25,3055.0,3049.5,Random Forest,124.5959,0
+soja,BUENOS AIRES,Florentino Ameghino,2021/22,2841.0,3093.4,Random Forest,102.4477,0
+soja,BUENOS AIRES,Florentino Ameghino,2022/23,1613.0,2344.4,Random Forest,1761.5334,1
+soja,BUENOS AIRES,Florentino Ameghino,2023/24,2968.0,3147.6,Random Forest,164.7498,0
+soja,BUENOS AIRES,Florentino Ameghino,2024/25,3031.0,2788.2,Random Forest,146.8353,0
+soja,BUENOS AIRES,General Alvarado,2021/22,1315.0,2080.0,Random Forest,163.0349,0
+soja,BUENOS AIRES,General Alvarado,2022/23,2668.0,2108.6,Random Forest,3198.2095,1
+soja,BUENOS AIRES,General Alvarado,2023/24,2326.0,2307.3,Random Forest,124.0393,0
+soja,BUENOS AIRES,General Alvarado,2024/25,2644.0,2249.9,Random Forest,163.3783,0
+soja,BUENOS AIRES,General Alvear,2021/22,2325.0,2540.2,Random Forest,133.8352,0
+soja,BUENOS AIRES,General Alvear,2022/23,2093.0,2203.8,Random Forest,962.1495,0
+soja,BUENOS AIRES,General Alvear,2023/24,2839.0,2577.4,Random Forest,102.4357,0
+soja,BUENOS AIRES,General Alvear,2024/25,2671.0,2236.1,Random Forest,141.6708,0
+soja,BUENOS AIRES,General Arenales,2021/22,2935.0,3472.7,Random Forest,139.1979,0
+soja,BUENOS AIRES,General Arenales,2022/23,1449.0,2870.6,Random Forest,2497.4316,1
+soja,BUENOS AIRES,General Arenales,2023/24,3257.0,3346.9,Random Forest,217.1852,0
+soja,BUENOS AIRES,General Arenales,2024/25,3354.0,3198.9,Random Forest,130.9302,0
+soja,BUENOS AIRES,General Belgrano,2021/22,2759.0,2879.9,Random Forest,138.5662,0
+soja,BUENOS AIRES,General Belgrano,2022/23,1569.0,2123.2,Random Forest,1165.5414,0
+soja,BUENOS AIRES,General Belgrano,2023/24,2728.0,3063.6,Random Forest,106.9929,0
+soja,BUENOS AIRES,General Belgrano,2024/25,2686.0,2467.7,Random Forest,137.1598,0
+soja,BUENOS AIRES,General Juan Madariaga,2021/22,2507.0,2785.3,Random Forest,172.6688,0
+soja,BUENOS AIRES,General Juan Madariaga,2022/23,2674.0,2846.5,Random Forest,406.7874,0
+soja,BUENOS AIRES,General Juan Madariaga,2023/24,2678.0,2999.3,Random Forest,117.5063,0
+soja,BUENOS AIRES,General Juan Madariaga,2024/25,2537.0,2592.0,Random Forest,182.5264,0
+soja,BUENOS AIRES,General La Madrid,2021/22,1843.0,2109.8,Random Forest,172.1841,0
+soja,BUENOS AIRES,General La Madrid,2022/23,2051.0,1918.5,Random Forest,415.6924,0
+soja,BUENOS AIRES,General La Madrid,2023/24,2079.0,2300.0,Random Forest,117.3137,0
+soja,BUENOS AIRES,General La Madrid,2024/25,1567.0,1905.2,Random Forest,166.6074,0
+soja,BUENOS AIRES,General Las Heras,2021/22,2434.0,3195.0,Random Forest,123.3523,0
+soja,BUENOS AIRES,General Las Heras,2022/23,1500.0,2276.1,Random Forest,3328.7366,1
+soja,BUENOS AIRES,General Las Heras,2023/24,2706.0,2949.5,Random Forest,137.7718,0
+soja,BUENOS AIRES,General Las Heras,2024/25,2525.0,2740.1,Random Forest,123.4998,0
+soja,BUENOS AIRES,General Paz,2021/22,2787.0,2819.6,Random Forest,119.871,0
+soja,BUENOS AIRES,General Paz,2022/23,1372.0,2273.7,Random Forest,562.0447,0
+soja,BUENOS AIRES,General Paz,2023/24,2909.0,2765.0,Random Forest,96.4199,0
+soja,BUENOS AIRES,General Paz,2024/25,2674.0,2616.9,Random Forest,165.4588,0
+soja,BUENOS AIRES,General Pinto,2021/22,2804.0,3183.5,Random Forest,114.0228,0
+soja,BUENOS AIRES,General Pinto,2022/23,1894.0,2562.0,Random Forest,3091.751,1
+soja,BUENOS AIRES,General Pinto,2023/24,3070.0,3132.2,Random Forest,176.8672,0
+soja,BUENOS AIRES,General Pinto,2024/25,3105.0,2842.1,Random Forest,148.5588,0
+soja,BUENOS AIRES,General Pueyrredon,2021/22,1617.0,2120.4,Random Forest,170.9196,0
+soja,BUENOS AIRES,General Pueyrredon,2022/23,2866.0,2243.0,Random Forest,344.8023,0
+soja,BUENOS AIRES,General Pueyrredon,2023/24,2424.0,2272.4,Random Forest,133.7628,0
+soja,BUENOS AIRES,General Pueyrredon,2024/25,2657.0,2151.0,Random Forest,190.9422,0
+soja,BUENOS AIRES,General Rodriguez,2021/22,2780.0,3068.7,Random Forest,126.4979,0
+soja,BUENOS AIRES,General Rodriguez,2022/23,1537.0,1523.0,Random Forest,4355.5015,1
+soja,BUENOS AIRES,General Rodriguez,2023/24,3136.0,2840.3,Random Forest,216.7217,0
+soja,BUENOS AIRES,General Rodriguez,2024/25,2886.0,2745.5,Random Forest,138.5474,0
+soja,BUENOS AIRES,General Viamonte,2021/22,3065.0,3274.2,Random Forest,143.7776,0
+soja,BUENOS AIRES,General Viamonte,2022/23,1777.0,2553.6,Random Forest,5769.471,1
+soja,BUENOS AIRES,General Viamonte,2023/24,2972.0,3301.7,Random Forest,202.4977,0
+soja,BUENOS AIRES,General Viamonte,2024/25,3127.0,3104.1,Random Forest,174.6991,0
+soja,BUENOS AIRES,General Villegas,2021/22,2940.0,2960.7,Random Forest,101.0268,0
+soja,BUENOS AIRES,General Villegas,2022/23,2045.0,2688.0,Random Forest,1455.7378,1
+soja,BUENOS AIRES,General Villegas,2023/24,3060.0,3104.6,Random Forest,134.2784,0
+soja,BUENOS AIRES,General Villegas,2024/25,3080.0,2900.0,Random Forest,143.0549,0
+soja,BUENOS AIRES,Guamini,2021/22,2800.0,2533.0,Random Forest,150.6488,0
+soja,BUENOS AIRES,Guamini,2022/23,2507.0,2120.1,Random Forest,359.5192,0
+soja,BUENOS AIRES,Guamini,2023/24,2626.0,2589.0,Random Forest,106.4406,0
+soja,BUENOS AIRES,Guamini,2024/25,2946.0,2283.2,Random Forest,143.9684,0
+soja,BUENOS AIRES,Hipolito Yrigoyen,2021/22,2705.0,2779.7,Random Forest,134.6906,0
+soja,BUENOS AIRES,Hipolito Yrigoyen,2022/23,1996.0,2843.8,Random Forest,457.2636,0
+soja,BUENOS AIRES,Hipolito Yrigoyen,2023/24,2668.0,3068.2,Random Forest,93.2608,0
+soja,BUENOS AIRES,Hipolito Yrigoyen,2024/25,2645.0,2791.2,Random Forest,154.1892,0
+soja,BUENOS AIRES,Junin,2021/22,3099.0,3283.2,Random Forest,126.9073,0
+soja,BUENOS AIRES,Junin,2022/23,1557.0,2541.9,Random Forest,3276.9712,1
+soja,BUENOS AIRES,Junin,2023/24,3119.0,3235.7,Random Forest,204.9315,0
+soja,BUENOS AIRES,Junin,2024/25,3320.0,3142.2,Random Forest,128.4873,0
+soja,BUENOS AIRES,Laprida,2021/22,2226.0,1965.1,Random Forest,143.3953,0
+soja,BUENOS AIRES,Laprida,2022/23,2000.0,1793.1,Random Forest,324.2448,0
+soja,BUENOS AIRES,Laprida,2023/24,2420.0,2058.9,Random Forest,108.5833,0
+soja,BUENOS AIRES,Laprida,2024/25,2544.0,1810.7,Random Forest,171.5442,0
+soja,BUENOS AIRES,Las Flores,2021/22,2598.0,2842.9,Random Forest,141.9004,0
+soja,BUENOS AIRES,Las Flores,2022/23,1485.0,2207.7,Random Forest,1510.7666,1
+soja,BUENOS AIRES,Las Flores,2023/24,2493.0,2931.8,Random Forest,105.5168,0
+soja,BUENOS AIRES,Las Flores,2024/25,2646.0,2250.6,Random Forest,148.2486,0
+soja,BUENOS AIRES,Leandro N. Alem,2021/22,2978.0,3223.5,Random Forest,135.054,0
+soja,BUENOS AIRES,Leandro N. Alem,2022/23,1526.0,2762.2,Random Forest,2045.2756,1
+soja,BUENOS AIRES,Leandro N. Alem,2023/24,2959.0,3314.8,Random Forest,217.5053,0
+soja,BUENOS AIRES,Leandro N. Alem,2024/25,2989.0,3146.1,Random Forest,132.8124,0
+soja,BUENOS AIRES,Lincoln,2021/22,3032.0,3156.7,Random Forest,125.3563,0
+soja,BUENOS AIRES,Lincoln,2022/23,1716.0,2440.8,Random Forest,3246.735,1
+soja,BUENOS AIRES,Lincoln,2023/24,3120.0,3091.2,Random Forest,212.511,0
+soja,BUENOS AIRES,Lincoln,2024/25,3014.0,2945.4,Random Forest,130.8384,0
+soja,BUENOS AIRES,Loberia,2021/22,1657.0,2002.7,Random Forest,193.6656,0
+soja,BUENOS AIRES,Loberia,2022/23,2347.0,2179.0,Random Forest,462.6629,0
+soja,BUENOS AIRES,Loberia,2023/24,2157.0,2209.6,Random Forest,119.7116,0
+soja,BUENOS AIRES,Loberia,2024/25,2454.0,2178.3,Random Forest,179.5295,0
+soja,BUENOS AIRES,Lobos,2021/22,2829.0,2898.1,Random Forest,129.0606,0
+soja,BUENOS AIRES,Lobos,2022/23,1704.0,2380.5,Random Forest,5521.4185,1
+soja,BUENOS AIRES,Lobos,2023/24,2447.0,3048.0,Random Forest,151.8343,0
+soja,BUENOS AIRES,Lobos,2024/25,2549.0,2774.0,Random Forest,121.986,0
+soja,BUENOS AIRES,Lujan,2021/22,2848.0,3030.5,Random Forest,156.5622,0
+soja,BUENOS AIRES,Lujan,2022/23,1515.0,1968.5,Random Forest,3463.3303,1
+soja,BUENOS AIRES,Lujan,2023/24,2971.0,3118.2,Random Forest,208.8445,0
+soja,BUENOS AIRES,Lujan,2024/25,2598.0,2909.5,Random Forest,135.5347,0
+soja,BUENOS AIRES,Magdalena,2021/22,3041.0,2806.7,Random Forest,137.7081,0
+soja,BUENOS AIRES,Magdalena,2022/23,1600.0,1916.9,Random Forest,6743.437,1
+soja,BUENOS AIRES,Magdalena,2023/24,2624.0,2642.8,Random Forest,398.2452,0
+soja,BUENOS AIRES,Magdalena,2024/25,2806.0,2623.7,Random Forest,160.4758,0
+soja,BUENOS AIRES,Maipu,2021/22,2350.0,2594.3,Random Forest,191.5554,0
+soja,BUENOS AIRES,Maipu,2022/23,2174.0,2170.3,Random Forest,446.9993,0
+soja,BUENOS AIRES,Maipu,2023/24,2280.0,2636.9,Random Forest,213.5504,0
+soja,BUENOS AIRES,Maipu,2024/25,2179.0,1990.6,Random Forest,217.516,0
+soja,BUENOS AIRES,Mar Chiquita,2021/22,2518.0,2588.3,Random Forest,126.5665,0
+soja,BUENOS AIRES,Mar Chiquita,2022/23,2425.0,2654.7,Random Forest,411.6677,0
+soja,BUENOS AIRES,Mar Chiquita,2023/24,2751.0,2824.4,Random Forest,119.1256,0
+soja,BUENOS AIRES,Mar Chiquita,2024/25,2291.0,2617.7,Random Forest,208.5447,0
+soja,BUENOS AIRES,Marcos Paz,2021/22,2625.0,3099.2,Random Forest,129.3221,0
+soja,BUENOS AIRES,Marcos Paz,2022/23,1340.0,1650.5,Random Forest,5219.612,1
+soja,BUENOS AIRES,Marcos Paz,2023/24,2863.0,2891.1,Random Forest,149.3545,0
+soja,BUENOS AIRES,Marcos Paz,2024/25,2429.0,2723.5,Random Forest,133.7714,0
+soja,BUENOS AIRES,Mercedes,2021/22,2372.0,2781.2,Random Forest,158.7757,0
+soja,BUENOS AIRES,Mercedes,2022/23,983.0,1916.3,Random Forest,6744.853,1
+soja,BUENOS AIRES,Mercedes,2023/24,3185.0,2918.7,Random Forest,200.6466,0
+soja,BUENOS AIRES,Mercedes,2024/25,1777.0,2577.8,Random Forest,139.3047,0
+soja,BUENOS AIRES,Monte,2021/22,3092.0,2978.2,Random Forest,118.1649,0
+soja,BUENOS AIRES,Monte,2022/23,1963.0,2162.2,Random Forest,1358.7677,1
+soja,BUENOS AIRES,Monte,2023/24,2461.0,3099.1,Random Forest,109.837,0
+soja,BUENOS AIRES,Monte,2024/25,2696.0,2671.8,Random Forest,112.8692,0
+soja,BUENOS AIRES,Navarro,2021/22,3023.0,2947.0,Random Forest,151.7078,0
+soja,BUENOS AIRES,Navarro,2022/23,1918.0,2365.1,Random Forest,5148.5195,1
+soja,BUENOS AIRES,Navarro,2023/24,2420.0,3080.1,Random Forest,161.0556,0
+soja,BUENOS AIRES,Navarro,2024/25,2647.0,2822.9,Random Forest,138.5362,0
+soja,BUENOS AIRES,Necochea,2021/22,1271.0,1795.1,Random Forest,125.5112,0
+soja,BUENOS AIRES,Necochea,2022/23,2242.0,1885.7,Random Forest,282.9744,0
+soja,BUENOS AIRES,Necochea,2023/24,2007.0,2043.7,Random Forest,131.532,0
+soja,BUENOS AIRES,Necochea,2024/25,2415.0,1964.2,Random Forest,232.2427,0
+soja,BUENOS AIRES,Olavarria,2021/22,2544.0,2429.0,Random Forest,138.7187,0
+soja,BUENOS AIRES,Olavarria,2022/23,1939.0,2323.2,Random Forest,510.3727,0
+soja,BUENOS AIRES,Olavarria,2023/24,2593.0,2472.0,Random Forest,118.09,0
+soja,BUENOS AIRES,Olavarria,2024/25,2549.0,2091.1,Random Forest,185.7973,0
+soja,BUENOS AIRES,Pehuajo,2021/22,3320.0,2888.8,Random Forest,114.9772,0
+soja,BUENOS AIRES,Pehuajo,2022/23,1887.0,2473.0,Random Forest,1152.5554,0
+soja,BUENOS AIRES,Pehuajo,2023/24,3178.0,2836.5,Random Forest,152.2094,0
+soja,BUENOS AIRES,Pehuajo,2024/25,3577.0,2810.1,Random Forest,142.2645,0
+soja,BUENOS AIRES,Pellegrini,2021/22,3137.0,2882.3,Random Forest,119.9982,0
+soja,BUENOS AIRES,Pellegrini,2022/23,2751.0,2490.8,Random Forest,604.9396,0
+soja,BUENOS AIRES,Pellegrini,2023/24,2637.0,2685.2,Random Forest,244.6528,0
+soja,BUENOS AIRES,Pellegrini,2024/25,3121.0,2762.8,Random Forest,124.3018,0
+soja,BUENOS AIRES,Pergamino,2021/22,3438.0,3371.0,Random Forest,149.2138,0
+soja,BUENOS AIRES,Pergamino,2022/23,1857.0,2153.8,Random Forest,2248.4233,1
+soja,BUENOS AIRES,Pergamino,2023/24,4035.0,3407.1,Random Forest,197.0664,0
+soja,BUENOS AIRES,Pergamino,2024/25,3288.0,3056.9,Random Forest,125.6645,0
+soja,BUENOS AIRES,Pilar,2021/22,2677.0,2796.9,Random Forest,135.6884,0
+soja,BUENOS AIRES,Pilar,2022/23,1517.0,1601.1,Random Forest,4385.757,1
+soja,BUENOS AIRES,Pilar,2023/24,2550.0,2676.2,Random Forest,199.2956,0
+soja,BUENOS AIRES,Pilar,2024/25,2563.0,2604.8,Random Forest,149.2225,0
+soja,BUENOS AIRES,Puan,2021/22,1800.0,1478.9,Random Forest,118.6679,0
+soja,BUENOS AIRES,Puan,2022/23,1800.0,1045.1,Random Forest,3708.1755,1
+soja,BUENOS AIRES,Puan,2023/24,0.0,1368.6,Random Forest,232.6782,0
+soja,BUENOS AIRES,Puan,2024/25,1300.0,1356.9,Random Forest,127.054,0
+soja,BUENOS AIRES,Ramallo,2021/22,2918.0,3114.2,Random Forest,155.8433,0
+soja,BUENOS AIRES,Ramallo,2022/23,1576.0,1374.9,Random Forest,2407.9478,1
+soja,BUENOS AIRES,Ramallo,2023/24,3524.0,3329.0,Random Forest,143.2307,0
+soja,BUENOS AIRES,Ramallo,2024/25,2944.0,3066.0,Random Forest,127.1326,0
+soja,BUENOS AIRES,Rauch,2021/22,2150.0,2204.1,Random Forest,155.9069,0
+soja,BUENOS AIRES,Rauch,2022/23,1525.0,1965.3,Random Forest,488.165,0
+soja,BUENOS AIRES,Rauch,2023/24,2187.0,2322.7,Random Forest,99.7784,0
+soja,BUENOS AIRES,Rauch,2024/25,1976.0,1919.3,Random Forest,162.6796,0
+soja,BUENOS AIRES,Rivadavia,2021/22,3243.0,3293.8,Random Forest,130.3018,0
+soja,BUENOS AIRES,Rivadavia,2022/23,2234.0,2664.5,Random Forest,5663.163,1
+soja,BUENOS AIRES,Rivadavia,2023/24,3242.0,3019.2,Random Forest,208.354,0
+soja,BUENOS AIRES,Rivadavia,2024/25,3285.0,2988.3,Random Forest,147.3334,0
+soja,BUENOS AIRES,Rojas,2021/22,2943.0,3409.6,Random Forest,129.4833,0
+soja,BUENOS AIRES,Rojas,2022/23,1575.0,2765.4,Random Forest,3221.474,1
+soja,BUENOS AIRES,Rojas,2023/24,3394.0,3423.4,Random Forest,188.6152,0
+soja,BUENOS AIRES,Rojas,2024/25,3510.0,3086.4,Random Forest,119.3461,0
+soja,BUENOS AIRES,Roque Perez,2021/22,3017.0,2926.0,Random Forest,143.7515,0
+soja,BUENOS AIRES,Roque Perez,2022/23,1885.0,2251.3,Random Forest,3750.4268,1
+soja,BUENOS AIRES,Roque Perez,2023/24,2636.0,3052.0,Random Forest,121.4224,0
+soja,BUENOS AIRES,Roque Perez,2024/25,2776.0,2695.5,Random Forest,148.6777,0
+soja,BUENOS AIRES,Saavedra,2021/22,1769.0,1619.0,Random Forest,138.0641,0
+soja,BUENOS AIRES,Saavedra,2022/23,1698.0,1354.4,Random Forest,191.5275,0
+soja,BUENOS AIRES,Saavedra,2023/24,1567.0,1643.8,Random Forest,94.1372,0
+soja,BUENOS AIRES,Saavedra,2024/25,1656.0,1391.4,Random Forest,137.9735,0
+soja,BUENOS AIRES,Saladillo,2021/22,2788.0,2960.1,Random Forest,142.8182,0
+soja,BUENOS AIRES,Saladillo,2022/23,1555.0,2451.7,Random Forest,2512.6682,1
+soja,BUENOS AIRES,Saladillo,2023/24,2758.0,3066.3,Random Forest,133.1787,0
+soja,BUENOS AIRES,Saladillo,2024/25,2708.0,2741.5,Random Forest,129.7839,0
+soja,BUENOS AIRES,Salliquelo,2021/22,3133.0,2587.3,Random Forest,112.6032,0
+soja,BUENOS AIRES,Salliquelo,2022/23,2646.0,2367.5,Random Forest,382.7071,0
+soja,BUENOS AIRES,Salliquelo,2023/24,2533.0,2546.8,Random Forest,104.2642,0
+soja,BUENOS AIRES,Salliquelo,2024/25,3043.0,2447.2,Random Forest,140.8896,0
+soja,BUENOS AIRES,Salto,2021/22,3356.0,3445.0,Random Forest,155.883,0
+soja,BUENOS AIRES,Salto,2022/23,2208.0,2878.3,Random Forest,3378.8833,1
+soja,BUENOS AIRES,Salto,2023/24,3900.0,3544.4,Random Forest,177.6189,0
+soja,BUENOS AIRES,Salto,2024/25,3507.0,3100.6,Random Forest,127.6144,0
+soja,BUENOS AIRES,San Andres De Giles,2021/22,2957.0,3233.9,Random Forest,162.5883,0
+soja,BUENOS AIRES,San Andres De Giles,2022/23,1412.0,2403.9,Random Forest,4122.8623,1
+soja,BUENOS AIRES,San Andres De Giles,2023/24,3151.0,3280.9,Random Forest,204.8366,0
+soja,BUENOS AIRES,San Andres De Giles,2024/25,3074.0,2955.8,Random Forest,132.1406,0
+soja,BUENOS AIRES,San Antonio De Areco,2021/22,3082.0,3391.3,Random Forest,160.0426,0
+soja,BUENOS AIRES,San Antonio De Areco,2022/23,1354.0,2721.3,Random Forest,4321.2324,1
+soja,BUENOS AIRES,San Antonio De Areco,2023/24,3214.0,3426.4,Random Forest,169.6491,0
+soja,BUENOS AIRES,San Antonio De Areco,2024/25,2842.0,3028.0,Random Forest,138.738,0
+soja,BUENOS AIRES,San Cayetano,2021/22,1107.0,1785.8,Random Forest,141.2345,0
+soja,BUENOS AIRES,San Cayetano,2022/23,2470.0,1868.6,Random Forest,250.2685,0
+soja,BUENOS AIRES,San Cayetano,2023/24,2042.0,2029.4,Random Forest,115.7289,0
+soja,BUENOS AIRES,San Cayetano,2024/25,2435.0,1919.4,Random Forest,217.6442,0
+soja,BUENOS AIRES,San Nicolas,2021/22,2609.0,2929.7,Random Forest,134.521,0
+soja,BUENOS AIRES,San Nicolas,2022/23,1467.0,1389.9,Random Forest,2024.8414,1
+soja,BUENOS AIRES,San Nicolas,2023/24,3486.0,3221.4,Random Forest,143.351,0
+soja,BUENOS AIRES,San Nicolas,2024/25,3062.0,3063.8,Random Forest,113.5665,0
+soja,BUENOS AIRES,San Pedro,2021/22,3000.0,3416.7,Random Forest,159.4782,0
+soja,BUENOS AIRES,San Pedro,2022/23,1626.0,2025.0,Random Forest,2271.4214,1
+soja,BUENOS AIRES,San Pedro,2023/24,3363.0,3204.4,Random Forest,169.7517,0
+soja,BUENOS AIRES,San Pedro,2024/25,3094.0,3029.1,Random Forest,155.9638,0
+soja,BUENOS AIRES,Suipacha,2021/22,2310.0,2729.2,Random Forest,149.5693,0
+soja,BUENOS AIRES,Suipacha,2022/23,900.0,1776.0,Random Forest,7175.136,1
+soja,BUENOS AIRES,Suipacha,2023/24,3221.0,2787.8,Random Forest,163.8954,0
+soja,BUENOS AIRES,Suipacha,2024/25,1632.0,2628.0,Random Forest,124.9708,0
+soja,BUENOS AIRES,Tandil,2021/22,1949.0,2207.4,Random Forest,144.6658,0
+soja,BUENOS AIRES,Tandil,2022/23,2279.0,2185.0,Random Forest,413.9933,0
+soja,BUENOS AIRES,Tandil,2023/24,2470.0,2307.4,Random Forest,107.5506,0
+soja,BUENOS AIRES,Tandil,2024/25,2661.0,2163.0,Random Forest,150.9514,0
+soja,BUENOS AIRES,Tapalque,2021/22,2950.0,2686.1,Random Forest,121.4594,0
+soja,BUENOS AIRES,Tapalque,2022/23,2353.0,2354.4,Random Forest,547.4502,0
+soja,BUENOS AIRES,Tapalque,2023/24,2812.0,2733.2,Random Forest,94.6717,0
+soja,BUENOS AIRES,Tapalque,2024/25,2780.0,2117.2,Random Forest,152.4616,0
+soja,BUENOS AIRES,Tornquist,2021/22,1600.0,1362.7,Random Forest,125.4342,0
+soja,BUENOS AIRES,Tornquist,2022/23,1800.0,1360.6,Random Forest,202.2722,0
+soja,BUENOS AIRES,Tornquist,2023/24,0.0,1239.4,Random Forest,113.2603,0
+soja,BUENOS AIRES,Tornquist,2024/25,1800.0,1354.2,Random Forest,147.9137,0
+soja,BUENOS AIRES,Trenque Lauquen,2021/22,3286.0,2820.5,Random Forest,108.7588,0
+soja,BUENOS AIRES,Trenque Lauquen,2022/23,2298.0,2344.1,Random Forest,1372.3231,1
+soja,BUENOS AIRES,Trenque Lauquen,2023/24,3104.0,2619.8,Random Forest,149.5624,0
+soja,BUENOS AIRES,Trenque Lauquen,2024/25,3363.0,2656.0,Random Forest,151.1082,0
+soja,BUENOS AIRES,Tres Arroyos,2021/22,1417.0,1728.9,Random Forest,158.1819,0
+soja,BUENOS AIRES,Tres Arroyos,2022/23,2500.0,1820.3,Random Forest,229.8894,0
+soja,BUENOS AIRES,Tres Arroyos,2023/24,2141.0,1924.0,Random Forest,105.2924,0
+soja,BUENOS AIRES,Tres Arroyos,2024/25,2567.0,1862.5,Random Forest,184.2933,0
+soja,BUENOS AIRES,Tres Lomas,2021/22,3043.0,2779.9,Random Forest,126.8642,0
+soja,BUENOS AIRES,Tres Lomas,2022/23,2778.0,2422.0,Random Forest,475.2517,0
+soja,BUENOS AIRES,Tres Lomas,2023/24,2521.0,2607.4,Random Forest,98.0862,0
+soja,BUENOS AIRES,Tres Lomas,2024/25,3043.0,2569.3,Random Forest,109.3546,0
+soja,BUENOS AIRES,Zarate,2021/22,3028.0,3076.0,Random Forest,131.9963,0
+soja,BUENOS AIRES,Zarate,2022/23,1703.0,2329.5,Random Forest,4809.4385,1
+soja,BUENOS AIRES,Zarate,2023/24,3442.0,3114.5,Random Forest,221.3055,0
+soja,BUENOS AIRES,Zarate,2024/25,3148.0,2852.5,Random Forest,176.7258,0
+soja,CATAMARCA,El Alto,2021/22,1900.0,2428.4,Random Forest,142.5016,0
+soja,CATAMARCA,El Alto,2022/23,1300.0,2686.6,Random Forest,277.649,0
+soja,CATAMARCA,El Alto,2023/24,2300.0,2575.6,Random Forest,199.4154,0
+soja,CATAMARCA,El Alto,2024/25,1900.0,2687.5,Random Forest,151.1742,0
+soja,CATAMARCA,Santa Rosa,2021/22,2300.0,2552.5,Random Forest,128.472,0
+soja,CATAMARCA,Santa Rosa,2022/23,1556.0,2634.3,Random Forest,279.5397,0
+soja,CATAMARCA,Santa Rosa,2023/24,3100.0,2698.6,Random Forest,248.1412,0
+soja,CATAMARCA,Santa Rosa,2024/25,2547.0,2769.3,Random Forest,166.5036,0
+soja,CHACO,12 De Octubre,2021/22,2801.0,2338.4,Random Forest,157.0511,0
+soja,CHACO,12 De Octubre,2022/23,2011.0,1697.2,Random Forest,341.1728,0
+soja,CHACO,12 De Octubre,2023/24,1360.0,2466.9,Random Forest,209.557,0
+soja,CHACO,12 De Octubre,2024/25,1192.0,1524.3,Random Forest,323.7601,0
+soja,CHACO,2 De Abril,2021/22,3017.0,2042.2,Random Forest,149.4342,0
+soja,CHACO,2 De Abril,2022/23,1831.0,1510.2,Random Forest,324.8528,0
+soja,CHACO,2 De Abril,2023/24,1326.0,2478.8,Random Forest,270.9415,0
+soja,CHACO,2 De Abril,2024/25,1134.0,1737.8,Random Forest,374.9841,0
+soja,CHACO,25 De Mayo,2023/24,900.0,2312.1,Random Forest,140.0246,0
+soja,CHACO,9 De Julio,2021/22,2737.0,2462.2,Random Forest,121.6807,0
+soja,CHACO,9 De Julio,2022/23,2170.0,1883.0,Random Forest,4515.6416,1
+soja,CHACO,9 De Julio,2023/24,1321.0,2663.5,Random Forest,170.5145,0
+soja,CHACO,9 De Julio,2024/25,1129.0,1779.2,Random Forest,146.3209,0
+soja,CHACO,Almirante Brown,2021/22,3183.0,2329.3,Random Forest,162.6569,0
+soja,CHACO,Almirante Brown,2022/23,1985.0,1859.1,Random Forest,222.1272,0
+soja,CHACO,Almirante Brown,2023/24,1196.0,2474.9,Random Forest,311.6686,0
+soja,CHACO,Almirante Brown,2024/25,790.0,1878.3,Random Forest,153.1893,0
+soja,CHACO,Chacabuco,2021/22,2631.0,2373.7,Random Forest,140.2764,0
+soja,CHACO,Chacabuco,2022/23,1815.0,1639.7,Random Forest,3936.166,1
+soja,CHACO,Chacabuco,2023/24,1313.0,2584.7,Random Forest,178.176,0
+soja,CHACO,Chacabuco,2024/25,1155.0,1674.5,Random Forest,135.3801,0
+soja,CHACO,Comandante Fernandez,2021/22,1219.0,1802.7,Random Forest,121.3186,0
+soja,CHACO,Comandante Fernandez,2022/23,900.0,1450.5,Random Forest,345.0954,0
+soja,CHACO,Comandante Fernandez,2023/24,686.0,2073.6,Random Forest,170.2117,0
+soja,CHACO,Comandante Fernandez,2024/25,613.0,1349.6,Random Forest,245.6434,0
+soja,CHACO,Fray Justo Santa Maria De Oro,2021/22,2501.0,1681.9,Random Forest,152.7673,0
+soja,CHACO,Fray Justo Santa Maria De Oro,2022/23,1819.0,1406.9,Random Forest,537.2804,0
+soja,CHACO,Fray Justo Santa Maria De Oro,2023/24,982.0,1880.1,Random Forest,149.6546,0
+soja,CHACO,Fray Justo Santa Maria De Oro,2024/25,1115.0,1378.6,Random Forest,314.7536,0
+soja,CHACO,General Belgrano,2021/22,2766.0,2431.5,Random Forest,130.1188,0
+soja,CHACO,General Belgrano,2022/23,2448.0,2177.7,Random Forest,1643.4738,1
+soja,CHACO,General Belgrano,2023/24,1623.0,2677.4,Random Forest,94.5085,0
+soja,CHACO,General Belgrano,2024/25,1224.0,1895.1,Random Forest,125.1666,0
+soja,CHACO,General Guemes,2021/22,1691.0,2029.3,Random Forest,226.9021,0
+soja,CHACO,General Guemes,2022/23,1281.0,2169.4,Random Forest,495.8304,0
+soja,CHACO,General Guemes,2023/24,784.0,2238.0,Random Forest,189.6618,0
+soja,CHACO,General Guemes,2024/25,1078.0,2177.3,Random Forest,120.7219,0
+soja,CHACO,Independencia,2021/22,2741.0,1771.9,Random Forest,143.7968,0
+soja,CHACO,Independencia,2022/23,1740.0,1789.0,Random Forest,329.4553,0
+soja,CHACO,Independencia,2023/24,921.0,2243.8,Random Forest,249.8689,0
+soja,CHACO,Independencia,2024/25,783.0,1391.0,Random Forest,333.8819,0
+soja,CHACO,Libertador General San Martin,2021/22,1300.0,1822.0,Random Forest,177.5023,0
+soja,CHACO,Libertador General San Martin,2022/23,671.0,2027.3,Random Forest,335.7155,0
+soja,CHACO,Libertador General San Martin,2023/24,1500.0,2100.4,Random Forest,156.289,0
+soja,CHACO,Libertador General San Martin,2024/25,1400.0,1965.7,Random Forest,292.8654,0
+soja,CHACO,Maipu,2021/22,1551.0,2056.2,Random Forest,108.0857,0
+soja,CHACO,Maipu,2022/23,1777.0,1868.4,Random Forest,345.2443,0
+soja,CHACO,Maipu,2023/24,976.0,2152.2,Random Forest,175.8556,0
+soja,CHACO,Maipu,2024/25,783.0,1438.7,Random Forest,226.3516,0
+soja,CHACO,O'Higgins,2021/22,2834.0,2157.7,Random Forest,149.006,0
+soja,CHACO,O'Higgins,2022/23,2011.0,1589.7,Random Forest,320.0898,0
+soja,CHACO,O'Higgins,2023/24,1601.0,2025.6,Random Forest,190.5954,0
+soja,CHACO,O'Higgins,2024/25,1119.0,1346.0,Random Forest,326.649,0
+soja,CHACO,Quitilipi,2021/22,1349.0,1975.9,Random Forest,194.413,0
+soja,CHACO,Quitilipi,2022/23,1147.0,1731.2,Random Forest,454.4304,0
+soja,CHACO,Quitilipi,2023/24,1458.0,2046.8,Random Forest,160.4832,0
+soja,CHACO,Quitilipi,2024/25,768.0,1565.5,Random Forest,467.1864,0
+soja,CHACO,San Fernando,2021/22,2232.0,1615.6,Random Forest,215.8588,0
+soja,CHACO,San Fernando,2022/23,1900.0,1717.2,Random Forest,308.473,0
+soja,CHACO,San Lorenzo,2021/22,2219.0,1928.8,Random Forest,136.8053,0
+soja,CHACO,San Lorenzo,2022/23,1778.0,1710.2,Random Forest,1794.791,1
+soja,CHACO,San Lorenzo,2023/24,874.0,2031.7,Random Forest,124.8446,0
+soja,CHACO,San Lorenzo,2024/25,1041.0,1661.6,Random Forest,159.9033,0
+soja,CHACO,Sargento Cabral,2021/22,2200.0,2248.8,Random Forest,177.3608,0
+soja,CHACO,Sargento Cabral,2022/23,1000.0,2091.7,Random Forest,267.7668,0
+soja,CHACO,Sargento Cabral,2023/24,1200.0,2558.1,Random Forest,176.6432,0
+soja,CHACO,Sargento Cabral,2024/25,2090.0,2067.4,Random Forest,355.3979,0
+soja,CORDOBA,Calamuchita,2021/22,2166.0,2527.2,Random Forest,149.0742,0
+soja,CORDOBA,Calamuchita,2022/23,1091.0,2476.6,Random Forest,707.8563,0
+soja,CORDOBA,Calamuchita,2023/24,3020.0,2652.6,Random Forest,262.5231,0
+soja,CORDOBA,Calamuchita,2024/25,2570.0,2729.5,Random Forest,292.1032,0
+soja,CORDOBA,Capital,2021/22,2499.0,2194.0,Random Forest,91.4902,0
+soja,CORDOBA,Capital,2022/23,1194.0,1904.4,Random Forest,372.3259,0
+soja,CORDOBA,Capital,2023/24,2540.0,2169.1,Random Forest,133.1146,0
+soja,CORDOBA,Capital,2024/25,2774.0,2101.8,Random Forest,119.0648,0
+soja,CORDOBA,Colon,2021/22,3086.0,3194.8,Random Forest,137.0464,0
+soja,CORDOBA,Colon,2022/23,1816.0,2929.8,Random Forest,2555.1387,1
+soja,CORDOBA,Colon,2023/24,3247.0,3125.3,Random Forest,257.4263,0
+soja,CORDOBA,Colon,2024/25,3272.0,3121.3,Random Forest,138.7829,0
+soja,CORDOBA,General Roca,2021/22,3042.0,2869.3,Random Forest,131.4708,0
+soja,CORDOBA,General Roca,2022/23,2164.0,2708.7,Random Forest,2314.5078,1
+soja,CORDOBA,General Roca,2023/24,2493.0,2924.4,Random Forest,185.6468,0
+soja,CORDOBA,General Roca,2024/25,2755.0,2917.1,Random Forest,215.7585,0
+soja,CORDOBA,General San Martin,2021/22,2031.0,2517.9,Random Forest,151.2339,0
+soja,CORDOBA,General San Martin,2022/23,968.0,2205.3,Random Forest,3481.6604,1
+soja,CORDOBA,General San Martin,2023/24,2300.0,2846.5,Random Forest,181.5001,0
+soja,CORDOBA,General San Martin,2024/25,3045.0,2821.8,Random Forest,224.2822,0
+soja,CORDOBA,Ischilin,2021/22,2800.0,2508.4,Random Forest,164.8572,0
+soja,CORDOBA,Ischilin,2022/23,1340.0,2380.5,Random Forest,758.8951,0
+soja,CORDOBA,Ischilin,2023/24,2868.0,2656.9,Random Forest,205.3333,0
+soja,CORDOBA,Ischilin,2024/25,2876.0,2682.2,Random Forest,210.1062,0
+soja,CORDOBA,Juarez Celman,2021/22,2502.0,2765.9,Random Forest,92.495,0
+soja,CORDOBA,Juarez Celman,2022/23,1153.0,2683.8,Random Forest,2750.4844,1
+soja,CORDOBA,Juarez Celman,2023/24,2959.0,2971.6,Random Forest,629.642,0
+soja,CORDOBA,Juarez Celman,2024/25,2669.0,2840.0,Random Forest,162.5632,0
+soja,CORDOBA,Marcos Juarez,2021/22,3601.0,3102.8,Random Forest,154.8808,0
+soja,CORDOBA,Marcos Juarez,2022/23,2101.0,2750.4,Random Forest,2891.4534,1
+soja,CORDOBA,Marcos Juarez,2023/24,4130.0,3369.0,Random Forest,372.4082,0
+soja,CORDOBA,Marcos Juarez,2024/25,4006.0,3146.6,Random Forest,185.5238,0
+soja,CORDOBA,Pocho,2021/22,2900.0,2269.5,Random Forest,143.8424,0
+soja,CORDOBA,Pocho,2022/23,1200.0,2226.6,Random Forest,1381.1675,1
+soja,CORDOBA,Pocho,2023/24,2740.0,2319.1,Random Forest,238.9884,0
+soja,CORDOBA,Pocho,2024/25,2800.0,2327.8,Random Forest,267.4956,0
+soja,CORDOBA,Presidente Roque Saenz Pena,2021/22,3323.0,2845.0,Random Forest,136.0416,0
+soja,CORDOBA,Presidente Roque Saenz Pena,2022/23,2470.0,2732.5,Random Forest,2522.5227,1
+soja,CORDOBA,Presidente Roque Saenz Pena,2023/24,3174.0,2982.0,Random Forest,178.8945,0
+soja,CORDOBA,Presidente Roque Saenz Pena,2024/25,2910.0,2887.5,Random Forest,213.8358,0
+soja,CORDOBA,Rio Cuarto,2021/22,2354.0,2559.8,Random Forest,123.9786,0
+soja,CORDOBA,Rio Cuarto,2022/23,1181.0,2731.5,Random Forest,889.1464,0
+soja,CORDOBA,Rio Cuarto,2023/24,2803.0,2812.0,Random Forest,133.4283,0
+soja,CORDOBA,Rio Cuarto,2024/25,2477.0,2799.6,Random Forest,167.5392,0
+soja,CORDOBA,Rio Primero,2021/22,3011.0,2746.1,Random Forest,142.2563,0
+soja,CORDOBA,Rio Primero,2022/23,1769.0,2904.1,Random Forest,1309.5067,0
+soja,CORDOBA,Rio Primero,2023/24,3408.0,2870.1,Random Forest,221.6544,0
+soja,CORDOBA,Rio Primero,2024/25,3558.0,3062.0,Random Forest,206.4536,0
+soja,CORDOBA,Rio Seco,2021/22,2874.0,2530.5,Random Forest,148.7987,0
+soja,CORDOBA,Rio Seco,2022/23,1285.0,2496.8,Random Forest,787.398,0
+soja,CORDOBA,Rio Seco,2023/24,2727.0,2667.9,Random Forest,272.1796,0
+soja,CORDOBA,Rio Seco,2024/25,2818.0,2734.1,Random Forest,246.2454,0
+soja,CORDOBA,Rio Segundo,2021/22,2597.0,2929.9,Random Forest,149.0271,0
+soja,CORDOBA,Rio Segundo,2022/23,1170.0,2853.3,Random Forest,1219.0237,0
+soja,CORDOBA,Rio Segundo,2023/24,2505.0,2768.8,Random Forest,189.8177,0
+soja,CORDOBA,Rio Segundo,2024/25,3121.0,2949.9,Random Forest,260.3363,0
+soja,CORDOBA,San Alberto,2021/22,2900.0,2363.8,Random Forest,123.1785,0
+soja,CORDOBA,San Alberto,2022/23,1000.0,2318.1,Random Forest,736.1569,0
+soja,CORDOBA,San Alberto,2023/24,3030.0,2855.0,Random Forest,174.4789,0
+soja,CORDOBA,San Alberto,2024/25,3200.0,2652.1,Random Forest,298.4144,0
+soja,CORDOBA,San Javier,2021/22,2978.0,2264.7,Random Forest,148.5308,0
+soja,CORDOBA,San Javier,2022/23,1709.0,2271.7,Random Forest,158.2484,0
+soja,CORDOBA,San Javier,2023/24,3054.0,2890.5,Random Forest,117.4437,0
+soja,CORDOBA,San Javier,2024/25,2873.0,2526.5,Random Forest,114.3873,0
+soja,CORDOBA,San Justo,2021/22,2963.0,2541.3,Random Forest,145.3803,0
+soja,CORDOBA,San Justo,2022/23,1500.0,2235.5,Random Forest,684.9959,0
+soja,CORDOBA,San Justo,2023/24,3278.0,2698.5,Random Forest,220.125,0
+soja,CORDOBA,San Justo,2024/25,3541.0,2818.5,Random Forest,228.51,0
+soja,CORDOBA,Santa Maria,2021/22,2384.0,2681.1,Random Forest,152.1317,0
+soja,CORDOBA,Santa Maria,2022/23,1190.0,2797.6,Random Forest,676.8166,0
+soja,CORDOBA,Santa Maria,2023/24,2398.0,2679.4,Random Forest,237.7688,0
+soja,CORDOBA,Santa Maria,2024/25,3182.0,2940.1,Random Forest,254.9897,0
+soja,CORDOBA,Tercero Arriba,2021/22,2426.0,2846.9,Random Forest,146.3921,0
+soja,CORDOBA,Tercero Arriba,2022/23,1286.0,2933.7,Random Forest,662.7804,0
+soja,CORDOBA,Tercero Arriba,2023/24,2487.0,2795.8,Random Forest,221.7538,0
+soja,CORDOBA,Tercero Arriba,2024/25,3438.0,3039.8,Random Forest,213.1034,0
+soja,CORDOBA,Totoral,2021/22,2906.0,2911.2,Random Forest,143.6325,0
+soja,CORDOBA,Totoral,2022/23,1483.0,2931.4,Random Forest,672.3236,0
+soja,CORDOBA,Totoral,2023/24,3012.0,2854.7,Random Forest,216.1502,0
+soja,CORDOBA,Totoral,2024/25,3185.0,3135.2,Random Forest,237.3893,0
+soja,CORDOBA,Tulumba,2021/22,2991.0,2349.9,Random Forest,147.984,0
+soja,CORDOBA,Tulumba,2022/23,1491.0,2229.0,Random Forest,667.7732,0
+soja,CORDOBA,Tulumba,2023/24,2934.0,2705.3,Random Forest,235.2648,0
+soja,CORDOBA,Tulumba,2024/25,3111.0,2503.2,Random Forest,304.5292,0
+soja,CORDOBA,Union,2021/22,3298.0,2953.9,Random Forest,125.5726,0
+soja,CORDOBA,Union,2022/23,1583.0,2434.1,Random Forest,3320.829,1
+soja,CORDOBA,Union,2023/24,3762.0,3280.6,Random Forest,264.9158,0
+soja,CORDOBA,Union,2024/25,3621.0,3009.2,Random Forest,198.6535,0
+soja,CORRIENTES,Bella Vista,2024/25,1107.0,1608.7,Random Forest,524.8056,0
+soja,CORRIENTES,Curuzu Cuatia,2021/22,1325.0,1550.1,Random Forest,114.0744,0
+soja,CORRIENTES,Curuzu Cuatia,2022/23,1291.0,1236.5,Random Forest,416.4881,0
+soja,CORRIENTES,Curuzu Cuatia,2023/24,2640.0,2192.5,Random Forest,482.338,0
+soja,CORRIENTES,Curuzu Cuatia,2024/25,1169.0,1542.0,Random Forest,235.4675,0
+soja,CORRIENTES,Esquina,2021/22,1500.0,1789.0,Random Forest,129.0921,0
+soja,CORRIENTES,Esquina,2022/23,1500.0,1254.5,Random Forest,314.9023,0
+soja,CORRIENTES,Esquina,2023/24,2700.0,2425.0,Random Forest,270.4692,0
+soja,CORRIENTES,Esquina,2024/25,1143.0,2072.6,Random Forest,321.7246,0
+soja,CORRIENTES,Ituzaingo,2022/23,1500.0,1793.1,Random Forest,277.3114,0
+soja,CORRIENTES,Sauce,2021/22,1394.0,2062.4,Random Forest,129.2953,0
+soja,CORRIENTES,Sauce,2022/23,1355.0,1361.6,Random Forest,365.7048,0
+soja,CORRIENTES,Sauce,2023/24,2504.0,2415.3,Random Forest,284.6246,0
+soja,CORRIENTES,Sauce,2024/25,1150.0,1870.1,Random Forest,162.6362,0
+soja,ENTRE RIOS,Colon,2021/22,2148.0,2126.3,Random Forest,163.3136,0
+soja,ENTRE RIOS,Colon,2022/23,817.0,1713.5,Random Forest,1933.3173,1
+soja,ENTRE RIOS,Colon,2023/24,2541.0,2303.4,Random Forest,250.1465,0
+soja,ENTRE RIOS,Colon,2024/25,2730.0,2352.8,Random Forest,154.1126,0
+soja,ENTRE RIOS,Concordia,2021/22,1977.0,2388.0,Random Forest,127.8773,0
+soja,ENTRE RIOS,Concordia,2022/23,1262.0,1700.0,Random Forest,684.3668,0
+soja,ENTRE RIOS,Concordia,2023/24,2593.0,2438.5,Random Forest,268.5335,0
+soja,ENTRE RIOS,Concordia,2024/25,2689.0,2289.6,Random Forest,135.6529,0
+soja,ENTRE RIOS,Diamante,2021/22,2350.0,2769.7,Random Forest,138.459,0
+soja,ENTRE RIOS,Diamante,2022/23,1130.0,1687.3,Random Forest,1571.2736,1
+soja,ENTRE RIOS,Diamante,2023/24,2382.0,2743.3,Random Forest,153.3747,0
+soja,ENTRE RIOS,Diamante,2024/25,2837.0,2682.4,Random Forest,184.8197,0
+soja,ENTRE RIOS,Federacion,2021/22,2037.0,2067.9,Random Forest,120.7367,0
+soja,ENTRE RIOS,Federacion,2022/23,1383.0,1569.3,Random Forest,493.5624,0
+soja,ENTRE RIOS,Federacion,2023/24,2624.0,2504.8,Random Forest,268.6039,0
+soja,ENTRE RIOS,Federacion,2024/25,2746.0,2100.9,Random Forest,155.4834,0
+soja,ENTRE RIOS,Federal,2021/22,2076.0,2211.6,Random Forest,122.9944,0
+soja,ENTRE RIOS,Federal,2022/23,1404.0,1513.1,Random Forest,502.095,0
+soja,ENTRE RIOS,Federal,2023/24,2679.0,2502.7,Random Forest,373.7048,0
+soja,ENTRE RIOS,Federal,2024/25,2720.0,2184.5,Random Forest,169.0623,0
+soja,ENTRE RIOS,Feliciano,2021/22,2060.0,2050.1,Random Forest,129.7446,0
+soja,ENTRE RIOS,Feliciano,2022/23,1241.0,1343.1,Random Forest,1058.152,0
+soja,ENTRE RIOS,Feliciano,2023/24,2520.0,2392.4,Random Forest,213.5442,0
+soja,ENTRE RIOS,Feliciano,2024/25,2666.0,2233.9,Random Forest,182.2823,0
+soja,ENTRE RIOS,Gualeguay,2021/22,2786.0,2597.4,Random Forest,123.4798,0
+soja,ENTRE RIOS,Gualeguay,2022/23,823.0,1806.0,Random Forest,2524.8604,1
+soja,ENTRE RIOS,Gualeguay,2023/24,2620.0,2538.1,Random Forest,236.5134,0
+soja,ENTRE RIOS,Gualeguay,2024/25,2761.0,2579.4,Random Forest,173.7559,0
+soja,ENTRE RIOS,Gualeguaychu,2021/22,2671.0,2408.4,Random Forest,159.1834,0
+soja,ENTRE RIOS,Gualeguaychu,2022/23,922.0,1454.6,Random Forest,3738.742,1
+soja,ENTRE RIOS,Gualeguaychu,2023/24,2589.0,2319.8,Random Forest,306.8395,0
+soja,ENTRE RIOS,Gualeguaychu,2024/25,2762.0,2404.0,Random Forest,190.8447,0
+soja,ENTRE RIOS,La Paz,2021/22,2095.0,2416.3,Random Forest,128.6554,0
+soja,ENTRE RIOS,La Paz,2022/23,1115.0,1564.3,Random Forest,473.4077,0
+soja,ENTRE RIOS,La Paz,2023/24,2407.0,2552.2,Random Forest,209.2663,0
+soja,ENTRE RIOS,La Paz,2024/25,2643.0,2375.6,Random Forest,166.5537,0
+soja,ENTRE RIOS,Nogoya,2021/22,2261.0,2256.4,Random Forest,148.8909,0
+soja,ENTRE RIOS,Nogoya,2022/23,884.0,1520.2,Random Forest,1606.2997,1
+soja,ENTRE RIOS,Nogoya,2023/24,2532.0,2394.1,Random Forest,188.4788,0
+soja,ENTRE RIOS,Nogoya,2024/25,2678.0,2379.8,Random Forest,156.2275,0
+soja,ENTRE RIOS,Parana,2021/22,2319.0,2533.5,Random Forest,139.6409,0
+soja,ENTRE RIOS,Parana,2022/23,1082.0,1341.9,Random Forest,1144.7783,0
+soja,ENTRE RIOS,Parana,2023/24,2466.0,2727.1,Random Forest,207.5902,0
+soja,ENTRE RIOS,Parana,2024/25,2706.0,2649.4,Random Forest,191.4504,0
+soja,ENTRE RIOS,San Salvador,2021/22,2126.0,2374.4,Random Forest,117.8324,0
+soja,ENTRE RIOS,San Salvador,2022/23,829.0,1275.2,Random Forest,1089.3156,0
+soja,ENTRE RIOS,San Salvador,2023/24,2175.0,2454.4,Random Forest,878.5454,0
+soja,ENTRE RIOS,San Salvador,2024/25,2640.0,2066.0,Random Forest,155.7789,0
+soja,ENTRE RIOS,Tala,2021/22,2336.0,2164.3,Random Forest,118.2201,0
+soja,ENTRE RIOS,Tala,2022/23,836.0,1820.2,Random Forest,710.5974,0
+soja,ENTRE RIOS,Tala,2023/24,2443.0,2280.8,Random Forest,268.2417,0
+soja,ENTRE RIOS,Tala,2024/25,2628.0,2233.8,Random Forest,130.7607,0
+soja,ENTRE RIOS,Uruguay,2021/22,2483.0,2182.1,Random Forest,134.2435,0
+soja,ENTRE RIOS,Uruguay,2022/23,834.0,1533.2,Random Forest,1358.5175,1
+soja,ENTRE RIOS,Uruguay,2023/24,2613.0,2298.4,Random Forest,238.359,0
+soja,ENTRE RIOS,Uruguay,2024/25,2637.0,2308.4,Random Forest,180.9712,0
+soja,ENTRE RIOS,Victoria,2021/22,2570.0,2705.2,Random Forest,144.955,0
+soja,ENTRE RIOS,Victoria,2022/23,933.0,2182.1,Random Forest,1938.028,1
+soja,ENTRE RIOS,Victoria,2023/24,2486.0,2716.0,Random Forest,210.0152,0
+soja,ENTRE RIOS,Victoria,2024/25,2623.0,2715.1,Random Forest,179.6645,0
+soja,ENTRE RIOS,Villaguay,2021/22,2306.0,2199.6,Random Forest,128.1491,0
+soja,ENTRE RIOS,Villaguay,2022/23,728.0,1299.3,Random Forest,1417.7751,1
+soja,ENTRE RIOS,Villaguay,2023/24,2161.0,2238.3,Random Forest,243.0624,0
+soja,ENTRE RIOS,Villaguay,2024/25,2646.0,2222.4,Random Forest,134.1842,0
+soja,FORMOSA,Laishi,2021/22,1468.0,2027.2,Random Forest,165.081,0
+soja,FORMOSA,Laishi,2022/23,1868.0,2260.9,Random Forest,220.8242,0
+soja,FORMOSA,Laishi,2023/24,1000.0,2452.5,Random Forest,201.4076,0
+soja,FORMOSA,Laishi,2024/25,1766.0,2177.7,Random Forest,293.4787,0
+soja,FORMOSA,Pilagas,2021/22,2100.0,1819.7,Random Forest,183.4568,0
+soja,FORMOSA,Pilagas,2022/23,2000.0,2331.0,Random Forest,204.9598,0
+soja,FORMOSA,Pilagas,2023/24,1000.0,2141.8,Random Forest,329.355,0
+soja,FORMOSA,Pilagas,2024/25,1800.0,2197.3,Random Forest,186.7668,0
+soja,FORMOSA,Pilcomayo,2021/22,2251.0,1715.5,Random Forest,184.7093,0
+soja,FORMOSA,Pilcomayo,2022/23,2000.0,2104.5,Random Forest,156.3789,0
+soja,FORMOSA,Pilcomayo,2023/24,1000.0,1707.7,Random Forest,565.326,0
+soja,FORMOSA,Pilcomayo,2024/25,1800.0,2072.0,Random Forest,158.4732,0
+soja,FORMOSA,Pirane,2021/22,2600.0,2042.9,Random Forest,237.5686,0
+soja,FORMOSA,Pirane,2022/23,1963.0,2267.4,Random Forest,200.4727,0
+soja,FORMOSA,Pirane,2023/24,1000.0,2371.5,Random Forest,371.275,0
+soja,FORMOSA,Pirane,2024/25,1753.0,2243.0,Random Forest,219.954,0
+soja,JUJUY,El Carmen,2021/22,2600.0,2591.8,Random Forest,374.3015,0
+soja,JUJUY,El Carmen,2022/23,1500.0,2384.3,Random Forest,756.5702,0
+soja,JUJUY,El Carmen,2023/24,2300.0,2463.8,Random Forest,254.0811,0
+soja,JUJUY,El Carmen,2024/25,2000.0,2510.2,Random Forest,119.2661,0
+soja,JUJUY,San Pedro,2021/22,2601.0,2669.5,Random Forest,136.5706,0
+soja,JUJUY,San Pedro,2022/23,1500.0,2418.3,Random Forest,3016.5698,1
+soja,JUJUY,San Pedro,2023/24,2300.0,2583.1,Random Forest,186.1887,0
+soja,JUJUY,San Pedro,2024/25,2000.0,2459.9,Random Forest,126.3726,0
+soja,JUJUY,Santa Barbara,2021/22,2322.0,2719.4,Random Forest,151.8889,0
+soja,JUJUY,Santa Barbara,2022/23,1500.0,2581.0,Random Forest,335.9844,0
+soja,JUJUY,Santa Barbara,2023/24,2300.0,2724.9,Random Forest,571.4284,0
+soja,JUJUY,Santa Barbara,2024/25,2000.0,2785.7,Random Forest,160.4094,0
+soja,LA PAMPA,Atreuco,2021/22,2574.0,1770.4,Random Forest,95.822,0
+soja,LA PAMPA,Atreuco,2022/23,1945.0,1798.2,Random Forest,129.4847,0
+soja,LA PAMPA,Atreuco,2023/24,2196.0,1880.9,Random Forest,99.1546,0
+soja,LA PAMPA,Atreuco,2024/25,2647.0,1511.7,Random Forest,92.1677,0
+soja,LA PAMPA,Capital,2021/22,2028.0,1688.9,Random Forest,98.2076,0
+soja,LA PAMPA,Capital,2022/23,1806.0,1702.9,Random Forest,215.4337,0
+soja,LA PAMPA,Capital,2023/24,2114.0,1678.3,Random Forest,84.1178,0
+soja,LA PAMPA,Capital,2024/25,2446.0,1723.1,Random Forest,97.5969,0
+soja,LA PAMPA,Catrilo,2021/22,2936.0,2097.4,Random Forest,120.9711,0
+soja,LA PAMPA,Catrilo,2022/23,2270.0,1947.5,Random Forest,408.7819,0
+soja,LA PAMPA,Catrilo,2023/24,2461.0,2083.5,Random Forest,93.2433,0
+soja,LA PAMPA,Catrilo,2024/25,2767.0,2499.0,Random Forest,123.8973,0
+soja,LA PAMPA,Chapaleufu,2021/22,3658.0,3105.8,Random Forest,95.0548,0
+soja,LA PAMPA,Chapaleufu,2022/23,2124.0,2760.4,Random Forest,1038.2755,0
+soja,LA PAMPA,Chapaleufu,2023/24,3772.0,2921.3,Random Forest,117.7222,0
+soja,LA PAMPA,Chapaleufu,2024/25,2870.0,2982.3,Random Forest,129.0313,0
+soja,LA PAMPA,Conhelo,2021/22,2489.0,2017.5,Random Forest,96.6597,0
+soja,LA PAMPA,Conhelo,2022/23,1544.0,2009.8,Random Forest,407.4817,0
+soja,LA PAMPA,Conhelo,2023/24,2723.0,2143.2,Random Forest,114.7782,0
+soja,LA PAMPA,Conhelo,2024/25,2180.0,2126.5,Random Forest,121.9935,0
+soja,LA PAMPA,Guatrache,2024/25,1000.0,1238.8,Random Forest,105.5341,0
+soja,LA PAMPA,Maraco,2021/22,3195.0,2733.2,Random Forest,91.1658,0
+soja,LA PAMPA,Maraco,2022/23,1871.0,2737.6,Random Forest,147.0215,0
+soja,LA PAMPA,Maraco,2023/24,3528.0,2632.5,Random Forest,98.092,0
+soja,LA PAMPA,Maraco,2024/25,2887.0,2707.9,Random Forest,101.1484,0
+soja,LA PAMPA,Quemu Quemu,2021/22,3210.0,2555.4,Random Forest,96.0503,0
+soja,LA PAMPA,Quemu Quemu,2022/23,1741.0,2326.6,Random Forest,728.0208,0
+soja,LA PAMPA,Quemu Quemu,2023/24,2968.0,2516.0,Random Forest,92.0037,0
+soja,LA PAMPA,Quemu Quemu,2024/25,2682.0,2444.0,Random Forest,107.8116,0
+soja,LA PAMPA,Rancul,2021/22,2770.0,2321.4,Random Forest,115.1916,0
+soja,LA PAMPA,Rancul,2022/23,1576.0,2150.0,Random Forest,741.4071,0
+soja,LA PAMPA,Rancul,2023/24,2773.0,2668.7,Random Forest,103.1089,0
+soja,LA PAMPA,Rancul,2024/25,2061.0,2578.9,Random Forest,121.2498,0
+soja,LA PAMPA,Realico,2021/22,3190.0,2414.0,Random Forest,93.9069,0
+soja,LA PAMPA,Realico,2022/23,1794.0,2268.0,Random Forest,509.318,0
+soja,LA PAMPA,Realico,2023/24,2997.0,2472.1,Random Forest,100.9413,0
+soja,LA PAMPA,Realico,2024/25,2162.0,2470.3,Random Forest,106.8766,0
+soja,LA PAMPA,Toay,2021/22,2149.0,1626.5,Random Forest,108.3199,0
+soja,LA PAMPA,Toay,2022/23,1446.0,1722.8,Random Forest,219.4011,0
+soja,LA PAMPA,Toay,2023/24,1400.0,1555.2,Random Forest,89.3543,0
+soja,LA PAMPA,Toay,2024/25,1620.0,1588.1,Random Forest,110.6397,0
+soja,LA PAMPA,Trenel,2021/22,2568.0,2212.0,Random Forest,99.7161,0
+soja,LA PAMPA,Trenel,2022/23,1466.0,2064.7,Random Forest,584.0282,0
+soja,LA PAMPA,Trenel,2023/24,2467.0,2252.6,Random Forest,113.2023,0
+soja,LA PAMPA,Trenel,2024/25,2092.0,2194.8,Random Forest,114.9508,0
+soja,LA PAMPA,Utracan,2021/22,1800.0,1675.7,Random Forest,119.745,0
+soja,LA PAMPA,Utracan,2022/23,1200.0,1070.8,Random Forest,1686.667,1
+soja,LA PAMPA,Utracan,2023/24,1200.0,1496.4,Random Forest,156.2006,0
+soja,LA PAMPA,Utracan,2024/25,1500.0,1367.9,Random Forest,107.9638,0
+soja,MISIONES,25 De Mayo,2021/22,1500.0,2397.4,Random Forest,124.9693,0
+soja,MISIONES,25 De Mayo,2022/23,2300.0,2398.3,Random Forest,2120.4702,1
+soja,MISIONES,25 De Mayo,2023/24,4000.0,2515.7,Random Forest,170.2795,0
+soja,MISIONES,25 De Mayo,2024/25,3500.0,2484.6,Random Forest,143.9254,0
+soja,MISIONES,Cainguas,2021/22,1511.0,2376.0,Random Forest,161.6592,0
+soja,MISIONES,Cainguas,2022/23,2300.0,2412.5,Random Forest,83.0468,0
+soja,MISIONES,Cainguas,2023/24,4000.0,2617.3,Random Forest,150.0974,0
+soja,MISIONES,Cainguas,2024/25,3500.0,2584.9,Random Forest,113.0564,0
+soja,MISIONES,General Manuel Belgrano,2021/22,1503.0,2629.7,Random Forest,200.665,0
+soja,MISIONES,General Manuel Belgrano,2022/23,2300.0,2571.6,Random Forest,163.4747,0
+soja,MISIONES,General Manuel Belgrano,2023/24,4000.0,2657.4,Random Forest,150.1239,0
+soja,MISIONES,General Manuel Belgrano,2024/25,3500.0,2599.5,Random Forest,122.8393,0
+soja,MISIONES,Guarani,2021/22,1500.0,2454.1,Random Forest,137.5222,0
+soja,MISIONES,Guarani,2022/23,2300.0,2465.4,Random Forest,79.1968,0
+soja,MISIONES,Guarani,2023/24,4000.0,2660.9,Random Forest,146.1351,0
+soja,MISIONES,Guarani,2024/25,3500.0,2573.9,Random Forest,124.6421,0
+soja,MISIONES,Leandro N. Alem,2021/22,1520.0,2211.8,Random Forest,116.2007,0
+soja,MISIONES,Leandro N. Alem,2022/23,2300.0,2385.0,Random Forest,2478.6746,1
+soja,MISIONES,Leandro N. Alem,2023/24,4000.0,2563.2,Random Forest,234.9728,0
+soja,MISIONES,Leandro N. Alem,2024/25,3500.0,2458.1,Random Forest,155.4467,0
+soja,MISIONES,Obera,2021/22,1500.0,2366.0,Random Forest,131.802,0
+soja,MISIONES,Obera,2022/23,2300.0,2445.1,Random Forest,83.6899,0
+soja,MISIONES,Obera,2023/24,4000.0,2664.8,Random Forest,124.3749,0
+soja,MISIONES,Obera,2024/25,3500.0,2528.6,Random Forest,119.6904,0
+soja,MISIONES,San Javier,2021/22,1500.0,1933.3,Random Forest,114.4671,0
+soja,MISIONES,San Javier,2022/23,2300.0,2041.6,Random Forest,126.2571,0
+soja,MISIONES,San Javier,2023/24,4000.0,2550.7,Random Forest,132.0466,0
+soja,MISIONES,San Javier,2024/25,3500.0,2492.4,Random Forest,148.4155,0
+soja,MISIONES,San Pedro,2021/22,1500.0,2643.8,Random Forest,130.0384,0
+soja,MISIONES,San Pedro,2022/23,2300.0,2441.2,Random Forest,3108.9192,1
+soja,MISIONES,San Pedro,2023/24,4000.0,2605.3,Random Forest,177.3236,0
+soja,MISIONES,San Pedro,2024/25,3500.0,2541.0,Random Forest,157.3226,0
+soja,SALTA,Anta,2021/22,1751.0,2611.2,Random Forest,170.6988,0
+soja,SALTA,Anta,2022/23,1769.0,2571.8,Random Forest,772.7418,0
+soja,SALTA,Anta,2023/24,2295.0,2724.8,Random Forest,387.0167,0
+soja,SALTA,Anta,2024/25,2397.0,2716.2,Random Forest,210.3352,0
+soja,SALTA,General Guemes,2021/22,1779.0,2514.6,Random Forest,215.6188,0
+soja,SALTA,General Guemes,2022/23,1552.0,2444.6,Random Forest,907.9292,0
+soja,SALTA,General Guemes,2023/24,2350.0,2519.5,Random Forest,222.9288,0
+soja,SALTA,General Guemes,2024/25,2400.0,2547.7,Random Forest,112.8658,0
+soja,SALTA,General Jose De San Martin,2021/22,1528.0,2527.3,Random Forest,123.2774,0
+soja,SALTA,General Jose De San Martin,2022/23,1463.0,2337.7,Random Forest,287.8922,0
+soja,SALTA,General Jose De San Martin,2023/24,2144.0,2510.2,Random Forest,284.0687,0
+soja,SALTA,General Jose De San Martin,2024/25,2299.0,2495.1,Random Forest,145.2683,0
+soja,SALTA,La Candelaria,2021/22,1611.0,2450.0,Random Forest,162.3531,0
+soja,SALTA,La Candelaria,2022/23,1624.0,2443.8,Random Forest,552.9387,0
+soja,SALTA,La Candelaria,2023/24,2241.0,2536.1,Random Forest,240.597,0
+soja,SALTA,La Candelaria,2024/25,2500.0,2505.7,Random Forest,216.9328,0
+soja,SALTA,Metan,2021/22,1766.0,2625.4,Random Forest,169.2711,0
+soja,SALTA,Metan,2022/23,1739.0,2454.8,Random Forest,779.4976,0
+soja,SALTA,Metan,2023/24,2437.0,2611.3,Random Forest,202.9196,0
+soja,SALTA,Metan,2024/25,2491.0,2646.1,Random Forest,152.6727,0
+soja,SALTA,Oran,2021/22,1509.0,2504.3,Random Forest,191.1228,0
+soja,SALTA,Oran,2022/23,1434.0,2220.3,Random Forest,864.4362,0
+soja,SALTA,Oran,2023/24,2041.0,2529.7,Random Forest,549.7876,0
+soja,SALTA,Oran,2024/25,2390.0,2480.6,Random Forest,201.3409,0
+soja,SALTA,Rosario De La Frontera,2021/22,1744.0,2575.4,Random Forest,163.0277,0
+soja,SALTA,Rosario De La Frontera,2022/23,1741.0,2454.7,Random Forest,858.0814,0
+soja,SALTA,Rosario De La Frontera,2023/24,2340.0,2606.2,Random Forest,207.1401,0
+soja,SALTA,Rosario De La Frontera,2024/25,2498.0,2655.4,Random Forest,255.1445,0
+soja,SAN LUIS,Chacabuco,2021/22,1800.0,1988.4,Random Forest,136.058,0
+soja,SAN LUIS,Chacabuco,2022/23,1000.0,2134.2,Random Forest,8429.399,1
+soja,SAN LUIS,Chacabuco,2023/24,1700.0,2468.3,Random Forest,256.5334,0
+soja,SAN LUIS,Chacabuco,2024/25,1590.0,2008.6,Random Forest,194.7198,0
+soja,SANTA FE,9 De Julio,2021/22,2302.0,2296.4,Random Forest,122.7542,0
+soja,SANTA FE,9 De Julio,2022/23,1683.0,2031.8,Random Forest,3411.0068,1
+soja,SANTA FE,9 De Julio,2023/24,1247.0,2453.5,Random Forest,176.7182,0
+soja,SANTA FE,9 De Julio,2024/25,1984.0,2437.5,Random Forest,152.9411,0
+soja,SANTA FE,Belgrano,2021/22,3349.0,3087.7,Random Forest,147.9432,0
+soja,SANTA FE,Belgrano,2022/23,1720.0,2790.6,Random Forest,2117.0833,1
+soja,SANTA FE,Belgrano,2023/24,3891.0,3268.4,Random Forest,180.632,0
+soja,SANTA FE,Belgrano,2024/25,4008.0,3105.1,Random Forest,200.2534,0
+soja,SANTA FE,Caseros,2021/22,2392.0,3006.9,Random Forest,140.4145,0
+soja,SANTA FE,Caseros,2022/23,1477.0,2753.0,Random Forest,2081.2915,1
+soja,SANTA FE,Caseros,2023/24,3824.0,3330.8,Random Forest,223.9661,0
+soja,SANTA FE,Caseros,2024/25,3763.0,3144.3,Random Forest,163.2034,0
+soja,SANTA FE,Castellanos,2021/22,3447.0,2896.0,Random Forest,142.3193,0
+soja,SANTA FE,Castellanos,2022/23,2243.0,2135.4,Random Forest,1285.0798,0
+soja,SANTA FE,Castellanos,2023/24,4103.0,3053.3,Random Forest,184.0586,0
+soja,SANTA FE,Castellanos,2024/25,4003.0,2828.3,Random Forest,258.4456,0
+soja,SANTA FE,Garay,2021/22,2600.0,2351.1,Random Forest,141.4814,0
+soja,SANTA FE,Garay,2022/23,1525.0,1790.2,Random Forest,1509.4552,1
+soja,SANTA FE,Garay,2023/24,3141.0,2550.4,Random Forest,223.5997,0
+soja,SANTA FE,Garay,2024/25,2210.0,2381.0,Random Forest,177.5872,0
+soja,SANTA FE,General Lopez,2021/22,3488.0,3344.9,Random Forest,118.5917,0
+soja,SANTA FE,General Lopez,2022/23,1461.0,2499.2,Random Forest,3162.9114,1
+soja,SANTA FE,General Lopez,2023/24,3364.0,3349.4,Random Forest,990.6805,0
+soja,SANTA FE,General Lopez,2024/25,3168.0,3132.8,Random Forest,155.2316,0
+soja,SANTA FE,General Obligado,2021/22,1423.0,1595.8,Random Forest,131.1098,0
+soja,SANTA FE,General Obligado,2022/23,891.0,1625.4,Random Forest,289.607,0
+soja,SANTA FE,General Obligado,2023/24,1691.0,1980.7,Random Forest,143.827,0
+soja,SANTA FE,General Obligado,2024/25,1092.0,1383.0,Random Forest,227.623,0
+soja,SANTA FE,Iriondo,2021/22,3154.0,3029.1,Random Forest,144.282,0
+soja,SANTA FE,Iriondo,2022/23,1629.0,2105.9,Random Forest,2211.0261,1
+soja,SANTA FE,Iriondo,2023/24,3881.0,3345.0,Random Forest,246.3201,0
+soja,SANTA FE,Iriondo,2024/25,3921.0,3126.1,Random Forest,172.9191,0
+soja,SANTA FE,La Capital,2021/22,2527.0,2255.9,Random Forest,148.8789,0
+soja,SANTA FE,La Capital,2022/23,1529.0,1689.1,Random Forest,1816.7756,1
+soja,SANTA FE,La Capital,2023/24,3575.0,2746.4,Random Forest,223.4819,0
+soja,SANTA FE,La Capital,2024/25,3561.0,2572.2,Random Forest,167.1871,0
+soja,SANTA FE,Las Colonias,2021/22,3278.0,2829.2,Random Forest,117.2471,0
+soja,SANTA FE,Las Colonias,2022/23,2246.0,1500.9,Random Forest,1588.2708,1
+soja,SANTA FE,Las Colonias,2023/24,3919.0,2860.2,Random Forest,234.548,0
+soja,SANTA FE,Las Colonias,2024/25,3775.0,2482.9,Random Forest,190.1141,0
+soja,SANTA FE,Rosario,2021/22,1769.0,2380.6,Random Forest,140.3335,0
+soja,SANTA FE,Rosario,2022/23,1130.0,1771.3,Random Forest,1985.56,1
+soja,SANTA FE,Rosario,2023/24,3472.0,3013.7,Random Forest,161.0069,0
+soja,SANTA FE,Rosario,2024/25,3703.0,2953.8,Random Forest,138.6003,0
+soja,SANTA FE,San Cristobal,2021/22,2835.0,2371.4,Random Forest,122.1304,0
+soja,SANTA FE,San Cristobal,2022/23,1361.0,2158.9,Random Forest,725.199,0
+soja,SANTA FE,San Cristobal,2023/24,3322.0,2675.6,Random Forest,124.6619,0
+soja,SANTA FE,San Cristobal,2024/25,2041.0,1982.3,Random Forest,210.1848,0
+soja,SANTA FE,San Javier,2021/22,1770.0,1898.6,Random Forest,132.3754,0
+soja,SANTA FE,San Javier,2022/23,791.0,1679.7,Random Forest,135.5579,0
+soja,SANTA FE,San Javier,2023/24,1936.0,1907.8,Random Forest,137.5501,0
+soja,SANTA FE,San Javier,2024/25,1498.0,1905.3,Random Forest,153.7732,0
+soja,SANTA FE,San Jeronimo,2021/22,2811.0,2746.1,Random Forest,126.0588,0
+soja,SANTA FE,San Jeronimo,2022/23,1221.0,1732.1,Random Forest,366.334,0
+soja,SANTA FE,San Jeronimo,2023/24,3835.0,3199.4,Random Forest,178.7462,0
+soja,SANTA FE,San Jeronimo,2024/25,3775.0,2828.9,Random Forest,169.4232,0
+soja,SANTA FE,San Justo,2021/22,2600.0,2534.9,Random Forest,139.3506,0
+soja,SANTA FE,San Justo,2022/23,1499.0,2227.6,Random Forest,566.4015,0
+soja,SANTA FE,San Justo,2023/24,3491.0,2680.6,Random Forest,202.4756,0
+soja,SANTA FE,San Justo,2024/25,3106.0,2475.9,Random Forest,245.9394,0
+soja,SANTA FE,San Lorenzo,2021/22,2022.0,2916.0,Random Forest,149.7237,0
+soja,SANTA FE,San Lorenzo,2022/23,1377.0,2062.9,Random Forest,2266.5007,1
+soja,SANTA FE,San Lorenzo,2023/24,3781.0,3287.1,Random Forest,134.049,0
+soja,SANTA FE,San Lorenzo,2024/25,3785.0,3091.3,Random Forest,164.0558,0
+soja,SANTA FE,San Martin,2021/22,3080.0,3086.6,Random Forest,121.4159,0
+soja,SANTA FE,San Martin,2022/23,1353.0,2216.1,Random Forest,1391.7053,1
+soja,SANTA FE,San Martin,2023/24,3902.0,3255.2,Random Forest,210.0724,0
+soja,SANTA FE,San Martin,2024/25,4007.0,3078.6,Random Forest,177.7231,0
+soja,SANTA FE,Vera,2021/22,1752.0,2422.0,Random Forest,128.8395,0
+soja,SANTA FE,Vera,2022/23,663.0,2176.0,Random Forest,362.3229,0
+soja,SANTA FE,Vera,2023/24,2127.0,2889.4,Random Forest,151.8541,0
+soja,SANTA FE,Vera,2024/25,1497.0,2108.7,Random Forest,186.7847,0
+soja,SANTIAGO DEL ESTERO,Aguirre,2021/22,2800.0,1913.0,Random Forest,194.1952,0
+soja,SANTIAGO DEL ESTERO,Aguirre,2022/23,2423.0,1918.4,Random Forest,783.922,0
+soja,SANTIAGO DEL ESTERO,Aguirre,2023/24,2351.0,1942.9,Random Forest,879.7836,0
+soja,SANTIAGO DEL ESTERO,Aguirre,2024/25,2368.0,2200.0,Random Forest,170.1541,0
+soja,SANTIAGO DEL ESTERO,Alberdi,2021/22,3279.0,2888.6,Random Forest,141.5067,0
+soja,SANTIAGO DEL ESTERO,Alberdi,2022/23,2728.0,2442.9,Random Forest,496.4768,0
+soja,SANTIAGO DEL ESTERO,Alberdi,2023/24,1767.0,2704.8,Random Forest,181.1619,0
+soja,SANTIAGO DEL ESTERO,Alberdi,2024/25,700.0,2389.0,Random Forest,129.1687,0
+soja,SANTIAGO DEL ESTERO,Banda,2021/22,2500.0,2372.6,Random Forest,103.8819,0
+soja,SANTIAGO DEL ESTERO,Banda,2022/23,1500.0,2166.7,Random Forest,480.6736,0
+soja,SANTIAGO DEL ESTERO,Banda,2023/24,3010.0,2107.7,Random Forest,283.1341,0
+soja,SANTIAGO DEL ESTERO,Banda,2024/25,2657.0,2227.7,Random Forest,160.3668,0
+soja,SANTIAGO DEL ESTERO,Belgrano,2021/22,3200.0,2130.4,Random Forest,155.038,0
+soja,SANTIAGO DEL ESTERO,Belgrano,2022/23,2743.0,2355.4,Random Forest,1744.5198,1
+soja,SANTIAGO DEL ESTERO,Belgrano,2023/24,2886.0,2657.1,Random Forest,208.0983,0
+soja,SANTIAGO DEL ESTERO,Belgrano,2024/25,3283.0,2613.7,Random Forest,202.1939,0
+soja,SANTIAGO DEL ESTERO,Capital,2021/22,2500.0,2503.1,Random Forest,164.2916,0
+soja,SANTIAGO DEL ESTERO,Capital,2022/23,1500.0,2185.3,Random Forest,392.137,0
+soja,SANTIAGO DEL ESTERO,Capital,2023/24,3038.0,2401.6,Random Forest,151.6536,0
+soja,SANTIAGO DEL ESTERO,Capital,2024/25,2340.0,2502.1,Random Forest,186.4037,0
+soja,SANTIAGO DEL ESTERO,Choya,2021/22,2500.0,2364.5,Random Forest,153.5471,0
+soja,SANTIAGO DEL ESTERO,Choya,2022/23,1500.0,1603.6,Random Forest,381.097,0
+soja,SANTIAGO DEL ESTERO,Choya,2023/24,3066.0,2133.3,Random Forest,173.6946,0
+soja,SANTIAGO DEL ESTERO,Choya,2024/25,2329.0,1903.1,Random Forest,151.7508,0
+soja,SANTIAGO DEL ESTERO,Copo,2021/22,2993.0,2839.1,Random Forest,129.9651,0
+soja,SANTIAGO DEL ESTERO,Copo,2022/23,2564.0,2357.5,Random Forest,657.6432,0
+soja,SANTIAGO DEL ESTERO,Copo,2023/24,2286.0,2714.1,Random Forest,223.2035,0
+soja,SANTIAGO DEL ESTERO,Copo,2024/25,1095.0,2602.1,Random Forest,122.7788,0
+soja,SANTIAGO DEL ESTERO,Figueroa,2021/22,2500.0,2221.3,Random Forest,153.1771,0
+soja,SANTIAGO DEL ESTERO,Figueroa,2022/23,1500.0,1640.4,Random Forest,362.1585,0
+soja,SANTIAGO DEL ESTERO,Figueroa,2023/24,3044.0,1945.5,Random Forest,154.2688,0
+soja,SANTIAGO DEL ESTERO,Figueroa,2024/25,2300.0,2111.5,Random Forest,249.3927,0
+soja,SANTIAGO DEL ESTERO,General Taboada,2021/22,3200.0,2770.3,Random Forest,164.0884,0
+soja,SANTIAGO DEL ESTERO,General Taboada,2022/23,2601.0,2565.6,Random Forest,605.3162,0
+soja,SANTIAGO DEL ESTERO,General Taboada,2023/24,2860.0,2793.8,Random Forest,269.6948,0
+soja,SANTIAGO DEL ESTERO,General Taboada,2024/25,3273.0,2902.0,Random Forest,119.067,0
+soja,SANTIAGO DEL ESTERO,Guasayan,2021/22,2500.0,2273.5,Random Forest,125.0986,0
+soja,SANTIAGO DEL ESTERO,Guasayan,2022/23,1500.0,2054.5,Random Forest,367.4047,0
+soja,SANTIAGO DEL ESTERO,Guasayan,2023/24,3300.0,2087.1,Random Forest,256.1222,0
+soja,SANTIAGO DEL ESTERO,Guasayan,2024/25,2700.0,2154.9,Random Forest,182.8848,0
+soja,SANTIAGO DEL ESTERO,Jimenez,2021/22,2500.0,2639.2,Random Forest,186.4602,0
+soja,SANTIAGO DEL ESTERO,Jimenez,2022/23,1735.0,2188.2,Random Forest,718.1767,0
+soja,SANTIAGO DEL ESTERO,Jimenez,2023/24,3489.0,2709.9,Random Forest,192.656,0
+soja,SANTIAGO DEL ESTERO,Jimenez,2024/25,2806.0,2609.5,Random Forest,232.1124,0
+soja,SANTIAGO DEL ESTERO,Juan F. Ibarra,2021/22,3261.0,2636.4,Random Forest,101.6356,0
+soja,SANTIAGO DEL ESTERO,Juan F. Ibarra,2022/23,2764.0,1947.2,Random Forest,324.6064,0
+soja,SANTIAGO DEL ESTERO,Juan F. Ibarra,2023/24,2879.0,2735.8,Random Forest,218.0658,0
+soja,SANTIAGO DEL ESTERO,Juan F. Ibarra,2024/25,2314.0,2667.3,Random Forest,117.012,0
+soja,SANTIAGO DEL ESTERO,Mitre,2021/22,2500.0,2169.4,Random Forest,97.5176,0
+soja,SANTIAGO DEL ESTERO,Mitre,2022/23,1500.0,2042.2,Random Forest,400.9523,0
+soja,SANTIAGO DEL ESTERO,Mitre,2023/24,3786.0,2012.5,Random Forest,250.0384,0
+soja,SANTIAGO DEL ESTERO,Mitre,2024/25,2500.0,1948.2,Random Forest,109.2648,0
+soja,SANTIAGO DEL ESTERO,Moreno,2021/22,3359.0,2780.0,Random Forest,143.2109,0
+soja,SANTIAGO DEL ESTERO,Moreno,2022/23,2857.0,2175.2,Random Forest,411.6404,0
+soja,SANTIAGO DEL ESTERO,Moreno,2023/24,2318.0,2264.6,Random Forest,258.039,0
+soja,SANTIAGO DEL ESTERO,Moreno,2024/25,1134.0,2101.0,Random Forest,194.3778,0
+soja,SANTIAGO DEL ESTERO,Pellegrini,2021/22,2500.0,2704.7,Random Forest,117.8598,0
+soja,SANTIAGO DEL ESTERO,Pellegrini,2022/23,1629.0,2302.4,Random Forest,446.5768,0
+soja,SANTIAGO DEL ESTERO,Pellegrini,2023/24,3900.0,2718.5,Random Forest,191.5555,0
+soja,SANTIAGO DEL ESTERO,Pellegrini,2024/25,2796.0,2570.6,Random Forest,145.485,0
+soja,SANTIAGO DEL ESTERO,Rio Hondo,2021/22,2500.0,2711.7,Random Forest,118.6767,0
+soja,SANTIAGO DEL ESTERO,Rio Hondo,2022/23,1500.0,2444.3,Random Forest,540.4146,0
+soja,SANTIAGO DEL ESTERO,Rio Hondo,2023/24,3472.0,2543.0,Random Forest,233.557,0
+soja,SANTIAGO DEL ESTERO,Rio Hondo,2024/25,2623.0,2693.9,Random Forest,151.7478,0
+soja,SANTIAGO DEL ESTERO,Rivadavia,2021/22,3199.0,2149.0,Random Forest,142.3422,0
+soja,SANTIAGO DEL ESTERO,Rivadavia,2022/23,2660.0,1309.6,Random Forest,2853.1155,1
+soja,SANTIAGO DEL ESTERO,Rivadavia,2023/24,2581.0,2677.7,Random Forest,188.1907,0
+soja,SANTIAGO DEL ESTERO,Rivadavia,2024/25,2652.0,2123.1,Random Forest,134.3619,0
+soja,SANTIAGO DEL ESTERO,Robles,2021/22,2500.0,2442.7,Random Forest,129.2402,0
+soja,SANTIAGO DEL ESTERO,Robles,2022/23,1500.0,2147.9,Random Forest,732.5332,0
+soja,SANTIAGO DEL ESTERO,Robles,2023/24,3492.0,2165.9,Random Forest,264.7388,0
+soja,SANTIAGO DEL ESTERO,Robles,2024/25,2840.0,2437.8,Random Forest,138.2992,0
+soja,SANTIAGO DEL ESTERO,San Martin,2021/22,2500.0,2393.9,Random Forest,123.2393,0
+soja,SANTIAGO DEL ESTERO,San Martin,2022/23,1500.0,1614.4,Random Forest,2064.7214,1
+soja,SANTIAGO DEL ESTERO,San Martin,2023/24,3470.0,2645.2,Random Forest,316.4824,0
+soja,SANTIAGO DEL ESTERO,San Martin,2024/25,2575.0,2393.6,Random Forest,218.2314,0
+soja,TUCUMAN,Burruyacu,2021/22,1800.0,2648.4,Random Forest,160.8602,0
+soja,TUCUMAN,Burruyacu,2022/23,1300.0,2582.6,Random Forest,439.3346,0
+soja,TUCUMAN,Burruyacu,2023/24,3000.0,2707.7,Random Forest,246.8887,0
+soja,TUCUMAN,Burruyacu,2024/25,2598.0,2868.5,Random Forest,356.78,0
+soja,TUCUMAN,Chicligasta,2021/22,2300.0,2723.4,Random Forest,148.4221,0
+soja,TUCUMAN,Chicligasta,2022/23,1700.0,2757.8,Random Forest,372.6848,0
+soja,TUCUMAN,Chicligasta,2023/24,3100.0,2677.7,Random Forest,218.7608,0
+soja,TUCUMAN,Chicligasta,2024/25,2700.0,2707.0,Random Forest,182.974,0
+soja,TUCUMAN,Cruz Alta,2021/22,1900.0,2704.4,Random Forest,206.1832,0
+soja,TUCUMAN,Cruz Alta,2022/23,1500.0,2713.4,Random Forest,433.4054,0
+soja,TUCUMAN,Cruz Alta,2023/24,3100.0,2590.6,Random Forest,230.6078,0
+soja,TUCUMAN,Cruz Alta,2024/25,2684.0,2785.9,Random Forest,357.0991,0
+soja,TUCUMAN,Famailla,2021/22,2300.0,2709.1,Random Forest,272.7338,0
+soja,TUCUMAN,Famailla,2022/23,1800.0,2755.7,Random Forest,441.9192,0
+soja,TUCUMAN,Famailla,2023/24,3200.0,2868.0,Random Forest,396.2637,0
+soja,TUCUMAN,Famailla,2024/25,2800.0,3018.7,Random Forest,206.3679,0
+soja,TUCUMAN,Graneros,2021/22,1700.0,2581.2,Random Forest,151.4921,0
+soja,TUCUMAN,Graneros,2022/23,1400.0,2524.7,Random Forest,318.1242,0
+soja,TUCUMAN,Graneros,2023/24,2900.0,2703.2,Random Forest,207.4875,0
+soja,TUCUMAN,Graneros,2024/25,2539.0,2594.4,Random Forest,219.9053,0
+soja,TUCUMAN,La Cocha,2021/22,1844.0,2614.6,Random Forest,147.742,0
+soja,TUCUMAN,La Cocha,2022/23,1500.0,2701.2,Random Forest,251.9981,0
+soja,TUCUMAN,La Cocha,2023/24,3000.0,2737.8,Random Forest,220.843,0
+soja,TUCUMAN,La Cocha,2024/25,2519.0,2868.7,Random Forest,152.2189,0
+soja,TUCUMAN,Leales,2021/22,1800.0,2783.1,Random Forest,183.4835,0
+soja,TUCUMAN,Leales,2022/23,1300.0,2777.2,Random Forest,620.6758,0
+soja,TUCUMAN,Leales,2023/24,2900.0,2614.4,Random Forest,266.6344,0
+soja,TUCUMAN,Leales,2024/25,2540.0,2733.0,Random Forest,390.0111,0
+soja,TUCUMAN,Lules,2021/22,2400.0,2820.3,Random Forest,283.04,0
+soja,TUCUMAN,Lules,2022/23,2000.0,2795.2,Random Forest,328.137,0
+soja,TUCUMAN,Lules,2023/24,3200.0,2890.3,Random Forest,245.0574,0
+soja,TUCUMAN,Lules,2024/25,2800.0,3030.9,Random Forest,196.3079,0
+soja,TUCUMAN,Monteros,2021/22,2300.0,2704.9,Random Forest,250.3551,0
+soja,TUCUMAN,Monteros,2022/23,1900.0,2727.1,Random Forest,361.6046,0
+soja,TUCUMAN,Monteros,2023/24,3300.0,2834.7,Random Forest,236.3062,0
+soja,TUCUMAN,Monteros,2024/25,2600.0,2940.3,Random Forest,161.969,0
+soja,TUCUMAN,Rio Chico,2021/22,2200.0,2636.7,Random Forest,202.8058,0
+soja,TUCUMAN,Rio Chico,2022/23,1900.0,2602.0,Random Forest,667.0174,0
+soja,TUCUMAN,Rio Chico,2023/24,3300.0,2679.7,Random Forest,217.3431,0
+soja,TUCUMAN,Rio Chico,2024/25,2700.0,2848.1,Random Forest,229.3247,0
+soja,TUCUMAN,Simoca,2021/22,2000.0,2676.4,Random Forest,156.1481,0
+soja,TUCUMAN,Simoca,2022/23,1500.0,2699.8,Random Forest,354.013,0
+soja,TUCUMAN,Simoca,2023/24,3000.0,2720.6,Random Forest,195.3491,0
+soja,TUCUMAN,Simoca,2024/25,2660.0,2876.9,Random Forest,181.405,0
+soja,TUCUMAN,Tafi Viejo,2021/22,2000.0,2722.4,Random Forest,191.4477,0
+soja,TUCUMAN,Tafi Viejo,2022/23,1500.0,2689.4,Random Forest,444.7814,0
+soja,TUCUMAN,Tafi Viejo,2023/24,3100.0,2722.9,Random Forest,206.9708,0
+soja,TUCUMAN,Tafi Viejo,2024/25,2800.0,2811.8,Random Forest,315.3087,0
+maiz,BUENOS AIRES,25 De Mayo,2021/22,7350.0,7398.3,HistGBM,169.5945,0
+maiz,BUENOS AIRES,25 De Mayo,2022/23,4890.0,7291.3,HistGBM,3342.4998,1
+maiz,BUENOS AIRES,25 De Mayo,2023/24,7150.0,8652.9,HistGBM,103.9793,0
+maiz,BUENOS AIRES,25 De Mayo,2024/25,7460.0,7708.8,HistGBM,232.9012,0
+maiz,BUENOS AIRES,9 De Julio,2021/22,8000.0,8037.7,HistGBM,164.8101,0
+maiz,BUENOS AIRES,9 De Julio,2022/23,4000.0,7887.6,HistGBM,3070.0696,1
+maiz,BUENOS AIRES,9 De Julio,2023/24,8000.0,8855.5,HistGBM,122.976,0
+maiz,BUENOS AIRES,9 De Julio,2024/25,8500.0,8099.7,HistGBM,287.839,0
+maiz,BUENOS AIRES,Adolfo Alsina,2021/22,7200.0,5780.6,HistGBM,202.9836,0
+maiz,BUENOS AIRES,Adolfo Alsina,2022/23,5500.0,5306.7,HistGBM,7288.0815,1
+maiz,BUENOS AIRES,Adolfo Alsina,2023/24,6500.0,6129.2,HistGBM,102.8998,0
+maiz,BUENOS AIRES,Adolfo Alsina,2024/25,6500.0,5387.8,HistGBM,244.9223,0
+maiz,BUENOS AIRES,Adolfo Gonzales Chaves,2021/22,3500.0,5691.2,HistGBM,209.4882,0
+maiz,BUENOS AIRES,Adolfo Gonzales Chaves,2022/23,4600.0,5312.2,HistGBM,406.5328,0
+maiz,BUENOS AIRES,Adolfo Gonzales Chaves,2023/24,6000.0,6551.8,HistGBM,96.7083,0
+maiz,BUENOS AIRES,Adolfo Gonzales Chaves,2024/25,6000.0,6079.2,HistGBM,338.587,0
+maiz,BUENOS AIRES,Alberti,2021/22,8000.0,7826.5,HistGBM,203.3006,0
+maiz,BUENOS AIRES,Alberti,2022/23,3000.0,8208.1,HistGBM,5169.335,1
+maiz,BUENOS AIRES,Alberti,2023/24,8000.0,8896.0,HistGBM,118.8954,0
+maiz,BUENOS AIRES,Alberti,2024/25,8500.0,7886.0,HistGBM,305.0702,0
+maiz,BUENOS AIRES,Arrecifes,2021/22,6750.0,7315.4,HistGBM,206.7104,0
+maiz,BUENOS AIRES,Arrecifes,2022/23,4600.0,6411.7,HistGBM,4354.2095,1
+maiz,BUENOS AIRES,Arrecifes,2023/24,8800.0,9250.7,HistGBM,117.0753,0
+maiz,BUENOS AIRES,Arrecifes,2024/25,8000.0,7059.8,HistGBM,240.2955,0
+maiz,BUENOS AIRES,Ayacucho,2021/22,6800.0,5854.6,HistGBM,160.1215,0
+maiz,BUENOS AIRES,Ayacucho,2022/23,5000.0,6626.3,HistGBM,595.6621,0
+maiz,BUENOS AIRES,Ayacucho,2023/24,6500.0,7496.9,HistGBM,122.4297,0
+maiz,BUENOS AIRES,Ayacucho,2024/25,5800.0,6334.4,HistGBM,288.0246,0
+maiz,BUENOS AIRES,Azul,2021/22,6600.0,5916.3,HistGBM,181.7873,0
+maiz,BUENOS AIRES,Azul,2022/23,5700.0,6793.7,HistGBM,361.3809,0
+maiz,BUENOS AIRES,Azul,2023/24,7000.0,7755.5,HistGBM,118.0828,0
+maiz,BUENOS AIRES,Azul,2024/25,5500.0,5864.7,HistGBM,398.4838,0
+maiz,BUENOS AIRES,Balcarce,2021/22,6700.0,6234.8,HistGBM,204.9833,0
+maiz,BUENOS AIRES,Balcarce,2022/23,6200.0,7412.1,HistGBM,370.5802,0
+maiz,BUENOS AIRES,Balcarce,2023/24,7000.0,8264.7,HistGBM,118.6413,0
+maiz,BUENOS AIRES,Balcarce,2024/25,6500.0,8076.6,HistGBM,240.62,0
+maiz,BUENOS AIRES,Baradero,2021/22,6700.0,6993.2,HistGBM,188.3301,0
+maiz,BUENOS AIRES,Baradero,2022/23,4400.0,6069.7,HistGBM,6054.204,1
+maiz,BUENOS AIRES,Baradero,2023/24,8900.0,8395.7,HistGBM,136.7487,0
+maiz,BUENOS AIRES,Baradero,2024/25,7800.0,6444.8,HistGBM,271.1694,0
+maiz,BUENOS AIRES,Benito Juarez,2021/22,6500.0,6233.3,HistGBM,197.2449,0
+maiz,BUENOS AIRES,Benito Juarez,2022/23,5000.0,6579.4,HistGBM,385.9604,0
+maiz,BUENOS AIRES,Benito Juarez,2023/24,6000.0,7500.6,HistGBM,116.457,0
+maiz,BUENOS AIRES,Benito Juarez,2024/25,5000.0,6493.1,HistGBM,345.4033,0
+maiz,BUENOS AIRES,Bolivar,2021/22,8500.0,6716.8,HistGBM,208.5152,0
+maiz,BUENOS AIRES,Bolivar,2022/23,6500.0,7375.4,HistGBM,6854.3687,1
+maiz,BUENOS AIRES,Bolivar,2023/24,7000.0,8200.6,HistGBM,122.531,0
+maiz,BUENOS AIRES,Bolivar,2024/25,7000.0,6830.3,HistGBM,301.8289,0
+maiz,BUENOS AIRES,Bragado,2021/22,8000.0,7527.2,HistGBM,200.6303,0
+maiz,BUENOS AIRES,Bragado,2022/23,3500.0,7652.9,HistGBM,5048.3657,1
+maiz,BUENOS AIRES,Bragado,2023/24,8000.0,8998.6,HistGBM,127.3498,0
+maiz,BUENOS AIRES,Bragado,2024/25,8500.0,8607.1,HistGBM,273.302,0
+maiz,BUENOS AIRES,Brandsen,2021/22,6500.0,6423.7,HistGBM,194.4821,0
+maiz,BUENOS AIRES,Brandsen,2022/23,5500.0,6160.8,HistGBM,5037.0166,1
+maiz,BUENOS AIRES,Brandsen,2023/24,7800.0,8267.9,HistGBM,107.7817,0
+maiz,BUENOS AIRES,Brandsen,2024/25,7000.0,6490.1,HistGBM,213.399,0
+maiz,BUENOS AIRES,Campana,2021/22,6475.0,6591.6,HistGBM,192.3247,0
+maiz,BUENOS AIRES,Campana,2022/23,4900.0,7150.6,HistGBM,9820.333,1
+maiz,BUENOS AIRES,Campana,2023/24,8800.0,8244.1,HistGBM,140.036,0
+maiz,BUENOS AIRES,Campana,2024/25,8000.0,6696.0,HistGBM,348.8425,0
+maiz,BUENOS AIRES,Canuelas,2021/22,6800.0,6186.4,HistGBM,192.2119,0
+maiz,BUENOS AIRES,Canuelas,2022/23,5500.0,6424.1,HistGBM,4631.2715,1
+maiz,BUENOS AIRES,Canuelas,2023/24,7800.0,8330.9,HistGBM,112.6105,0
+maiz,BUENOS AIRES,Canuelas,2024/25,7000.0,6382.0,HistGBM,225.3447,0
+maiz,BUENOS AIRES,Capitan Sarmiento,2021/22,6885.0,7385.6,HistGBM,196.7434,0
+maiz,BUENOS AIRES,Capitan Sarmiento,2022/23,4800.0,6430.7,HistGBM,4181.2036,1
+maiz,BUENOS AIRES,Capitan Sarmiento,2023/24,8900.0,9209.4,HistGBM,123.9998,0
+maiz,BUENOS AIRES,Capitan Sarmiento,2024/25,8100.0,6986.5,HistGBM,239.057,0
+maiz,BUENOS AIRES,Carlos Casares,2021/22,8500.0,7962.4,HistGBM,157.2274,0
+maiz,BUENOS AIRES,Carlos Casares,2022/23,650.0,7807.2,HistGBM,3065.5396,1
+maiz,BUENOS AIRES,Carlos Casares,2023/24,8180.0,8802.3,HistGBM,125.8304,0
+maiz,BUENOS AIRES,Carlos Casares,2024/25,8500.0,8083.9,HistGBM,321.964,0
+maiz,BUENOS AIRES,Carlos Tejedor,2021/22,8400.0,7653.2,HistGBM,146.1058,0
+maiz,BUENOS AIRES,Carlos Tejedor,2022/23,5500.0,6731.8,HistGBM,1501.1915,1
+maiz,BUENOS AIRES,Carlos Tejedor,2023/24,7251.0,8414.7,HistGBM,99.2509,0
+maiz,BUENOS AIRES,Carlos Tejedor,2024/25,8200.0,7446.9,HistGBM,392.3462,0
+maiz,BUENOS AIRES,Carmen De Areco,2021/22,5600.0,7320.6,HistGBM,253.1925,0
+maiz,BUENOS AIRES,Carmen De Areco,2022/23,5000.0,6940.4,HistGBM,9379.701,1
+maiz,BUENOS AIRES,Carmen De Areco,2023/24,9000.0,9074.0,HistGBM,117.825,0
+maiz,BUENOS AIRES,Carmen De Areco,2024/25,8000.0,6890.5,HistGBM,247.3749,0
+maiz,BUENOS AIRES,Castelli,2021/22,7000.0,6218.2,HistGBM,160.0832,0
+maiz,BUENOS AIRES,Castelli,2022/23,4000.0,6820.7,HistGBM,1181.6257,1
+maiz,BUENOS AIRES,Castelli,2023/24,5000.0,7442.0,HistGBM,131.4564,0
+maiz,BUENOS AIRES,Castelli,2024/25,5500.0,6547.6,HistGBM,185.3515,0
+maiz,BUENOS AIRES,Chacabuco,2021/22,7100.0,8176.7,HistGBM,216.4354,0
+maiz,BUENOS AIRES,Chacabuco,2022/23,5000.0,7894.5,HistGBM,4942.5366,1
+maiz,BUENOS AIRES,Chacabuco,2023/24,10000.0,9713.7,HistGBM,122.3282,0
+maiz,BUENOS AIRES,Chacabuco,2024/25,8000.0,8701.6,HistGBM,240.3806,0
+maiz,BUENOS AIRES,Chascomus,2021/22,7000.0,6083.3,HistGBM,168.9986,0
+maiz,BUENOS AIRES,Chascomus,2022/23,5506.0,5995.8,HistGBM,3052.468,1
+maiz,BUENOS AIRES,Chascomus,2023/24,7900.0,8448.4,HistGBM,108.1652,0
+maiz,BUENOS AIRES,Chascomus,2024/25,7000.0,7225.3,HistGBM,211.815,0
+maiz,BUENOS AIRES,Chivilcoy,2021/22,7500.0,7444.5,HistGBM,245.745,0
+maiz,BUENOS AIRES,Chivilcoy,2022/23,3000.0,6476.5,HistGBM,6067.772,1
+maiz,BUENOS AIRES,Chivilcoy,2023/24,8000.0,9199.8,HistGBM,121.398,0
+maiz,BUENOS AIRES,Chivilcoy,2024/25,8000.0,7481.7,HistGBM,243.4208,0
+maiz,BUENOS AIRES,Colon,2021/22,7400.0,7796.6,HistGBM,197.9282,0
+maiz,BUENOS AIRES,Colon,2022/23,5000.0,7293.9,HistGBM,3009.338,1
+maiz,BUENOS AIRES,Colon,2023/24,9100.0,9696.3,HistGBM,127.9524,0
+maiz,BUENOS AIRES,Colon,2024/25,8200.0,8149.9,HistGBM,323.411,0
+maiz,BUENOS AIRES,Coronel Dorrego,2021/22,3000.0,5214.8,HistGBM,187.2708,0
+maiz,BUENOS AIRES,Coronel Dorrego,2022/23,4500.0,4754.9,HistGBM,180.5834,0
+maiz,BUENOS AIRES,Coronel Dorrego,2023/24,2500.0,4945.9,HistGBM,92.7973,0
+maiz,BUENOS AIRES,Coronel Dorrego,2024/25,4500.0,4831.2,HistGBM,579.1588,0
+maiz,BUENOS AIRES,Coronel Pringles,2021/22,4000.0,5430.1,HistGBM,173.861,0
+maiz,BUENOS AIRES,Coronel Pringles,2022/23,3800.0,4715.5,HistGBM,264.7292,0
+maiz,BUENOS AIRES,Coronel Pringles,2023/24,4000.0,5921.4,HistGBM,93.5213,0
+maiz,BUENOS AIRES,Coronel Pringles,2024/25,4600.0,4946.3,HistGBM,574.0848,0
+maiz,BUENOS AIRES,Coronel Suarez,2021/22,8000.0,6269.7,HistGBM,190.2767,0
+maiz,BUENOS AIRES,Coronel Suarez,2022/23,6000.0,6422.4,HistGBM,365.4148,0
+maiz,BUENOS AIRES,Coronel Suarez,2023/24,4800.0,6502.5,HistGBM,99.9789,0
+maiz,BUENOS AIRES,Coronel Suarez,2024/25,8000.0,5840.1,HistGBM,787.9618,0
+maiz,BUENOS AIRES,Daireaux,2021/22,9000.0,7320.5,HistGBM,140.5842,0
+maiz,BUENOS AIRES,Daireaux,2022/23,6000.0,7335.3,HistGBM,500.3772,0
+maiz,BUENOS AIRES,Daireaux,2023/24,7000.0,8065.9,HistGBM,104.6128,0
+maiz,BUENOS AIRES,Daireaux,2024/25,7000.0,7261.6,HistGBM,431.788,0
+maiz,BUENOS AIRES,Dolores,2021/22,0.0,5915.0,HistGBM,148.5076,0
+maiz,BUENOS AIRES,Dolores,2022/23,0.0,6292.2,HistGBM,979.5963,1
+maiz,BUENOS AIRES,Dolores,2023/24,5000.0,6506.8,HistGBM,138.0366,0
+maiz,BUENOS AIRES,Dolores,2024/25,5000.0,6036.3,HistGBM,179.7592,0
+maiz,BUENOS AIRES,Exaltacion De La Cruz,2021/22,6850.0,7050.4,HistGBM,243.8608,0
+maiz,BUENOS AIRES,Exaltacion De La Cruz,2022/23,4600.0,7169.9,HistGBM,5791.7417,1
+maiz,BUENOS AIRES,Exaltacion De La Cruz,2023/24,8900.0,8755.9,HistGBM,116.4058,0
+maiz,BUENOS AIRES,Exaltacion De La Cruz,2024/25,8000.0,6976.0,HistGBM,236.5058,0
+maiz,BUENOS AIRES,Florentino Ameghino,2021/22,7700.0,8914.9,HistGBM,124.0782,0
+maiz,BUENOS AIRES,Florentino Ameghino,2022/23,5800.0,8115.6,HistGBM,1631.568,1
+maiz,BUENOS AIRES,Florentino Ameghino,2023/24,8400.0,9554.5,HistGBM,109.0495,0
+maiz,BUENOS AIRES,Florentino Ameghino,2024/25,7800.0,7898.2,HistGBM,285.0621,0
+maiz,BUENOS AIRES,General Alvarado,2021/22,6500.0,6017.4,HistGBM,181.6329,0
+maiz,BUENOS AIRES,General Alvarado,2022/23,6100.0,6561.4,HistGBM,6010.655,1
+maiz,BUENOS AIRES,General Alvarado,2023/24,7000.0,7545.4,HistGBM,107.7111,0
+maiz,BUENOS AIRES,General Alvarado,2024/25,7000.0,6983.1,HistGBM,239.8985,0
+maiz,BUENOS AIRES,General Alvear,2021/22,7700.0,5817.7,HistGBM,152.8126,0
+maiz,BUENOS AIRES,General Alvear,2022/23,6500.0,6096.0,HistGBM,1226.475,1
+maiz,BUENOS AIRES,General Alvear,2023/24,6500.0,7972.5,HistGBM,110.9867,0
+maiz,BUENOS AIRES,General Alvear,2024/25,6500.0,6787.3,HistGBM,320.5783,0
+maiz,BUENOS AIRES,General Arenales,2021/22,6600.0,8089.5,HistGBM,269.9831,0
+maiz,BUENOS AIRES,General Arenales,2022/23,5000.0,8558.2,HistGBM,4741.4634,1
+maiz,BUENOS AIRES,General Arenales,2023/24,10000.0,9805.7,HistGBM,115.2213,0
+maiz,BUENOS AIRES,General Arenales,2024/25,8500.0,9016.4,HistGBM,319.5575,0
+maiz,BUENOS AIRES,General Belgrano,2021/22,7030.0,6720.3,HistGBM,143.0047,0
+maiz,BUENOS AIRES,General Belgrano,2022/23,5050.0,6445.5,HistGBM,1342.1309,1
+maiz,BUENOS AIRES,General Belgrano,2023/24,7460.0,8728.9,HistGBM,109.0782,0
+maiz,BUENOS AIRES,General Belgrano,2024/25,7490.0,7299.7,HistGBM,251.5367,0
+maiz,BUENOS AIRES,General Guido,2021/22,6500.0,6244.8,HistGBM,137.6099,0
+maiz,BUENOS AIRES,General Guido,2022/23,4000.0,6605.2,HistGBM,1390.9429,1
+maiz,BUENOS AIRES,General Guido,2023/24,5500.0,7641.2,HistGBM,132.281,0
+maiz,BUENOS AIRES,General Guido,2024/25,6000.0,6150.6,HistGBM,185.9218,0
+maiz,BUENOS AIRES,General Juan Madariaga,2021/22,7800.0,6247.1,HistGBM,195.7423,0
+maiz,BUENOS AIRES,General Juan Madariaga,2022/23,8000.0,7492.5,HistGBM,720.3457,0
+maiz,BUENOS AIRES,General Juan Madariaga,2023/24,6900.0,7706.2,HistGBM,146.9907,0
+maiz,BUENOS AIRES,General Juan Madariaga,2024/25,6800.0,7228.9,HistGBM,243.1247,0
+maiz,BUENOS AIRES,General La Madrid,2021/22,6500.0,6223.7,HistGBM,208.7596,0
+maiz,BUENOS AIRES,General La Madrid,2022/23,6000.0,6253.6,HistGBM,320.9085,0
+maiz,BUENOS AIRES,General La Madrid,2023/24,3900.0,6926.9,HistGBM,115.7313,0
+maiz,BUENOS AIRES,General La Madrid,2024/25,5000.0,6088.7,HistGBM,599.4364,0
+maiz,BUENOS AIRES,General Las Heras,2021/22,7200.0,6830.7,HistGBM,143.0514,0
+maiz,BUENOS AIRES,General Las Heras,2022/23,5500.0,6469.5,HistGBM,5058.477,1
+maiz,BUENOS AIRES,General Las Heras,2023/24,7700.0,8487.9,HistGBM,141.7772,0
+maiz,BUENOS AIRES,General Las Heras,2024/25,6900.0,6371.7,HistGBM,198.649,0
+maiz,BUENOS AIRES,General Lavalle,2021/22,6000.0,6463.7,HistGBM,151.2255,0
+maiz,BUENOS AIRES,General Lavalle,2022/23,0.0,7263.5,HistGBM,990.5999,1
+maiz,BUENOS AIRES,General Lavalle,2023/24,5000.0,7895.8,HistGBM,165.883,0
+maiz,BUENOS AIRES,General Lavalle,2024/25,5800.0,6494.5,HistGBM,192.1909,0
+maiz,BUENOS AIRES,General Paz,2021/22,7000.0,6580.0,HistGBM,155.593,0
+maiz,BUENOS AIRES,General Paz,2022/23,5500.0,7095.1,HistGBM,473.1417,0
+maiz,BUENOS AIRES,General Paz,2023/24,7800.0,8442.9,HistGBM,111.4273,0
+maiz,BUENOS AIRES,General Paz,2024/25,7200.0,6959.2,HistGBM,411.9829,0
+maiz,BUENOS AIRES,General Pinto,2021/22,7900.0,8353.7,HistGBM,197.6637,0
+maiz,BUENOS AIRES,General Pinto,2022/23,6100.0,7976.4,HistGBM,2391.9229,1
+maiz,BUENOS AIRES,General Pinto,2023/24,8600.0,9512.8,HistGBM,115.7161,0
+maiz,BUENOS AIRES,General Pinto,2024/25,8100.0,7581.6,HistGBM,416.707,0
+maiz,BUENOS AIRES,General Pueyrredon,2021/22,7000.0,6417.7,HistGBM,258.573,0
+maiz,BUENOS AIRES,General Pueyrredon,2022/23,6200.0,7323.4,HistGBM,429.7122,0
+maiz,BUENOS AIRES,General Pueyrredon,2023/24,7300.0,7798.4,HistGBM,149.2008,0
+maiz,BUENOS AIRES,General Pueyrredon,2024/25,7000.0,7281.5,HistGBM,266.6843,0
+maiz,BUENOS AIRES,General Rodriguez,2021/22,7200.0,6532.3,HistGBM,171.9604,0
+maiz,BUENOS AIRES,General Rodriguez,2022/23,5700.0,5686.7,HistGBM,7464.1567,1
+maiz,BUENOS AIRES,General Rodriguez,2023/24,7800.0,8440.9,HistGBM,123.3407,0
+maiz,BUENOS AIRES,General Rodriguez,2024/25,7500.0,5900.7,HistGBM,250.6858,0
+maiz,BUENOS AIRES,General Viamonte,2021/22,8000.0,8351.4,HistGBM,182.9165,0
+maiz,BUENOS AIRES,General Viamonte,2022/23,5900.0,8664.1,HistGBM,5299.4297,1
+maiz,BUENOS AIRES,General Viamonte,2023/24,8100.0,9502.2,HistGBM,117.2486,0
+maiz,BUENOS AIRES,General Viamonte,2024/25,8150.0,7887.6,HistGBM,290.9026,0
+maiz,BUENOS AIRES,General Villegas,2021/22,7750.0,8151.7,HistGBM,133.0966,0
+maiz,BUENOS AIRES,General Villegas,2022/23,6000.0,7909.1,HistGBM,1087.5377,1
+maiz,BUENOS AIRES,General Villegas,2023/24,8600.0,9016.8,HistGBM,106.6612,0
+maiz,BUENOS AIRES,General Villegas,2024/25,7950.0,8757.2,HistGBM,381.0181,0
+maiz,BUENOS AIRES,Guamini,2021/22,7200.0,6871.8,HistGBM,139.4724,0
+maiz,BUENOS AIRES,Guamini,2022/23,5800.0,6438.2,HistGBM,532.1233,0
+maiz,BUENOS AIRES,Guamini,2023/24,6500.0,6627.0,HistGBM,101.8656,0
+maiz,BUENOS AIRES,Guamini,2024/25,6400.0,6353.2,HistGBM,851.3309,0
+maiz,BUENOS AIRES,Hipolito Yrigoyen,2021/22,8500.0,7533.6,HistGBM,175.7503,0
+maiz,BUENOS AIRES,Hipolito Yrigoyen,2022/23,6500.0,7970.5,HistGBM,402.1592,0
+maiz,BUENOS AIRES,Hipolito Yrigoyen,2023/24,7200.0,9042.3,HistGBM,114.0296,0
+maiz,BUENOS AIRES,Hipolito Yrigoyen,2024/25,7200.0,7943.7,HistGBM,411.475,0
+maiz,BUENOS AIRES,Junin,2021/22,8100.0,8074.1,HistGBM,245.2077,0
+maiz,BUENOS AIRES,Junin,2022/23,5000.0,8479.6,HistGBM,5014.801,1
+maiz,BUENOS AIRES,Junin,2023/24,10000.0,9743.7,HistGBM,115.036,0
+maiz,BUENOS AIRES,Junin,2024/25,9000.0,8781.9,HistGBM,264.6382,0
+maiz,BUENOS AIRES,La Plata,2021/22,6900.0,6620.6,HistGBM,237.4599,0
+maiz,BUENOS AIRES,La Plata,2022/23,5500.0,5883.1,HistGBM,5816.693,1
+maiz,BUENOS AIRES,La Plata,2023/24,7800.0,8061.2,HistGBM,99.5925,0
+maiz,BUENOS AIRES,La Plata,2024/25,7000.0,6638.1,HistGBM,225.5324,0
+maiz,BUENOS AIRES,Laprida,2021/22,3500.0,5600.4,HistGBM,188.9172,0
+maiz,BUENOS AIRES,Laprida,2022/23,4000.0,5438.3,HistGBM,403.3732,0
+maiz,BUENOS AIRES,Laprida,2023/24,6400.0,6506.4,HistGBM,116.4021,0
+maiz,BUENOS AIRES,Laprida,2024/25,4600.0,5922.5,HistGBM,513.9248,0
+maiz,BUENOS AIRES,Las Flores,2021/22,7030.0,6328.5,HistGBM,137.0471,0
+maiz,BUENOS AIRES,Las Flores,2022/23,4930.0,6506.0,HistGBM,986.043,1
+maiz,BUENOS AIRES,Las Flores,2023/24,7370.0,8750.5,HistGBM,116.242,0
+maiz,BUENOS AIRES,Las Flores,2024/25,7370.0,6903.5,HistGBM,353.5566,0
+maiz,BUENOS AIRES,Leandro N. Alem,2021/22,8100.0,7833.0,HistGBM,226.7624,0
+maiz,BUENOS AIRES,Leandro N. Alem,2022/23,5600.0,8353.2,HistGBM,3297.752,1
+maiz,BUENOS AIRES,Leandro N. Alem,2023/24,8200.0,9736.7,HistGBM,138.7971,0
+maiz,BUENOS AIRES,Leandro N. Alem,2024/25,8030.0,8578.4,HistGBM,306.5326,0
+maiz,BUENOS AIRES,Lincoln,2021/22,7950.0,8300.0,HistGBM,230.9661,0
+maiz,BUENOS AIRES,Lincoln,2022/23,5700.0,7926.7,HistGBM,4515.0747,1
+maiz,BUENOS AIRES,Lincoln,2023/24,8000.0,9507.0,HistGBM,127.611,0
+maiz,BUENOS AIRES,Lincoln,2024/25,7900.0,8145.7,HistGBM,321.0503,0
+maiz,BUENOS AIRES,Loberia,2021/22,7000.0,6269.1,HistGBM,281.3829,0
+maiz,BUENOS AIRES,Loberia,2022/23,6100.0,7243.6,HistGBM,374.9012,0
+maiz,BUENOS AIRES,Loberia,2023/24,6500.0,7609.4,HistGBM,119.8108,0
+maiz,BUENOS AIRES,Loberia,2024/25,6500.0,7455.4,HistGBM,270.4366,0
+maiz,BUENOS AIRES,Lobos,2021/22,7080.0,7000.5,HistGBM,191.1553,0
+maiz,BUENOS AIRES,Lobos,2022/23,4920.0,6585.8,HistGBM,6123.6943,1
+maiz,BUENOS AIRES,Lobos,2023/24,7020.0,8721.4,HistGBM,127.1538,0
+maiz,BUENOS AIRES,Lobos,2024/25,7250.0,6934.8,HistGBM,230.1674,0
+maiz,BUENOS AIRES,Lujan,2021/22,7200.0,6982.6,HistGBM,225.6622,0
+maiz,BUENOS AIRES,Lujan,2022/23,5500.0,6085.7,HistGBM,8609.463,1
+maiz,BUENOS AIRES,Lujan,2023/24,7800.0,8621.3,HistGBM,128.1085,0
+maiz,BUENOS AIRES,Lujan,2024/25,7100.0,6413.2,HistGBM,246.9622,0
+maiz,BUENOS AIRES,Magdalena,2021/22,6800.0,6634.1,HistGBM,177.0579,0
+maiz,BUENOS AIRES,Magdalena,2022/23,5500.0,6409.4,HistGBM,3295.3406,1
+maiz,BUENOS AIRES,Magdalena,2023/24,7700.0,7568.6,HistGBM,106.3259,0
+maiz,BUENOS AIRES,Magdalena,2024/25,6800.0,6439.3,HistGBM,231.8316,0
+maiz,BUENOS AIRES,Maipu,2021/22,7500.0,5779.9,HistGBM,172.3339,0
+maiz,BUENOS AIRES,Maipu,2022/23,6500.0,6409.4,HistGBM,285.0292,0
+maiz,BUENOS AIRES,Maipu,2023/24,6800.0,7936.4,HistGBM,163.865,0
+maiz,BUENOS AIRES,Maipu,2024/25,6500.0,5679.7,HistGBM,338.5862,0
+maiz,BUENOS AIRES,Mar Chiquita,2021/22,7800.0,5931.2,HistGBM,193.7785,0
+maiz,BUENOS AIRES,Mar Chiquita,2022/23,7000.0,6958.5,HistGBM,639.1706,0
+maiz,BUENOS AIRES,Mar Chiquita,2023/24,7000.0,7520.2,HistGBM,122.7939,0
+maiz,BUENOS AIRES,Mar Chiquita,2024/25,6800.0,7308.2,HistGBM,317.7501,0
+maiz,BUENOS AIRES,Marcos Paz,2021/22,7200.0,6737.2,HistGBM,178.357,0
+maiz,BUENOS AIRES,Marcos Paz,2022/23,5500.0,6182.2,HistGBM,5888.6323,1
+maiz,BUENOS AIRES,Marcos Paz,2023/24,7800.0,8292.5,HistGBM,107.773,0
+maiz,BUENOS AIRES,Marcos Paz,2024/25,7000.0,6442.5,HistGBM,198.8507,0
+maiz,BUENOS AIRES,Mercedes,2021/22,4500.0,6244.5,HistGBM,265.964,0
+maiz,BUENOS AIRES,Mercedes,2022/23,1000.0,5800.4,HistGBM,8908.116,1
+maiz,BUENOS AIRES,Mercedes,2023/24,8000.0,7823.0,HistGBM,121.725,0
+maiz,BUENOS AIRES,Mercedes,2024/25,5000.0,6105.7,HistGBM,272.6058,0
+maiz,BUENOS AIRES,Monte,2021/22,6970.0,6585.9,HistGBM,161.6416,0
+maiz,BUENOS AIRES,Monte,2022/23,5100.0,6317.1,HistGBM,2848.1287,1
+maiz,BUENOS AIRES,Monte,2023/24,6960.0,8249.3,HistGBM,108.8408,0
+maiz,BUENOS AIRES,Monte,2024/25,7200.0,7133.6,HistGBM,228.4505,0
+maiz,BUENOS AIRES,Navarro,2021/22,7120.0,6681.9,HistGBM,209.4019,0
+maiz,BUENOS AIRES,Navarro,2022/23,4970.0,7051.7,HistGBM,5084.2773,1
+maiz,BUENOS AIRES,Navarro,2023/24,6960.0,8744.4,HistGBM,116.9328,0
+maiz,BUENOS AIRES,Navarro,2024/25,7260.0,6832.4,HistGBM,233.7556,0
+maiz,BUENOS AIRES,Necochea,2021/22,3500.0,6717.4,HistGBM,181.1499,0
+maiz,BUENOS AIRES,Necochea,2022/23,4800.0,7756.3,HistGBM,383.6088,0
+maiz,BUENOS AIRES,Necochea,2023/24,6300.0,8684.9,HistGBM,110.3532,0
+maiz,BUENOS AIRES,Necochea,2024/25,5900.0,7705.0,HistGBM,352.5281,0
+maiz,BUENOS AIRES,Olavarria,2021/22,7800.0,6449.5,HistGBM,172.6389,0
+maiz,BUENOS AIRES,Olavarria,2022/23,7000.0,6803.0,HistGBM,416.6245,0
+maiz,BUENOS AIRES,Olavarria,2023/24,6500.0,7743.5,HistGBM,123.5026,0
+maiz,BUENOS AIRES,Olavarria,2024/25,6000.0,6108.5,HistGBM,588.4956,0
+maiz,BUENOS AIRES,Patagones,2021/22,8000.0,6467.4,HistGBM,203.9793,0
+maiz,BUENOS AIRES,Patagones,2022/23,8000.0,4976.7,HistGBM,6107.8877,1
+maiz,BUENOS AIRES,Patagones,2023/24,8000.0,7132.7,HistGBM,99.6554,0
+maiz,BUENOS AIRES,Patagones,2024/25,7800.0,5491.1,HistGBM,342.83,0
+maiz,BUENOS AIRES,Pehuajo,2021/22,8900.0,8183.1,HistGBM,138.1847,0
+maiz,BUENOS AIRES,Pehuajo,2022/23,6700.0,7611.1,HistGBM,1175.3066,1
+maiz,BUENOS AIRES,Pehuajo,2023/24,8090.0,8184.2,HistGBM,115.2011,0
+maiz,BUENOS AIRES,Pehuajo,2024/25,8500.0,7713.1,HistGBM,400.0677,0
+maiz,BUENOS AIRES,Pellegrini,2021/22,8000.0,6796.3,HistGBM,236.409,0
+maiz,BUENOS AIRES,Pellegrini,2022/23,6400.0,6424.7,HistGBM,385.7162,0
+maiz,BUENOS AIRES,Pellegrini,2023/24,6600.0,6677.9,HistGBM,167.8607,0
+maiz,BUENOS AIRES,Pellegrini,2024/25,6800.0,6588.4,HistGBM,224.4477,0
+maiz,BUENOS AIRES,Pergamino,2021/22,7500.0,7997.1,HistGBM,159.8084,0
+maiz,BUENOS AIRES,Pergamino,2022/23,4800.0,6814.8,HistGBM,3350.1855,1
+maiz,BUENOS AIRES,Pergamino,2023/24,9300.0,9778.9,HistGBM,131.9117,0
+maiz,BUENOS AIRES,Pergamino,2024/25,8400.0,7862.7,HistGBM,219.3342,0
+maiz,BUENOS AIRES,Pila,2021/22,6800.0,5673.5,HistGBM,129.4231,0
+maiz,BUENOS AIRES,Pila,2022/23,4000.0,5997.1,HistGBM,1449.4235,1
+maiz,BUENOS AIRES,Pila,2023/24,6000.0,7280.0,HistGBM,122.4073,0
+maiz,BUENOS AIRES,Pila,2024/25,5500.0,6293.6,HistGBM,216.1503,0
+maiz,BUENOS AIRES,Pilar,2021/22,7200.0,6410.4,HistGBM,173.6708,0
+maiz,BUENOS AIRES,Pilar,2022/23,5500.0,5794.0,HistGBM,8597.498,1
+maiz,BUENOS AIRES,Pilar,2023/24,7800.0,8311.0,HistGBM,120.6334,0
+maiz,BUENOS AIRES,Pilar,2024/25,7200.0,5992.6,HistGBM,268.5015,0
+maiz,BUENOS AIRES,Puan,2021/22,4100.0,4216.8,HistGBM,168.0741,0
+maiz,BUENOS AIRES,Puan,2022/23,5000.0,4077.6,HistGBM,9801.241,1
+maiz,BUENOS AIRES,Puan,2023/24,3900.0,4827.2,HistGBM,124.5887,0
+maiz,BUENOS AIRES,Puan,2024/25,5000.0,4344.7,HistGBM,282.8392,0
+maiz,BUENOS AIRES,Ramallo,2021/22,6530.0,7219.6,HistGBM,164.1852,0
+maiz,BUENOS AIRES,Ramallo,2022/23,4800.0,5454.0,HistGBM,2301.3657,1
+maiz,BUENOS AIRES,Ramallo,2023/24,8900.0,9243.6,HistGBM,129.8177,0
+maiz,BUENOS AIRES,Ramallo,2024/25,7900.0,7151.8,HistGBM,213.6046,0
+maiz,BUENOS AIRES,Rauch,2021/22,6800.0,6000.0,HistGBM,185.133,0
+maiz,BUENOS AIRES,Rauch,2022/23,5000.0,6649.5,HistGBM,391.8352,0
+maiz,BUENOS AIRES,Rauch,2023/24,6200.0,7262.4,HistGBM,114.7072,0
+maiz,BUENOS AIRES,Rauch,2024/25,5500.0,6099.7,HistGBM,362.5928,0
+maiz,BUENOS AIRES,Rivadavia,2021/22,8500.0,7543.7,HistGBM,226.6361,0
+maiz,BUENOS AIRES,Rivadavia,2022/23,7400.0,8016.6,HistGBM,16423.107,1
+maiz,BUENOS AIRES,Rivadavia,2023/24,8218.0,9223.2,HistGBM,131.2608,0
+maiz,BUENOS AIRES,Rivadavia,2024/25,8400.0,7862.6,HistGBM,329.1361,0
+maiz,BUENOS AIRES,Rojas,2021/22,8600.0,7829.7,HistGBM,205.2127,0
+maiz,BUENOS AIRES,Rojas,2022/23,5000.0,7968.0,HistGBM,4197.268,1
+maiz,BUENOS AIRES,Rojas,2023/24,11000.0,9745.6,HistGBM,133.2482,0
+maiz,BUENOS AIRES,Rojas,2024/25,8500.0,8022.4,HistGBM,247.4194,0
+maiz,BUENOS AIRES,Roque Perez,2021/22,7040.0,6941.8,HistGBM,168.7621,0
+maiz,BUENOS AIRES,Roque Perez,2022/23,4930.0,6511.7,HistGBM,2617.2107,1
+maiz,BUENOS AIRES,Roque Perez,2023/24,6960.0,8460.5,HistGBM,108.3485,0
+maiz,BUENOS AIRES,Roque Perez,2024/25,7190.0,7164.2,HistGBM,271.6105,0
+maiz,BUENOS AIRES,Saavedra,2021/22,4700.0,5842.4,HistGBM,158.8902,0
+maiz,BUENOS AIRES,Saavedra,2022/23,5000.0,5389.1,HistGBM,182.4726,0
+maiz,BUENOS AIRES,Saavedra,2023/24,3900.0,5309.7,HistGBM,88.4856,0
+maiz,BUENOS AIRES,Saavedra,2024/25,5000.0,5036.6,HistGBM,667.692,0
+maiz,BUENOS AIRES,Saladillo,2021/22,7130.0,6992.9,HistGBM,179.5996,0
+maiz,BUENOS AIRES,Saladillo,2022/23,4960.0,6418.1,HistGBM,3283.6936,1
+maiz,BUENOS AIRES,Saladillo,2023/24,7190.0,8553.2,HistGBM,102.0446,0
+maiz,BUENOS AIRES,Saladillo,2024/25,7500.0,7549.8,HistGBM,225.8816,0
+maiz,BUENOS AIRES,Salliquelo,2021/22,8000.0,6987.1,HistGBM,126.182,0
+maiz,BUENOS AIRES,Salliquelo,2022/23,6400.0,5906.4,HistGBM,450.4358,0
+maiz,BUENOS AIRES,Salliquelo,2023/24,6600.0,6643.2,HistGBM,85.1518,0
+maiz,BUENOS AIRES,Salliquelo,2024/25,6800.0,6273.7,HistGBM,398.0617,0
+maiz,BUENOS AIRES,Salto,2021/22,7500.0,7949.4,HistGBM,247.4148,0
+maiz,BUENOS AIRES,Salto,2022/23,5200.0,8027.2,HistGBM,5728.9214,1
+maiz,BUENOS AIRES,Salto,2023/24,9200.0,9843.4,HistGBM,121.1167,0
+maiz,BUENOS AIRES,Salto,2024/25,8500.0,7659.8,HistGBM,250.7337,0
+maiz,BUENOS AIRES,San Andres De Giles,2021/22,5600.0,7089.2,HistGBM,209.7416,0
+maiz,BUENOS AIRES,San Andres De Giles,2022/23,5000.0,7455.9,HistGBM,7680.647,1
+maiz,BUENOS AIRES,San Andres De Giles,2023/24,9000.0,8712.5,HistGBM,135.6807,0
+maiz,BUENOS AIRES,San Andres De Giles,2024/25,8000.0,6425.7,HistGBM,251.3936,0
+maiz,BUENOS AIRES,San Antonio De Areco,2021/22,6660.0,7397.2,HistGBM,232.13,0
+maiz,BUENOS AIRES,San Antonio De Areco,2022/23,4700.0,7343.9,HistGBM,6861.3594,1
+maiz,BUENOS AIRES,San Antonio De Areco,2023/24,8900.0,8748.8,HistGBM,135.48,0
+maiz,BUENOS AIRES,San Antonio De Areco,2024/25,8000.0,6224.7,HistGBM,273.6636,0
+maiz,BUENOS AIRES,San Cayetano,2021/22,4000.0,6412.6,HistGBM,188.9164,0
+maiz,BUENOS AIRES,San Cayetano,2022/23,4500.0,6974.6,HistGBM,371.1177,0
+maiz,BUENOS AIRES,San Cayetano,2023/24,6200.0,7551.7,HistGBM,107.6887,0
+maiz,BUENOS AIRES,San Cayetano,2024/25,5900.0,6815.0,HistGBM,389.5111,0
+maiz,BUENOS AIRES,San Nicolas,2021/22,6400.0,6679.8,HistGBM,144.8822,0
+maiz,BUENOS AIRES,San Nicolas,2022/23,4000.0,5333.3,HistGBM,2217.7556,1
+maiz,BUENOS AIRES,San Nicolas,2023/24,8300.0,8739.9,HistGBM,120.1642,0
+maiz,BUENOS AIRES,San Nicolas,2024/25,7700.0,6755.0,HistGBM,201.525,0
+maiz,BUENOS AIRES,San Pedro,2021/22,6495.0,7560.7,HistGBM,174.2161,0
+maiz,BUENOS AIRES,San Pedro,2022/23,4700.0,5848.1,HistGBM,2918.5186,1
+maiz,BUENOS AIRES,San Pedro,2023/24,8800.0,8608.6,HistGBM,142.6222,0
+maiz,BUENOS AIRES,San Pedro,2024/25,8100.0,6867.4,HistGBM,265.3403,0
+maiz,BUENOS AIRES,San Vicente,2021/22,7000.0,6317.6,HistGBM,164.1963,0
+maiz,BUENOS AIRES,San Vicente,2022/23,5500.0,5867.9,HistGBM,4442.683,1
+maiz,BUENOS AIRES,San Vicente,2023/24,7800.0,8379.9,HistGBM,139.6942,0
+maiz,BUENOS AIRES,San Vicente,2024/25,7200.0,6628.5,HistGBM,191.1838,0
+maiz,BUENOS AIRES,Suipacha,2021/22,4500.0,6387.2,HistGBM,232.0534,0
+maiz,BUENOS AIRES,Suipacha,2022/23,2000.0,5604.5,HistGBM,6506.34,1
+maiz,BUENOS AIRES,Suipacha,2023/24,8000.0,8163.8,HistGBM,130.5402,0
+maiz,BUENOS AIRES,Suipacha,2024/25,5500.0,6186.3,HistGBM,259.2324,0
+maiz,BUENOS AIRES,Tandil,2021/22,6500.0,6340.6,HistGBM,185.8847,0
+maiz,BUENOS AIRES,Tandil,2022/23,6100.0,6743.7,HistGBM,488.2786,0
+maiz,BUENOS AIRES,Tandil,2023/24,6900.0,8077.8,HistGBM,110.3156,0
+maiz,BUENOS AIRES,Tandil,2024/25,6500.0,6220.5,HistGBM,324.8013,0
+maiz,BUENOS AIRES,Tapalque,2021/22,7700.0,6037.1,HistGBM,153.5578,0
+maiz,BUENOS AIRES,Tapalque,2022/23,6500.0,6761.8,HistGBM,558.8934,0
+maiz,BUENOS AIRES,Tapalque,2023/24,6500.0,8286.7,HistGBM,116.0746,0
+maiz,BUENOS AIRES,Tapalque,2024/25,6000.0,6335.9,HistGBM,448.5,0
+maiz,BUENOS AIRES,Tordillo,2021/22,0.0,5226.0,HistGBM,152.2662,0
+maiz,BUENOS AIRES,Tordillo,2022/23,0.0,5063.1,HistGBM,90.152,0
+maiz,BUENOS AIRES,Tordillo,2023/24,0.0,4477.0,HistGBM,109.3275,0
+maiz,BUENOS AIRES,Tordillo,2024/25,0.0,4256.6,HistGBM,356.5888,0
+maiz,BUENOS AIRES,Tornquist,2021/22,4100.0,4422.5,HistGBM,163.2864,0
+maiz,BUENOS AIRES,Tornquist,2022/23,5000.0,4334.5,HistGBM,170.8869,0
+maiz,BUENOS AIRES,Tornquist,2023/24,3900.0,4105.2,HistGBM,102.624,0
+maiz,BUENOS AIRES,Tornquist,2024/25,4000.0,4633.6,HistGBM,630.5583,0
+maiz,BUENOS AIRES,Trenque Lauquen,2021/22,7800.0,7642.7,HistGBM,144.0349,0
+maiz,BUENOS AIRES,Trenque Lauquen,2022/23,7300.0,7632.8,HistGBM,1208.8514,1
+maiz,BUENOS AIRES,Trenque Lauquen,2023/24,7900.0,7966.2,HistGBM,113.3785,0
+maiz,BUENOS AIRES,Trenque Lauquen,2024/25,8300.0,7433.6,HistGBM,430.2437,0
+maiz,BUENOS AIRES,Tres Arroyos,2021/22,4000.0,6069.0,HistGBM,197.9201,0
+maiz,BUENOS AIRES,Tres Arroyos,2022/23,4500.0,6749.6,HistGBM,341.3452,0
+maiz,BUENOS AIRES,Tres Arroyos,2023/24,6200.0,7253.4,HistGBM,99.3052,0
+maiz,BUENOS AIRES,Tres Arroyos,2024/25,6300.0,7267.3,HistGBM,363.2868,0
+maiz,BUENOS AIRES,Tres Lomas,2021/22,7800.0,7388.8,HistGBM,124.5199,0
+maiz,BUENOS AIRES,Tres Lomas,2022/23,6500.0,7052.6,HistGBM,443.105,0
+maiz,BUENOS AIRES,Tres Lomas,2023/24,6500.0,7242.9,HistGBM,79.5764,0
+maiz,BUENOS AIRES,Tres Lomas,2024/25,6800.0,6718.5,HistGBM,241.5673,0
+maiz,BUENOS AIRES,Villarino,2021/22,8000.0,6057.1,HistGBM,185.2689,0
+maiz,BUENOS AIRES,Villarino,2022/23,8000.0,5185.7,HistGBM,5931.7544,1
+maiz,BUENOS AIRES,Villarino,2023/24,8490.0,6832.4,HistGBM,115.9031,0
+maiz,BUENOS AIRES,Villarino,2024/25,8000.0,5676.8,HistGBM,323.1272,0
+maiz,BUENOS AIRES,Zarate,2021/22,6900.0,6901.8,HistGBM,194.8738,0
+maiz,BUENOS AIRES,Zarate,2022/23,4800.0,6240.2,HistGBM,8374.242,1
+maiz,BUENOS AIRES,Zarate,2023/24,8800.0,8393.5,HistGBM,139.7719,0
+maiz,BUENOS AIRES,Zarate,2024/25,8000.0,6143.0,HistGBM,367.7952,0
+maiz,CATAMARCA,Capayan,2021/22,3100.0,5246.9,HistGBM,237.6296,0
+maiz,CATAMARCA,Capayan,2022/23,0.0,5759.4,HistGBM,477.019,0
+maiz,CATAMARCA,Capayan,2023/24,0.0,5021.8,HistGBM,505.2702,0
+maiz,CATAMARCA,Capayan,2024/25,2500.0,5566.5,HistGBM,502.5958,0
+maiz,CATAMARCA,El Alto,2021/22,4500.0,5889.4,HistGBM,172.1574,0
+maiz,CATAMARCA,El Alto,2022/23,4100.0,6821.7,HistGBM,291.6912,0
+maiz,CATAMARCA,El Alto,2023/24,1500.0,5698.1,HistGBM,189.169,0
+maiz,CATAMARCA,El Alto,2024/25,3800.0,5694.3,HistGBM,315.3237,0
+maiz,CATAMARCA,Santa Rosa,2021/22,6100.0,6414.5,HistGBM,180.0904,0
+maiz,CATAMARCA,Santa Rosa,2022/23,5600.0,6737.7,HistGBM,293.9402,0
+maiz,CATAMARCA,Santa Rosa,2023/24,2000.0,6507.4,HistGBM,181.4417,0
+maiz,CATAMARCA,Santa Rosa,2024/25,5000.0,5681.6,HistGBM,288.908,0
+maiz,CHACO,12 De Octubre,2021/22,5000.0,5223.0,HistGBM,300.9338,0
+maiz,CHACO,12 De Octubre,2022/23,3400.0,4671.2,HistGBM,268.7226,0
+maiz,CHACO,12 De Octubre,2023/24,1800.0,6093.1,HistGBM,134.8859,0
+maiz,CHACO,12 De Octubre,2024/25,1600.0,4618.7,HistGBM,284.1405,0
+maiz,CHACO,2 De Abril,2021/22,5200.0,5956.7,HistGBM,253.7059,0
+maiz,CHACO,2 De Abril,2022/23,3500.0,5409.4,HistGBM,211.3186,0
+maiz,CHACO,2 De Abril,2023/24,1900.0,6415.3,HistGBM,158.0216,0
+maiz,CHACO,2 De Abril,2024/25,1900.0,5273.9,HistGBM,330.1203,0
+maiz,CHACO,25 De Mayo,2021/22,2800.0,4596.4,HistGBM,159.6317,0
+maiz,CHACO,25 De Mayo,2022/23,2800.0,4147.3,HistGBM,2617.021,1
+maiz,CHACO,25 De Mayo,2023/24,1300.0,4917.9,HistGBM,101.954,0
+maiz,CHACO,25 De Mayo,2024/25,1600.0,4833.3,HistGBM,239.8665,0
+maiz,CHACO,9 De Julio,2021/22,4800.0,6109.0,HistGBM,177.0677,0
+maiz,CHACO,9 De Julio,2022/23,3400.0,5201.1,HistGBM,2518.454,1
+maiz,CHACO,9 De Julio,2023/24,2100.0,5949.3,HistGBM,108.555,0
+maiz,CHACO,9 De Julio,2024/25,1800.0,5519.0,HistGBM,373.1178,0
+maiz,CHACO,Almirante Brown,2021/22,4600.0,5484.5,HistGBM,192.1838,0
+maiz,CHACO,Almirante Brown,2022/23,3000.0,5739.1,HistGBM,169.0396,0
+maiz,CHACO,Almirante Brown,2023/24,1600.0,5609.1,HistGBM,209.3938,0
+maiz,CHACO,Almirante Brown,2024/25,2100.0,4950.1,HistGBM,229.6181,0
+maiz,CHACO,Chacabuco,2021/22,5000.0,5785.2,HistGBM,249.4335,0
+maiz,CHACO,Chacabuco,2022/23,3800.0,4869.0,HistGBM,4387.6313,1
+maiz,CHACO,Chacabuco,2023/24,1900.0,5875.7,HistGBM,118.1201,0
+maiz,CHACO,Chacabuco,2024/25,1500.0,5503.6,HistGBM,253.5963,0
+maiz,CHACO,Comandante Fernandez,2021/22,3000.0,5048.2,HistGBM,198.6556,0
+maiz,CHACO,Comandante Fernandez,2022/23,1800.0,5006.3,HistGBM,292.467,0
+maiz,CHACO,Comandante Fernandez,2023/24,1100.0,5344.4,HistGBM,138.8055,0
+maiz,CHACO,Comandante Fernandez,2024/25,1400.0,4681.1,HistGBM,342.9306,0
+maiz,CHACO,Fray Justo Santa Maria De Oro,2021/22,4200.0,5249.2,HistGBM,157.4683,0
+maiz,CHACO,Fray Justo Santa Maria De Oro,2022/23,3200.0,5147.8,HistGBM,356.4931,0
+maiz,CHACO,Fray Justo Santa Maria De Oro,2023/24,1800.0,5829.3,HistGBM,181.1082,0
+maiz,CHACO,Fray Justo Santa Maria De Oro,2024/25,1800.0,4560.4,HistGBM,272.9189,0
+maiz,CHACO,General Belgrano,2021/22,5000.0,5931.2,HistGBM,142.9495,0
+maiz,CHACO,General Belgrano,2022/23,3400.0,5251.1,HistGBM,1243.3875,1
+maiz,CHACO,General Belgrano,2023/24,2100.0,6274.2,HistGBM,96.562,0
+maiz,CHACO,General Belgrano,2024/25,2200.0,5555.1,HistGBM,260.4848,0
+maiz,CHACO,General Guemes,2021/22,4200.0,5036.9,HistGBM,263.2478,0
+maiz,CHACO,General Guemes,2022/23,3400.0,5086.7,HistGBM,521.208,0
+maiz,CHACO,General Guemes,2023/24,1200.0,5098.1,HistGBM,160.5792,0
+maiz,CHACO,General Guemes,2024/25,1900.0,4366.3,HistGBM,276.6167,0
+maiz,CHACO,Independencia,2021/22,4200.0,4845.5,HistGBM,271.6591,0
+maiz,CHACO,Independencia,2022/23,2900.0,4922.5,HistGBM,230.8611,0
+maiz,CHACO,Independencia,2023/24,2400.0,5835.3,HistGBM,132.3421,0
+maiz,CHACO,Independencia,2024/25,1600.0,4662.9,HistGBM,292.1946,0
+maiz,CHACO,Libertador General San Martin,2021/22,2800.0,3562.1,HistGBM,273.4261,0
+maiz,CHACO,Libertador General San Martin,2022/23,1900.0,4032.7,HistGBM,249.2022,0
+maiz,CHACO,Libertador General San Martin,2023/24,2900.0,5263.1,HistGBM,172.1469,0
+maiz,CHACO,Libertador General San Martin,2024/25,4200.0,4049.2,HistGBM,295.0332,0
+maiz,CHACO,Maipu,2021/22,3800.0,4532.1,HistGBM,184.8338,0
+maiz,CHACO,Maipu,2022/23,4000.0,4580.7,HistGBM,299.2617,0
+maiz,CHACO,Maipu,2023/24,1500.0,5320.3,HistGBM,144.4359,0
+maiz,CHACO,Maipu,2024/25,1400.0,4098.0,HistGBM,316.828,0
+maiz,CHACO,O'Higgins,2021/22,4900.0,4943.3,HistGBM,275.1602,0
+maiz,CHACO,O'Higgins,2022/23,3600.0,4537.7,HistGBM,256.8166,0
+maiz,CHACO,O'Higgins,2023/24,2300.0,5838.4,HistGBM,136.3636,0
+maiz,CHACO,O'Higgins,2024/25,1800.0,4483.9,HistGBM,314.2495,0
+maiz,CHACO,Quitilipi,2021/22,2600.0,4345.3,HistGBM,258.4404,0
+maiz,CHACO,Quitilipi,2022/23,1900.0,4573.4,HistGBM,265.0336,0
+maiz,CHACO,Quitilipi,2023/24,1200.0,5334.3,HistGBM,143.6991,0
+maiz,CHACO,Quitilipi,2024/25,1500.0,4471.4,HistGBM,322.3088,0
+maiz,CHACO,San Fernando,2021/22,4195.0,4569.0,HistGBM,288.6718,0
+maiz,CHACO,San Lorenzo,2021/22,3799.0,5284.4,HistGBM,132.8532,0
+maiz,CHACO,San Lorenzo,2022/23,3000.0,5230.5,HistGBM,1558.021,1
+maiz,CHACO,San Lorenzo,2023/24,1800.0,5785.0,HistGBM,113.9333,0
+maiz,CHACO,San Lorenzo,2024/25,0.0,5748.2,HistGBM,233.3426,0
+maiz,CHACO,Sargento Cabral,2021/22,3800.0,4500.1,HistGBM,395.3496,0
+maiz,CHACO,Sargento Cabral,2022/23,2300.0,4583.7,HistGBM,235.022,0
+maiz,CHACO,Sargento Cabral,2023/24,2500.0,5892.2,HistGBM,131.6717,0
+maiz,CHACO,Sargento Cabral,2024/25,3800.0,4073.7,HistGBM,342.9134,0
+maiz,CORDOBA,Calamuchita,2021/22,6000.0,6335.2,HistGBM,171.2184,0
+maiz,CORDOBA,Calamuchita,2022/23,4200.0,7420.7,HistGBM,592.6083,0
+maiz,CORDOBA,Calamuchita,2023/24,6450.0,7096.3,HistGBM,155.7491,0
+maiz,CORDOBA,Calamuchita,2024/25,7000.0,7144.0,HistGBM,333.4934,0
+maiz,CORDOBA,Capital,2021/22,7500.0,6591.2,HistGBM,82.6174,0
+maiz,CORDOBA,Capital,2022/23,5000.0,6477.3,HistGBM,195.0406,0
+maiz,CORDOBA,Capital,2023/24,6500.0,7082.1,HistGBM,100.2175,0
+maiz,CORDOBA,Capital,2024/25,7500.0,7209.6,HistGBM,301.7278,0
+maiz,CORDOBA,Colon,2021/22,7800.0,7165.2,HistGBM,210.6854,0
+maiz,CORDOBA,Colon,2022/23,6500.0,8004.9,HistGBM,3144.5063,1
+maiz,CORDOBA,Colon,2023/24,6800.0,7859.5,HistGBM,140.7108,0
+maiz,CORDOBA,Colon,2024/25,7900.0,7836.2,HistGBM,248.7153,0
+maiz,CORDOBA,General Roca,2021/22,7900.0,7669.4,HistGBM,201.2637,0
+maiz,CORDOBA,General Roca,2022/23,6300.0,7384.4,HistGBM,2174.2324,1
+maiz,CORDOBA,General Roca,2023/24,8400.0,7558.2,HistGBM,108.2934,0
+maiz,CORDOBA,General Roca,2024/25,8400.0,7786.9,HistGBM,295.4644,0
+maiz,CORDOBA,General San Martin,2021/22,7000.0,6466.2,HistGBM,227.0779,0
+maiz,CORDOBA,General San Martin,2022/23,3800.0,6658.8,HistGBM,2400.018,1
+maiz,CORDOBA,General San Martin,2023/24,6500.0,8011.8,HistGBM,123.4307,0
+maiz,CORDOBA,General San Martin,2024/25,8000.0,8037.7,HistGBM,323.045,0
+maiz,CORDOBA,Ischilin,2021/22,6800.0,6101.7,HistGBM,176.1276,0
+maiz,CORDOBA,Ischilin,2022/23,4000.0,7437.5,HistGBM,453.7654,0
+maiz,CORDOBA,Ischilin,2023/24,6300.0,7241.3,HistGBM,135.767,0
+maiz,CORDOBA,Ischilin,2024/25,6600.0,6892.9,HistGBM,359.4787,0
+maiz,CORDOBA,Juarez Celman,2021/22,6500.0,6824.8,HistGBM,151.2808,0
+maiz,CORDOBA,Juarez Celman,2022/23,4500.0,7026.2,HistGBM,2419.747,1
+maiz,CORDOBA,Juarez Celman,2023/24,6920.0,7718.5,HistGBM,254.6218,0
+maiz,CORDOBA,Juarez Celman,2024/25,6800.0,7234.7,HistGBM,218.1054,0
+maiz,CORDOBA,Marcos Juarez,2021/22,10000.0,7794.1,HistGBM,193.472,0
+maiz,CORDOBA,Marcos Juarez,2022/23,6400.0,8281.1,HistGBM,2482.234,1
+maiz,CORDOBA,Marcos Juarez,2023/24,10200.0,10130.3,HistGBM,194.034,0
+maiz,CORDOBA,Marcos Juarez,2024/25,9900.0,9410.8,HistGBM,292.5451,0
+maiz,CORDOBA,Pocho,2021/22,6000.0,6412.1,HistGBM,161.9289,0
+maiz,CORDOBA,Pocho,2022/23,4700.0,7049.2,HistGBM,936.3614,1
+maiz,CORDOBA,Pocho,2023/24,6800.0,6467.9,HistGBM,155.3954,0
+maiz,CORDOBA,Pocho,2024/25,6500.0,7026.8,HistGBM,452.7488,0
+maiz,CORDOBA,Presidente Roque Saenz Pena,2021/22,9200.0,6582.2,HistGBM,268.9837,0
+maiz,CORDOBA,Presidente Roque Saenz Pena,2022/23,7300.0,7544.3,HistGBM,2655.2952,1
+maiz,CORDOBA,Presidente Roque Saenz Pena,2023/24,9000.0,7751.7,HistGBM,120.5719,0
+maiz,CORDOBA,Presidente Roque Saenz Pena,2024/25,9100.0,7829.6,HistGBM,406.144,0
+maiz,CORDOBA,Rio Cuarto,2021/22,5500.0,6381.4,HistGBM,152.1537,0
+maiz,CORDOBA,Rio Cuarto,2022/23,3900.0,7270.4,HistGBM,663.7781,0
+maiz,CORDOBA,Rio Cuarto,2023/24,6320.0,7002.7,HistGBM,120.9597,0
+maiz,CORDOBA,Rio Cuarto,2024/25,6500.0,7109.7,HistGBM,218.6081,0
+maiz,CORDOBA,Rio Primero,2021/22,7600.0,6255.4,HistGBM,211.8612,0
+maiz,CORDOBA,Rio Primero,2022/23,5800.0,8225.9,HistGBM,857.5001,0
+maiz,CORDOBA,Rio Primero,2023/24,6500.0,7133.0,HistGBM,133.2464,0
+maiz,CORDOBA,Rio Primero,2024/25,8200.0,8290.6,HistGBM,426.4176,0
+maiz,CORDOBA,Rio Seco,2021/22,7000.0,6606.5,HistGBM,203.2321,0
+maiz,CORDOBA,Rio Seco,2022/23,4200.0,7464.5,HistGBM,634.1634,0
+maiz,CORDOBA,Rio Seco,2023/24,3500.0,7292.8,HistGBM,187.0255,0
+maiz,CORDOBA,Rio Seco,2024/25,6600.0,7459.1,HistGBM,459.0625,0
+maiz,CORDOBA,Rio Segundo,2021/22,8000.0,6994.7,HistGBM,311.8476,0
+maiz,CORDOBA,Rio Segundo,2022/23,5500.0,7952.9,HistGBM,1318.7212,1
+maiz,CORDOBA,Rio Segundo,2023/24,6400.0,7684.2,HistGBM,128.909,0
+maiz,CORDOBA,Rio Segundo,2024/25,8000.0,8011.2,HistGBM,429.282,0
+maiz,CORDOBA,San Alberto,2021/22,9000.0,5916.0,HistGBM,169.4069,0
+maiz,CORDOBA,San Alberto,2022/23,4700.0,7227.4,HistGBM,575.6695,0
+maiz,CORDOBA,San Alberto,2023/24,7400.0,6884.8,HistGBM,171.6177,0
+maiz,CORDOBA,San Alberto,2024/25,7000.0,6896.7,HistGBM,360.971,0
+maiz,CORDOBA,San Javier,2021/22,9000.0,5654.5,HistGBM,207.1542,0
+maiz,CORDOBA,San Javier,2022/23,6500.0,6992.3,HistGBM,172.613,0
+maiz,CORDOBA,San Javier,2023/24,9000.0,8330.7,HistGBM,152.4132,0
+maiz,CORDOBA,San Javier,2024/25,9000.0,7862.4,HistGBM,172.6929,0
+maiz,CORDOBA,San Justo,2021/22,8000.0,6075.2,HistGBM,155.9419,0
+maiz,CORDOBA,San Justo,2022/23,6100.0,7116.9,HistGBM,513.1205,0
+maiz,CORDOBA,San Justo,2023/24,5940.0,7670.1,HistGBM,141.7872,0
+maiz,CORDOBA,San Justo,2024/25,8600.0,7809.3,HistGBM,331.9261,0
+maiz,CORDOBA,Santa Maria,2021/22,7000.0,6674.8,HistGBM,181.2202,0
+maiz,CORDOBA,Santa Maria,2022/23,5000.0,8151.3,HistGBM,616.6344,0
+maiz,CORDOBA,Santa Maria,2023/24,6200.0,7704.3,HistGBM,145.9783,0
+maiz,CORDOBA,Santa Maria,2024/25,8000.0,8095.5,HistGBM,346.2146,0
+maiz,CORDOBA,Tercero Arriba,2021/22,7000.0,6678.4,HistGBM,144.6225,0
+maiz,CORDOBA,Tercero Arriba,2022/23,4800.0,8246.2,HistGBM,550.8872,0
+maiz,CORDOBA,Tercero Arriba,2023/24,7000.0,8014.6,HistGBM,123.36,0
+maiz,CORDOBA,Tercero Arriba,2024/25,8500.0,7569.8,HistGBM,325.4552,0
+maiz,CORDOBA,Totoral,2021/22,7600.0,7060.0,HistGBM,170.5919,0
+maiz,CORDOBA,Totoral,2022/23,5200.0,8661.1,HistGBM,498.7955,0
+maiz,CORDOBA,Totoral,2023/24,5600.0,8440.1,HistGBM,135.3818,0
+maiz,CORDOBA,Totoral,2024/25,7800.0,8430.2,HistGBM,361.7708,0
+maiz,CORDOBA,Tulumba,2021/22,7200.0,6363.8,HistGBM,173.7647,0
+maiz,CORDOBA,Tulumba,2022/23,5000.0,7186.1,HistGBM,558.5616,0
+maiz,CORDOBA,Tulumba,2023/24,4600.0,7325.1,HistGBM,193.5483,0
+maiz,CORDOBA,Tulumba,2024/25,7000.0,7173.5,HistGBM,441.355,0
+maiz,CORDOBA,Union,2021/22,9000.0,7717.5,HistGBM,188.7741,0
+maiz,CORDOBA,Union,2022/23,5600.0,8172.4,HistGBM,2550.9045,1
+maiz,CORDOBA,Union,2023/24,9300.0,9579.1,HistGBM,153.3012,0
+maiz,CORDOBA,Union,2024/25,9200.0,8787.1,HistGBM,278.7134,0
+maiz,CORRIENTES,Bella Vista,2021/22,4500.0,3898.1,HistGBM,266.8378,0
+maiz,CORRIENTES,Bella Vista,2022/23,4500.0,4019.0,HistGBM,201.9572,0
+maiz,CORRIENTES,Bella Vista,2023/24,4000.0,5038.4,HistGBM,254.8693,0
+maiz,CORRIENTES,Bella Vista,2024/25,6500.0,4395.4,HistGBM,378.6436,0
+maiz,CORRIENTES,Beron De Astrada,2021/22,4500.0,3999.1,HistGBM,233.8542,0
+maiz,CORRIENTES,Beron De Astrada,2022/23,4500.0,3432.6,HistGBM,157.2596,0
+maiz,CORRIENTES,Beron De Astrada,2023/24,4000.0,5315.4,HistGBM,374.1086,0
+maiz,CORRIENTES,Beron De Astrada,2024/25,6500.0,3795.8,HistGBM,498.2126,0
+maiz,CORRIENTES,Capital,2021/22,4500.0,4607.2,HistGBM,102.0641,0
+maiz,CORRIENTES,Capital,2022/23,4500.0,4396.2,HistGBM,156.1145,0
+maiz,CORRIENTES,Capital,2023/24,4000.0,4952.0,HistGBM,98.9829,0
+maiz,CORRIENTES,Capital,2024/25,0.0,4117.8,HistGBM,316.5654,0
+maiz,CORRIENTES,Concepcion,2021/22,4500.0,4013.1,HistGBM,210.3096,0
+maiz,CORRIENTES,Concepcion,2022/23,4500.0,4151.8,HistGBM,184.3416,0
+maiz,CORRIENTES,Concepcion,2023/24,4000.0,5097.4,HistGBM,293.7174,0
+maiz,CORRIENTES,Concepcion,2024/25,6500.0,4315.0,HistGBM,375.274,0
+maiz,CORRIENTES,Curuzu Cuatia,2021/22,4500.0,4205.3,HistGBM,140.4428,0
+maiz,CORRIENTES,Curuzu Cuatia,2022/23,4500.0,3373.6,HistGBM,294.9317,0
+maiz,CORRIENTES,Curuzu Cuatia,2023/24,4000.0,4794.7,HistGBM,216.7334,0
+maiz,CORRIENTES,Curuzu Cuatia,2024/25,6500.0,4104.7,HistGBM,295.5896,0
+maiz,CORRIENTES,Empedrado,2021/22,4500.0,3843.2,HistGBM,286.8034,0
+maiz,CORRIENTES,Empedrado,2022/23,4500.0,3235.6,HistGBM,196.6128,0
+maiz,CORRIENTES,Empedrado,2023/24,4000.0,5133.8,HistGBM,274.9669,0
+maiz,CORRIENTES,Empedrado,2024/25,6500.0,3939.3,HistGBM,450.8752,0
+maiz,CORRIENTES,Esquina,2021/22,4500.0,4591.3,HistGBM,199.2421,0
+maiz,CORRIENTES,Esquina,2022/23,4500.0,3218.6,HistGBM,258.31,0
+maiz,CORRIENTES,Esquina,2023/24,4000.0,5375.1,HistGBM,252.3684,0
+maiz,CORRIENTES,Esquina,2024/25,6500.0,4448.1,HistGBM,395.1058,0
+maiz,CORRIENTES,Goya,2021/22,4500.0,4302.2,HistGBM,251.4925,0
+maiz,CORRIENTES,Goya,2022/23,4500.0,3787.6,HistGBM,230.184,0
+maiz,CORRIENTES,Goya,2023/24,4000.0,5289.4,HistGBM,225.5004,0
+maiz,CORRIENTES,Goya,2024/25,6500.0,4568.5,HistGBM,367.458,0
+maiz,CORRIENTES,Ituzaingo,2021/22,4500.0,5107.8,HistGBM,716.893,0
+maiz,CORRIENTES,Ituzaingo,2022/23,4500.0,4715.8,HistGBM,192.8949,0
+maiz,CORRIENTES,Ituzaingo,2023/24,4000.0,5812.8,HistGBM,424.6209,0
+maiz,CORRIENTES,Ituzaingo,2024/25,6500.0,4977.0,HistGBM,407.0316,0
+maiz,CORRIENTES,Lavalle,2021/22,4500.0,4160.2,HistGBM,248.4757,0
+maiz,CORRIENTES,Lavalle,2022/23,4500.0,3737.5,HistGBM,220.8138,0
+maiz,CORRIENTES,Lavalle,2023/24,4000.0,5454.7,HistGBM,256.2304,0
+maiz,CORRIENTES,Lavalle,2024/25,6500.0,4788.7,HistGBM,364.1252,0
+maiz,CORRIENTES,Mercedes,2021/22,4500.0,4860.3,HistGBM,156.2415,0
+maiz,CORRIENTES,Mercedes,2022/23,4500.0,4533.8,HistGBM,5730.3545,1
+maiz,CORRIENTES,Mercedes,2023/24,4000.0,5682.4,HistGBM,246.8349,0
+maiz,CORRIENTES,Mercedes,2024/25,6500.0,4695.0,HistGBM,373.144,0
+maiz,CORRIENTES,Paso De Los Libres,2021/22,4500.0,4712.1,HistGBM,154.3473,0
+maiz,CORRIENTES,Paso De Los Libres,2022/23,4500.0,4489.9,HistGBM,211.4372,0
+maiz,CORRIENTES,Paso De Los Libres,2023/24,4000.0,5721.1,HistGBM,223.7382,0
+maiz,CORRIENTES,Paso De Los Libres,2024/25,6500.0,4255.6,HistGBM,230.3331,0
+maiz,CORRIENTES,Saladas,2021/22,4500.0,3887.8,HistGBM,267.4673,0
+maiz,CORRIENTES,Saladas,2022/23,4500.0,4137.5,HistGBM,219.3082,0
+maiz,CORRIENTES,Saladas,2023/24,4000.0,4991.7,HistGBM,226.7657,0
+maiz,CORRIENTES,Saladas,2024/25,6500.0,4379.4,HistGBM,389.9704,0
+maiz,CORRIENTES,San Luis Del Palmar,2021/22,4500.0,3453.1,HistGBM,251.5322,0
+maiz,CORRIENTES,San Luis Del Palmar,2022/23,4500.0,3347.6,HistGBM,221.8659,0
+maiz,CORRIENTES,San Luis Del Palmar,2023/24,4000.0,5163.5,HistGBM,293.0484,0
+maiz,CORRIENTES,San Luis Del Palmar,2024/25,6500.0,3674.2,HistGBM,399.718,0
+maiz,CORRIENTES,San Martin,2021/22,4500.0,5120.4,HistGBM,186.253,0
+maiz,CORRIENTES,San Martin,2022/23,4500.0,4257.5,HistGBM,692.0139,0
+maiz,CORRIENTES,San Martin,2023/24,4000.0,5596.4,HistGBM,184.0187,0
+maiz,CORRIENTES,San Martin,2024/25,6500.0,6070.6,HistGBM,340.9811,0
+maiz,CORRIENTES,San Miguel,2021/22,4500.0,3747.7,HistGBM,293.9893,0
+maiz,CORRIENTES,San Miguel,2022/23,4500.0,3764.1,HistGBM,210.3446,0
+maiz,CORRIENTES,San Miguel,2023/24,4000.0,5069.4,HistGBM,501.2667,0
+maiz,CORRIENTES,San Miguel,2024/25,6500.0,4090.2,HistGBM,373.1126,0
+maiz,CORRIENTES,San Roque,2021/22,4500.0,4004.1,HistGBM,326.6163,0
+maiz,CORRIENTES,San Roque,2022/23,4500.0,4184.3,HistGBM,183.488,0
+maiz,CORRIENTES,San Roque,2023/24,4000.0,5079.3,HistGBM,347.2887,0
+maiz,CORRIENTES,San Roque,2024/25,6500.0,4355.9,HistGBM,413.3275,0
+maiz,CORRIENTES,Santo Tome,2021/22,4500.0,4874.6,HistGBM,644.3376,0
+maiz,CORRIENTES,Santo Tome,2022/23,4500.0,4030.9,HistGBM,255.5972,0
+maiz,CORRIENTES,Santo Tome,2023/24,4000.0,5543.7,HistGBM,204.3082,0
+maiz,CORRIENTES,Santo Tome,2024/25,6500.0,4422.5,HistGBM,261.0432,0
+maiz,CORRIENTES,Sauce,2021/22,4500.0,4157.3,HistGBM,156.6474,0
+maiz,CORRIENTES,Sauce,2022/23,4500.0,3035.8,HistGBM,270.4205,0
+maiz,CORRIENTES,Sauce,2023/24,4000.0,5022.5,HistGBM,237.8711,0
+maiz,CORRIENTES,Sauce,2024/25,6500.0,4120.3,HistGBM,293.02,0
+maiz,ENTRE RIOS,Colon,2021/22,3000.0,6025.4,HistGBM,201.2536,0
+maiz,ENTRE RIOS,Colon,2022/23,1700.0,4267.8,HistGBM,2572.0093,1
+maiz,ENTRE RIOS,Colon,2023/24,5700.0,6427.9,HistGBM,130.4364,0
+maiz,ENTRE RIOS,Colon,2024/25,6700.0,5932.3,HistGBM,273.1221,0
+maiz,ENTRE RIOS,Concordia,2021/22,4100.0,6169.4,HistGBM,180.8988,0
+maiz,ENTRE RIOS,Concordia,2022/23,3500.0,5218.1,HistGBM,417.5797,0
+maiz,ENTRE RIOS,Concordia,2023/24,6600.0,7201.2,HistGBM,166.2305,0
+maiz,ENTRE RIOS,Concordia,2024/25,5900.0,5552.5,HistGBM,168.057,0
+maiz,ENTRE RIOS,Diamante,2021/22,5000.0,6580.9,HistGBM,170.8123,0
+maiz,ENTRE RIOS,Diamante,2022/23,3600.0,5345.4,HistGBM,1257.5911,1
+maiz,ENTRE RIOS,Diamante,2023/24,6100.0,8197.7,HistGBM,120.6306,0
+maiz,ENTRE RIOS,Diamante,2024/25,6800.0,7870.5,HistGBM,289.7704,0
+maiz,ENTRE RIOS,Federacion,2021/22,4000.0,5678.4,HistGBM,160.0005,0
+maiz,ENTRE RIOS,Federacion,2022/23,3300.0,4776.0,HistGBM,274.0169,0
+maiz,ENTRE RIOS,Federacion,2023/24,6000.0,6645.1,HistGBM,180.1984,0
+maiz,ENTRE RIOS,Federacion,2024/25,6100.0,5071.8,HistGBM,219.9685,0
+maiz,ENTRE RIOS,Federal,2021/22,4300.0,5373.5,HistGBM,195.7618,0
+maiz,ENTRE RIOS,Federal,2022/23,3400.0,4795.4,HistGBM,375.6929,0
+maiz,ENTRE RIOS,Federal,2023/24,6000.0,6917.8,HistGBM,178.1724,0
+maiz,ENTRE RIOS,Federal,2024/25,6100.0,4959.7,HistGBM,221.1049,0
+maiz,ENTRE RIOS,Feliciano,2021/22,4000.0,5585.5,HistGBM,187.467,0
+maiz,ENTRE RIOS,Feliciano,2022/23,3500.0,4182.2,HistGBM,1201.733,1
+maiz,ENTRE RIOS,Feliciano,2023/24,5900.0,6618.8,HistGBM,150.9566,0
+maiz,ENTRE RIOS,Feliciano,2024/25,5900.0,6429.4,HistGBM,262.0091,0
+maiz,ENTRE RIOS,Gualeguay,2021/22,4300.0,6317.5,HistGBM,174.7894,0
+maiz,ENTRE RIOS,Gualeguay,2022/23,1500.0,5252.2,HistGBM,2991.5403,1
+maiz,ENTRE RIOS,Gualeguay,2023/24,5800.0,7655.0,HistGBM,159.6396,0
+maiz,ENTRE RIOS,Gualeguay,2024/25,6700.0,6386.2,HistGBM,263.2016,0
+maiz,ENTRE RIOS,Gualeguaychu,2021/22,3300.0,5973.2,HistGBM,218.8348,0
+maiz,ENTRE RIOS,Gualeguaychu,2022/23,1900.0,4914.0,HistGBM,4225.1265,1
+maiz,ENTRE RIOS,Gualeguaychu,2023/24,6000.0,6781.5,HistGBM,178.6461,0
+maiz,ENTRE RIOS,Gualeguaychu,2024/25,6700.0,5743.9,HistGBM,270.0061,0
+maiz,ENTRE RIOS,La Paz,2021/22,4200.0,5636.3,HistGBM,157.5064,0
+maiz,ENTRE RIOS,La Paz,2022/23,3600.0,4544.7,HistGBM,363.2755,0
+maiz,ENTRE RIOS,La Paz,2023/24,5900.0,7907.9,HistGBM,155.2936,0
+maiz,ENTRE RIOS,La Paz,2024/25,6000.0,5917.7,HistGBM,251.8524,0
+maiz,ENTRE RIOS,Nogoya,2021/22,3200.0,6571.5,HistGBM,161.0074,0
+maiz,ENTRE RIOS,Nogoya,2022/23,1900.0,4838.2,HistGBM,1162.5974,1
+maiz,ENTRE RIOS,Nogoya,2023/24,5000.0,6962.4,HistGBM,119.6522,0
+maiz,ENTRE RIOS,Nogoya,2024/25,6700.0,6181.7,HistGBM,205.802,0
+maiz,ENTRE RIOS,Parana,2021/22,5000.0,6220.5,HistGBM,167.7026,0
+maiz,ENTRE RIOS,Parana,2022/23,3700.0,4688.9,HistGBM,884.8609,0
+maiz,ENTRE RIOS,Parana,2023/24,6200.0,7804.2,HistGBM,133.4824,0
+maiz,ENTRE RIOS,Parana,2024/25,6400.0,7752.8,HistGBM,294.4606,0
+maiz,ENTRE RIOS,San Salvador,2021/22,2700.0,6172.4,HistGBM,214.5268,0
+maiz,ENTRE RIOS,San Salvador,2022/23,1600.0,3909.5,HistGBM,893.0707,1
+maiz,ENTRE RIOS,San Salvador,2023/24,5500.0,7526.5,HistGBM,264.8788,0
+maiz,ENTRE RIOS,San Salvador,2024/25,6700.0,5273.4,HistGBM,188.6623,0
+maiz,ENTRE RIOS,Tala,2021/22,3200.0,6089.3,HistGBM,192.3777,0
+maiz,ENTRE RIOS,Tala,2022/23,1500.0,5191.8,HistGBM,452.2544,0
+maiz,ENTRE RIOS,Tala,2023/24,5000.0,6289.1,HistGBM,153.8596,0
+maiz,ENTRE RIOS,Tala,2024/25,6500.0,5125.3,HistGBM,160.0777,0
+maiz,ENTRE RIOS,Uruguay,2021/22,2650.0,6310.4,HistGBM,168.0732,0
+maiz,ENTRE RIOS,Uruguay,2022/23,1900.0,5107.3,HistGBM,925.2531,1
+maiz,ENTRE RIOS,Uruguay,2023/24,6000.0,6816.6,HistGBM,135.1066,0
+maiz,ENTRE RIOS,Uruguay,2024/25,6700.0,6810.4,HistGBM,290.9057,0
+maiz,ENTRE RIOS,Victoria,2021/22,4300.0,6432.0,HistGBM,161.7577,0
+maiz,ENTRE RIOS,Victoria,2022/23,1900.0,6134.8,HistGBM,1957.5833,1
+maiz,ENTRE RIOS,Victoria,2023/24,5000.0,7646.0,HistGBM,122.2824,0
+maiz,ENTRE RIOS,Victoria,2024/25,6700.0,7527.5,HistGBM,291.2439,0
+maiz,ENTRE RIOS,Villaguay,2021/22,3100.0,6279.8,HistGBM,181.3755,0
+maiz,ENTRE RIOS,Villaguay,2022/23,1600.0,4100.2,HistGBM,635.1262,0
+maiz,ENTRE RIOS,Villaguay,2023/24,5500.0,6845.2,HistGBM,150.6831,0
+maiz,ENTRE RIOS,Villaguay,2024/25,6700.0,5951.7,HistGBM,153.3545,0
+maiz,FORMOSA,Formosa,2021/22,5199.0,3830.2,HistGBM,297.7678,0
+maiz,FORMOSA,Formosa,2022/23,3699.0,3759.7,HistGBM,243.0441,0
+maiz,FORMOSA,Formosa,2023/24,2468.0,5133.9,HistGBM,250.0908,0
+maiz,FORMOSA,Formosa,2024/25,3800.0,3995.0,HistGBM,271.6333,0
+maiz,FORMOSA,Laishi,2021/22,5000.0,3915.2,HistGBM,388.7496,0
+maiz,FORMOSA,Laishi,2022/23,3700.0,3513.4,HistGBM,318.7726,0
+maiz,FORMOSA,Laishi,2023/24,2458.0,5309.1,HistGBM,231.6061,0
+maiz,FORMOSA,Laishi,2024/25,3800.0,4065.1,HistGBM,371.9904,0
+maiz,FORMOSA,Patino,2021/22,2100.0,3466.8,HistGBM,435.279,0
+maiz,FORMOSA,Patino,2022/23,3700.0,4968.9,HistGBM,248.4283,0
+maiz,FORMOSA,Patino,2023/24,2460.0,4370.7,HistGBM,438.4866,0
+maiz,FORMOSA,Patino,2024/25,3800.0,4454.4,HistGBM,282.3292,0
+maiz,FORMOSA,Pilagas,2021/22,3000.0,3950.0,HistGBM,277.5726,0
+maiz,FORMOSA,Pilagas,2022/23,3701.0,4908.6,HistGBM,323.778,0
+maiz,FORMOSA,Pilagas,2023/24,2461.0,5199.4,HistGBM,387.6888,0
+maiz,FORMOSA,Pilagas,2024/25,3800.0,4467.8,HistGBM,275.568,0
+maiz,FORMOSA,Pilcomayo,2021/22,0.0,4028.7,HistGBM,253.6964,0
+maiz,FORMOSA,Pilcomayo,2022/23,3689.0,4870.1,HistGBM,259.409,0
+maiz,FORMOSA,Pilcomayo,2023/24,2442.0,5028.0,HistGBM,387.0374,0
+maiz,FORMOSA,Pilcomayo,2024/25,3800.0,4059.3,HistGBM,225.4994,0
+maiz,FORMOSA,Pirane,2021/22,4500.0,3616.9,HistGBM,365.5935,0
+maiz,FORMOSA,Pirane,2022/23,3700.0,4709.6,HistGBM,287.9568,0
+maiz,FORMOSA,Pirane,2023/24,2460.0,5417.3,HistGBM,378.8031,0
+maiz,FORMOSA,Pirane,2024/25,3800.0,4493.9,HistGBM,354.2506,0
+maiz,JUJUY,Dr. Manuel Belgrano,2021/22,4000.0,6205.9,HistGBM,227.6757,0
+maiz,JUJUY,Dr. Manuel Belgrano,2022/23,4000.0,5992.5,HistGBM,177.2726,0
+maiz,JUJUY,Dr. Manuel Belgrano,2023/24,4274.0,5636.4,HistGBM,332.5521,0
+maiz,JUJUY,Dr. Manuel Belgrano,2024/25,4000.0,5715.7,HistGBM,238.1279,0
+maiz,JUJUY,El Carmen,2021/22,2500.0,6114.3,HistGBM,399.5445,0
+maiz,JUJUY,El Carmen,2022/23,4000.0,5997.9,HistGBM,515.7884,0
+maiz,JUJUY,El Carmen,2023/24,4300.0,6227.6,HistGBM,179.1846,0
+maiz,JUJUY,El Carmen,2024/25,4000.0,5605.1,HistGBM,270.073,0
+maiz,JUJUY,Ledesma,2021/22,4000.0,5076.1,HistGBM,392.9042,0
+maiz,JUJUY,Ledesma,2022/23,4000.0,5609.0,HistGBM,628.9118,0
+maiz,JUJUY,Ledesma,2023/24,4301.0,5628.5,HistGBM,223.5146,0
+maiz,JUJUY,Ledesma,2024/25,4000.0,5112.3,HistGBM,359.3368,0
+maiz,JUJUY,Palpala,2021/22,4000.0,5766.2,HistGBM,388.4049,0
+maiz,JUJUY,Palpala,2022/23,4000.0,5805.8,HistGBM,506.042,0
+maiz,JUJUY,Palpala,2023/24,4287.0,5805.5,HistGBM,179.0822,0
+maiz,JUJUY,Palpala,2024/25,4000.0,5561.6,HistGBM,284.6614,0
+maiz,JUJUY,San Antonio,2021/22,4000.0,5786.5,HistGBM,203.7694,0
+maiz,JUJUY,San Antonio,2022/23,3998.0,5501.1,HistGBM,287.2398,0
+maiz,JUJUY,San Antonio,2023/24,4300.0,6158.5,HistGBM,370.4325,0
+maiz,JUJUY,San Antonio,2024/25,4000.0,4953.0,HistGBM,239.7168,0
+maiz,JUJUY,San Pedro,2021/22,4000.0,5662.1,HistGBM,157.7227,0
+maiz,JUJUY,San Pedro,2022/23,4000.0,5152.5,HistGBM,3692.1584,1
+maiz,JUJUY,San Pedro,2023/24,4300.0,6048.7,HistGBM,138.9585,0
+maiz,JUJUY,San Pedro,2024/25,4000.0,5193.8,HistGBM,227.9998,0
+maiz,JUJUY,Santa Barbara,2021/22,4000.0,5670.5,HistGBM,246.7949,0
+maiz,JUJUY,Santa Barbara,2022/23,4000.0,5331.0,HistGBM,356.5719,0
+maiz,JUJUY,Santa Barbara,2023/24,4300.0,5500.1,HistGBM,317.1966,0
+maiz,JUJUY,Santa Barbara,2024/25,4000.0,4859.1,HistGBM,285.2532,0
+maiz,LA PAMPA,Atreuco,2021/22,5500.0,4979.2,HistGBM,113.0061,0
+maiz,LA PAMPA,Atreuco,2022/23,5500.0,4874.1,HistGBM,156.2578,0
+maiz,LA PAMPA,Atreuco,2023/24,5500.0,5613.5,HistGBM,88.6875,0
+maiz,LA PAMPA,Atreuco,2024/25,6500.0,4963.3,HistGBM,234.4628,0
+maiz,LA PAMPA,Capital,2021/22,5000.0,5492.4,HistGBM,94.7832,0
+maiz,LA PAMPA,Capital,2022/23,5000.0,4737.6,HistGBM,219.2645,0
+maiz,LA PAMPA,Capital,2023/24,5000.0,5633.5,HistGBM,79.9514,0
+maiz,LA PAMPA,Capital,2024/25,5500.0,5523.7,HistGBM,265.537,0
+maiz,LA PAMPA,Catrilo,2021/22,6500.0,6250.2,HistGBM,119.5238,0
+maiz,LA PAMPA,Catrilo,2022/23,5500.0,5534.3,HistGBM,516.0161,0
+maiz,LA PAMPA,Catrilo,2023/24,5500.0,5858.8,HistGBM,84.0565,0
+maiz,LA PAMPA,Catrilo,2024/25,6500.0,6181.7,HistGBM,302.1142,0
+maiz,LA PAMPA,Chapaleufu,2021/22,8702.0,7862.4,HistGBM,109.7768,0
+maiz,LA PAMPA,Chapaleufu,2022/23,7670.0,7955.3,HistGBM,978.2338,1
+maiz,LA PAMPA,Chapaleufu,2023/24,8660.0,8014.5,HistGBM,95.2284,0
+maiz,LA PAMPA,Chapaleufu,2024/25,7200.0,8266.4,HistGBM,285.3856,0
+maiz,LA PAMPA,Conhelo,2021/22,6101.0,6111.0,HistGBM,105.2149,0
+maiz,LA PAMPA,Conhelo,2022/23,6490.0,5695.4,HistGBM,374.6033,0
+maiz,LA PAMPA,Conhelo,2023/24,6880.0,6134.5,HistGBM,86.149,0
+maiz,LA PAMPA,Conhelo,2024/25,6000.0,6567.2,HistGBM,293.9834,0
+maiz,LA PAMPA,Guatrache,2021/22,4000.0,4322.5,HistGBM,108.5103,0
+maiz,LA PAMPA,Guatrache,2022/23,4000.0,3507.9,HistGBM,159.7838,0
+maiz,LA PAMPA,Guatrache,2023/24,4000.0,3828.7,HistGBM,82.0917,0
+maiz,LA PAMPA,Guatrache,2024/25,4000.0,3841.2,HistGBM,378.0523,0
+maiz,LA PAMPA,Hucal,2021/22,3500.0,3553.8,HistGBM,120.6633,0
+maiz,LA PAMPA,Hucal,2022/23,3500.0,3100.7,HistGBM,120.6564,0
+maiz,LA PAMPA,Hucal,2023/24,3500.0,4101.6,HistGBM,94.4355,0
+maiz,LA PAMPA,Hucal,2024/25,3500.0,3224.3,HistGBM,376.9733,0
+maiz,LA PAMPA,Maraco,2021/22,8333.0,7201.4,HistGBM,108.0161,0
+maiz,LA PAMPA,Maraco,2022/23,7780.0,7338.9,HistGBM,147.6556,0
+maiz,LA PAMPA,Maraco,2023/24,8750.0,7155.1,HistGBM,90.8177,0
+maiz,LA PAMPA,Maraco,2024/25,7000.0,7220.2,HistGBM,261.1273,0
+maiz,LA PAMPA,Quemu Quemu,2021/22,8441.0,7188.9,HistGBM,103.4396,0
+maiz,LA PAMPA,Quemu Quemu,2022/23,7860.0,6332.9,HistGBM,600.4212,0
+maiz,LA PAMPA,Quemu Quemu,2023/24,7280.0,6681.2,HistGBM,82.9246,0
+maiz,LA PAMPA,Quemu Quemu,2024/25,6500.0,6831.4,HistGBM,291.371,0
+maiz,LA PAMPA,Rancul,2021/22,7909.0,5975.0,HistGBM,120.4193,0
+maiz,LA PAMPA,Rancul,2022/23,6430.0,5821.9,HistGBM,579.8976,0
+maiz,LA PAMPA,Rancul,2023/24,6880.0,6246.4,HistGBM,96.3513,0
+maiz,LA PAMPA,Rancul,2024/25,6000.0,6452.1,HistGBM,232.3156,0
+maiz,LA PAMPA,Realico,2021/22,8394.0,6243.6,HistGBM,115.1577,0
+maiz,LA PAMPA,Realico,2022/23,7380.0,6537.3,HistGBM,578.3788,0
+maiz,LA PAMPA,Realico,2023/24,7850.0,6418.7,HistGBM,92.6205,0
+maiz,LA PAMPA,Realico,2024/25,6000.0,6680.5,HistGBM,240.7516,0
+maiz,LA PAMPA,Toay,2021/22,4000.0,4820.1,HistGBM,101.7711,0
+maiz,LA PAMPA,Toay,2022/23,4000.0,4299.8,HistGBM,189.1386,0
+maiz,LA PAMPA,Toay,2023/24,4000.0,4726.5,HistGBM,84.3699,0
+maiz,LA PAMPA,Toay,2024/25,4500.0,4629.1,HistGBM,291.6904,0
+maiz,LA PAMPA,Trenel,2021/22,7425.0,6276.9,HistGBM,113.9366,0
+maiz,LA PAMPA,Trenel,2022/23,6490.0,5501.3,HistGBM,545.295,0
+maiz,LA PAMPA,Trenel,2023/24,6820.0,6129.8,HistGBM,90.3412,0
+maiz,LA PAMPA,Trenel,2024/25,6000.0,5961.2,HistGBM,275.4831,0
+maiz,LA PAMPA,Utracan,2021/22,4000.0,4510.9,HistGBM,127.3374,0
+maiz,LA PAMPA,Utracan,2022/23,4000.0,3738.6,HistGBM,902.4189,1
+maiz,LA PAMPA,Utracan,2023/24,4000.0,4615.9,HistGBM,90.422,0
+maiz,LA PAMPA,Utracan,2024/25,4000.0,4054.8,HistGBM,283.9095,0
+maiz,MISIONES,25 De Mayo,2021/22,3500.0,3588.9,HistGBM,149.9154,0
+maiz,MISIONES,25 De Mayo,2022/23,4000.0,2648.4,HistGBM,3284.2568,1
+maiz,MISIONES,25 De Mayo,2023/24,3160.0,4245.2,HistGBM,113.223,0
+maiz,MISIONES,25 De Mayo,2024/25,5000.0,4227.8,HistGBM,245.0742,0
+maiz,MISIONES,Apostoles,2021/22,3502.0,3420.1,HistGBM,197.5254,0
+maiz,MISIONES,Apostoles,2022/23,3996.0,2818.2,HistGBM,129.9691,0
+maiz,MISIONES,Apostoles,2023/24,3160.0,4068.7,HistGBM,178.4794,0
+maiz,MISIONES,Apostoles,2024/25,5000.0,3795.6,HistGBM,186.9582,0
+maiz,MISIONES,Cainguas,2021/22,3500.0,3425.9,HistGBM,235.0684,0
+maiz,MISIONES,Cainguas,2022/23,4000.0,3248.6,HistGBM,76.295,0
+maiz,MISIONES,Cainguas,2023/24,3160.0,3961.6,HistGBM,157.6797,0
+maiz,MISIONES,Cainguas,2024/25,5000.0,3936.9,HistGBM,142.5418,0
+maiz,MISIONES,Candelaria,2021/22,3200.0,2856.5,HistGBM,275.3537,0
+maiz,MISIONES,Candelaria,2022/23,4000.0,2778.4,HistGBM,117.5772,0
+maiz,MISIONES,Candelaria,2023/24,3163.0,3735.8,HistGBM,214.1164,0
+maiz,MISIONES,Candelaria,2024/25,5000.0,3692.0,HistGBM,147.1764,0
+maiz,MISIONES,Capital,2021/22,3505.0,2832.5,HistGBM,90.5344,0
+maiz,MISIONES,Capital,2022/23,3989.0,2801.9,HistGBM,216.5838,0
+maiz,MISIONES,Capital,2023/24,3164.0,4409.8,HistGBM,88.2291,0
+maiz,MISIONES,Capital,2024/25,5000.0,2986.5,HistGBM,268.667,0
+maiz,MISIONES,Concepcion,2021/22,3500.0,2371.8,HistGBM,179.9301,0
+maiz,MISIONES,Concepcion,2022/23,3977.0,2373.2,HistGBM,306.4258,0
+maiz,MISIONES,Concepcion,2023/24,3153.0,3866.4,HistGBM,156.6296,0
+maiz,MISIONES,Concepcion,2024/25,5000.0,3030.4,HistGBM,231.7666,0
+maiz,MISIONES,Eldorado,2021/22,3503.0,3512.3,HistGBM,419.151,0
+maiz,MISIONES,Eldorado,2022/23,4000.0,3528.8,HistGBM,99.0832,0
+maiz,MISIONES,Eldorado,2023/24,3154.0,3642.4,HistGBM,208.831,0
+maiz,MISIONES,Eldorado,2024/25,5000.0,3593.6,HistGBM,164.359,0
+maiz,MISIONES,General Manuel Belgrano,2021/22,3500.0,3961.0,HistGBM,254.3752,0
+maiz,MISIONES,General Manuel Belgrano,2022/23,4000.0,4245.1,HistGBM,151.425,0
+maiz,MISIONES,General Manuel Belgrano,2023/24,3160.0,4026.3,HistGBM,353.9972,0
+maiz,MISIONES,General Manuel Belgrano,2024/25,5000.0,4450.0,HistGBM,169.9786,0
+maiz,MISIONES,Guarani,2021/22,3500.0,3859.1,HistGBM,252.98,0
+maiz,MISIONES,Guarani,2022/23,4000.0,3505.4,HistGBM,85.8812,0
+maiz,MISIONES,Guarani,2023/24,3160.0,4286.9,HistGBM,140.79,0
+maiz,MISIONES,Guarani,2024/25,5000.0,4318.4,HistGBM,144.292,0
+maiz,MISIONES,Iguazu,2021/22,3500.0,3489.1,HistGBM,198.3564,0
+maiz,MISIONES,Iguazu,2022/23,3996.0,3704.1,HistGBM,213.2466,0
+maiz,MISIONES,Iguazu,2023/24,3161.0,3560.4,HistGBM,277.984,0
+maiz,MISIONES,Iguazu,2024/25,5000.0,3638.7,HistGBM,123.8122,0
+maiz,MISIONES,Leandro N. Alem,2021/22,3501.0,3005.1,HistGBM,161.273,0
+maiz,MISIONES,Leandro N. Alem,2022/23,4000.0,2272.1,HistGBM,4081.5557,1
+maiz,MISIONES,Leandro N. Alem,2023/24,3160.0,3659.2,HistGBM,136.3463,0
+maiz,MISIONES,Leandro N. Alem,2024/25,5000.0,3497.1,HistGBM,289.4026,0
+maiz,MISIONES,Libertador General San Martin,2021/22,3503.0,2450.0,HistGBM,435.2728,0
+maiz,MISIONES,Libertador General San Martin,2022/23,3988.0,2643.0,HistGBM,277.5034,0
+maiz,MISIONES,Libertador General San Martin,2023/24,3162.0,4271.2,HistGBM,186.6235,0
+maiz,MISIONES,Libertador General San Martin,2024/25,5000.0,3317.0,HistGBM,326.9607,0
+maiz,MISIONES,Montecarlo,2021/22,3500.0,3481.5,HistGBM,361.1726,0
+maiz,MISIONES,Montecarlo,2022/23,4009.0,3503.5,HistGBM,96.22,0
+maiz,MISIONES,Montecarlo,2023/24,3161.0,3746.0,HistGBM,200.8327,0
+maiz,MISIONES,Montecarlo,2024/25,5000.0,3827.4,HistGBM,133.8372,0
+maiz,MISIONES,Obera,2021/22,3500.0,3387.0,HistGBM,306.3484,0
+maiz,MISIONES,Obera,2022/23,4000.0,3044.2,HistGBM,93.4959,0
+maiz,MISIONES,Obera,2023/24,3160.0,3911.2,HistGBM,139.0572,0
+maiz,MISIONES,Obera,2024/25,5000.0,3902.4,HistGBM,148.1229,0
+maiz,MISIONES,San Ignacio,2021/22,3509.0,3195.0,HistGBM,283.1562,0
+maiz,MISIONES,San Ignacio,2022/23,3978.0,2882.1,HistGBM,122.0169,0
+maiz,MISIONES,San Ignacio,2023/24,3161.0,3936.1,HistGBM,200.7673,0
+maiz,MISIONES,San Ignacio,2024/25,5000.0,3754.7,HistGBM,148.9439,0
+maiz,MISIONES,San Javier,2021/22,3496.0,3079.4,HistGBM,264.5611,0
+maiz,MISIONES,San Javier,2022/23,4001.0,2826.7,HistGBM,146.2332,0
+maiz,MISIONES,San Javier,2023/24,3161.0,3971.2,HistGBM,124.9399,0
+maiz,MISIONES,San Javier,2024/25,5000.0,3781.0,HistGBM,175.1137,0
+maiz,MISIONES,San Pedro,2021/22,3500.0,3519.1,HistGBM,154.169,0
+maiz,MISIONES,San Pedro,2022/23,4000.0,2413.2,HistGBM,3436.8467,1
+maiz,MISIONES,San Pedro,2023/24,3160.0,4263.3,HistGBM,168.397,0
+maiz,MISIONES,San Pedro,2024/25,5000.0,3508.8,HistGBM,287.1529,0
+maiz,SALTA,Anta,2021/22,6400.0,5997.2,HistGBM,297.9724,0
+maiz,SALTA,Anta,2022/23,5700.0,6810.5,HistGBM,929.6362,1
+maiz,SALTA,Anta,2023/24,4300.0,6769.1,HistGBM,476.8302,0
+maiz,SALTA,Anta,2024/25,6000.0,6075.8,HistGBM,431.9008,0
+maiz,SALTA,Cachi,2021/22,5600.0,5477.7,HistGBM,116.6137,0
+maiz,SALTA,Cachi,2023/24,4500.0,5729.2,HistGBM,773.5278,0
+maiz,SALTA,Cachi,2024/25,5500.0,4888.2,HistGBM,262.9616,0
+maiz,SALTA,Capital,2021/22,6600.0,6223.0,HistGBM,104.8825,0
+maiz,SALTA,Capital,2022/23,5800.0,5847.3,HistGBM,197.8527,0
+maiz,SALTA,Capital,2023/24,5500.0,6607.8,HistGBM,90.7038,0
+maiz,SALTA,Capital,2024/25,6300.0,6035.9,HistGBM,291.4927,0
+maiz,SALTA,Cerrillos,2021/22,6600.0,5942.9,HistGBM,160.9908,0
+maiz,SALTA,Cerrillos,2022/23,5800.0,6140.1,HistGBM,351.9333,0
+maiz,SALTA,Cerrillos,2023/24,5501.0,6616.2,HistGBM,237.2652,0
+maiz,SALTA,Cerrillos,2024/25,6300.0,5699.6,HistGBM,254.2885,0
+maiz,SALTA,Chicoana,2021/22,6599.0,6280.8,HistGBM,165.9534,0
+maiz,SALTA,Chicoana,2022/23,5800.0,6168.8,HistGBM,378.0774,0
+maiz,SALTA,Chicoana,2023/24,5501.0,6593.4,HistGBM,221.2614,0
+maiz,SALTA,Chicoana,2024/25,6000.0,5711.4,HistGBM,229.1513,0
+maiz,SALTA,General Guemes,2021/22,6400.0,6154.6,HistGBM,284.5066,0
+maiz,SALTA,General Guemes,2022/23,5800.0,6163.7,HistGBM,621.6694,0
+maiz,SALTA,General Guemes,2023/24,5000.0,6390.7,HistGBM,172.7869,0
+maiz,SALTA,General Guemes,2024/25,6300.0,5590.7,HistGBM,257.1858,0
+maiz,SALTA,General Jose De San Martin,2021/22,6200.0,6167.6,HistGBM,151.4702,0
+maiz,SALTA,General Jose De San Martin,2022/23,5700.0,6058.6,HistGBM,353.332,0
+maiz,SALTA,General Jose De San Martin,2023/24,3900.0,6369.0,HistGBM,221.7438,0
+maiz,SALTA,General Jose De San Martin,2024/25,6000.0,5537.1,HistGBM,260.852,0
+maiz,SALTA,La Caldera,2021/22,6500.0,6161.0,HistGBM,228.9104,0
+maiz,SALTA,La Caldera,2022/23,5700.0,6017.7,HistGBM,250.8974,0
+maiz,SALTA,La Caldera,2023/24,5000.0,6413.5,HistGBM,392.2567,0
+maiz,SALTA,La Caldera,2024/25,6000.0,5275.5,HistGBM,205.9723,0
+maiz,SALTA,La Candelaria,2021/22,6300.0,6147.5,HistGBM,263.6028,0
+maiz,SALTA,La Candelaria,2022/23,5700.0,6206.4,HistGBM,471.985,0
+maiz,SALTA,La Candelaria,2023/24,5000.0,6291.1,HistGBM,200.243,0
+maiz,SALTA,La Candelaria,2024/25,6000.0,5560.3,HistGBM,332.4245,0
+maiz,SALTA,La Vina,2021/22,6300.0,6428.2,HistGBM,168.8252,0
+maiz,SALTA,La Vina,2022/23,5800.0,6184.9,HistGBM,362.0176,0
+maiz,SALTA,La Vina,2023/24,5500.0,6618.2,HistGBM,218.9839,0
+maiz,SALTA,La Vina,2024/25,5800.0,5731.3,HistGBM,221.5277,0
+maiz,SALTA,Metan,2021/22,6400.0,6397.6,HistGBM,226.8532,0
+maiz,SALTA,Metan,2022/23,5900.0,6432.6,HistGBM,558.6366,0
+maiz,SALTA,Metan,2023/24,4500.0,6600.0,HistGBM,180.711,0
+maiz,SALTA,Metan,2024/25,6500.0,5861.9,HistGBM,276.1974,0
+maiz,SALTA,Oran,2021/22,6300.0,5945.4,HistGBM,255.0362,0
+maiz,SALTA,Oran,2022/23,5700.0,6424.7,HistGBM,885.9053,0
+maiz,SALTA,Oran,2023/24,4100.0,6128.9,HistGBM,366.1986,0
+maiz,SALTA,Oran,2024/25,6000.0,5643.1,HistGBM,447.6017,0
+maiz,SALTA,Rosario De La Frontera,2021/22,6300.0,6318.0,HistGBM,207.2548,0
+maiz,SALTA,Rosario De La Frontera,2022/23,5800.0,6504.2,HistGBM,477.4499,0
+maiz,SALTA,Rosario De La Frontera,2023/24,5000.0,6381.5,HistGBM,193.2933,0
+maiz,SALTA,Rosario De La Frontera,2024/25,6500.0,5831.9,HistGBM,326.9154,0
+maiz,SALTA,Rosario De Lerma,2021/22,6800.0,6088.2,HistGBM,183.5432,0
+maiz,SALTA,Rosario De Lerma,2022/23,6000.0,5612.0,HistGBM,226.3491,0
+maiz,SALTA,Rosario De Lerma,2023/24,5000.0,6152.2,HistGBM,297.9314,0
+maiz,SALTA,Rosario De Lerma,2024/25,6300.0,5322.3,HistGBM,189.192,0
+maiz,SAN LUIS,Ayacucho,2021/22,12000.0,9714.6,HistGBM,135.2787,0
+maiz,SAN LUIS,Ayacucho,2022/23,10900.0,8150.1,HistGBM,722.0532,0
+maiz,SAN LUIS,Ayacucho,2023/24,10100.0,9938.0,HistGBM,104.8815,0
+maiz,SAN LUIS,Ayacucho,2024/25,10500.0,8769.1,HistGBM,305.4004,0
+maiz,SAN LUIS,Chacabuco,2021/22,3800.0,5530.9,HistGBM,171.1198,0
+maiz,SAN LUIS,Chacabuco,2022/23,2800.0,4887.7,HistGBM,6836.554,1
+maiz,SAN LUIS,Chacabuco,2023/24,4300.0,5701.3,HistGBM,118.9597,0
+maiz,SAN LUIS,Chacabuco,2024/25,3800.0,5585.9,HistGBM,270.3448,0
+maiz,SAN LUIS,Coronel Pringles,2021/22,5200.0,5823.3,HistGBM,162.6764,0
+maiz,SAN LUIS,Coronel Pringles,2022/23,3200.0,5488.3,HistGBM,430.5288,0
+maiz,SAN LUIS,Coronel Pringles,2023/24,4600.0,6172.2,HistGBM,95.9962,0
+maiz,SAN LUIS,Coronel Pringles,2024/25,5500.0,5919.2,HistGBM,514.3606,0
+maiz,SAN LUIS,General Pedernera,2021/22,4700.0,5164.4,HistGBM,138.6398,0
+maiz,SAN LUIS,General Pedernera,2022/23,3300.0,5973.8,HistGBM,498.7926,0
+maiz,SAN LUIS,General Pedernera,2023/24,4400.0,6108.6,HistGBM,126.0155,0
+maiz,SAN LUIS,General Pedernera,2024/25,5300.0,6058.6,HistGBM,242.755,0
+maiz,SAN LUIS,Gobernador Dupuy,2021/22,4700.0,5537.0,HistGBM,123.7285,0
+maiz,SAN LUIS,Gobernador Dupuy,2022/23,3100.0,4693.6,HistGBM,320.6364,0
+maiz,SAN LUIS,Gobernador Dupuy,2023/24,4200.0,5344.9,HistGBM,101.1982,0
+maiz,SAN LUIS,Gobernador Dupuy,2024/25,4700.0,5376.8,HistGBM,314.964,0
+maiz,SAN LUIS,Juan Martin De Pueyrredon,2021/22,4500.0,5947.1,HistGBM,157.5081,0
+maiz,SAN LUIS,Juan Martin De Pueyrredon,2022/23,3500.0,5640.9,HistGBM,837.2224,0
+maiz,SAN LUIS,Juan Martin De Pueyrredon,2023/24,4000.0,6500.2,HistGBM,106.247,0
+maiz,SAN LUIS,Juan Martin De Pueyrredon,2024/25,4700.0,5927.9,HistGBM,335.3568,0
+maiz,SAN LUIS,Junin,2021/22,8000.0,6682.8,HistGBM,176.9735,0
+maiz,SAN LUIS,Junin,2022/23,7500.0,6754.8,HistGBM,4969.9653,1
+maiz,SAN LUIS,Junin,2023/24,7800.0,6986.1,HistGBM,114.2117,0
+maiz,SAN LUIS,Junin,2024/25,9000.0,7035.0,HistGBM,296.0059,0
+maiz,SAN LUIS,Libertador General San Martin,2021/22,5500.0,4854.3,HistGBM,249.0101,0
+maiz,SAN LUIS,Libertador General San Martin,2022/23,2400.0,5167.8,HistGBM,280.8544,0
+maiz,SAN LUIS,Libertador General San Martin,2023/24,4500.0,5785.4,HistGBM,149.9019,0
+maiz,SAN LUIS,Libertador General San Martin,2024/25,4700.0,4610.4,HistGBM,307.0646,0
+maiz,SANTA FE,9 De Julio,2021/22,4500.0,6316.4,HistGBM,156.4411,0
+maiz,SANTA FE,9 De Julio,2022/23,3750.0,5167.8,HistGBM,2481.7983,1
+maiz,SANTA FE,9 De Julio,2023/24,2000.0,6267.1,HistGBM,125.5015,0
+maiz,SANTA FE,9 De Julio,2024/25,5500.0,6027.8,HistGBM,315.8726,0
+maiz,SANTA FE,Belgrano,2021/22,7500.0,7625.6,HistGBM,163.9504,0
+maiz,SANTA FE,Belgrano,2022/23,2700.0,7883.8,HistGBM,1773.8444,1
+maiz,SANTA FE,Belgrano,2023/24,8500.0,8983.6,HistGBM,114.2303,0
+maiz,SANTA FE,Belgrano,2024/25,9000.0,8924.1,HistGBM,284.5851,0
+maiz,SANTA FE,Caseros,2021/22,6700.0,7574.1,HistGBM,161.6119,0
+maiz,SANTA FE,Caseros,2022/23,3700.0,7721.3,HistGBM,2059.5818,1
+maiz,SANTA FE,Caseros,2023/24,9700.0,9070.5,HistGBM,128.6574,0
+maiz,SANTA FE,Caseros,2024/25,9200.0,8688.6,HistGBM,284.9823,0
+maiz,SANTA FE,Castellanos,2021/22,6200.0,6963.6,HistGBM,186.1912,0
+maiz,SANTA FE,Castellanos,2022/23,3500.0,6565.9,HistGBM,1140.3657,1
+maiz,SANTA FE,Castellanos,2023/24,6400.0,8056.4,HistGBM,155.0042,0
+maiz,SANTA FE,Castellanos,2024/25,9300.0,7981.4,HistGBM,415.6,0
+maiz,SANTA FE,Garay,2021/22,3800.0,6266.1,HistGBM,130.7243,0
+maiz,SANTA FE,Garay,2022/23,1200.0,5858.6,HistGBM,2219.154,1
+maiz,SANTA FE,Garay,2023/24,7400.0,6888.1,HistGBM,132.8076,0
+maiz,SANTA FE,Garay,2024/25,7500.0,6488.9,HistGBM,230.6751,0
+maiz,SANTA FE,General Lopez,2021/22,8936.0,8785.9,HistGBM,197.7364,0
+maiz,SANTA FE,General Lopez,2022/23,5700.0,8341.3,HistGBM,3683.9531,1
+maiz,SANTA FE,General Lopez,2023/24,9400.0,9941.4,HistGBM,351.7847,0
+maiz,SANTA FE,General Lopez,2024/25,8480.0,8943.3,HistGBM,313.7672,0
+maiz,SANTA FE,General Obligado,2021/22,3260.0,4292.2,HistGBM,251.5752,0
+maiz,SANTA FE,General Obligado,2022/23,2530.0,4298.7,HistGBM,236.7878,0
+maiz,SANTA FE,General Obligado,2023/24,2840.0,5453.8,HistGBM,157.0098,0
+maiz,SANTA FE,General Obligado,2024/25,3980.0,4983.1,HistGBM,245.9409,0
+maiz,SANTA FE,Iriondo,2021/22,6500.0,7610.8,HistGBM,166.7299,0
+maiz,SANTA FE,Iriondo,2022/23,2500.0,6454.3,HistGBM,2233.2249,1
+maiz,SANTA FE,Iriondo,2023/24,8500.0,9078.4,HistGBM,131.7858,0
+maiz,SANTA FE,Iriondo,2024/25,8000.0,8723.4,HistGBM,283.8325,0
+maiz,SANTA FE,La Capital,2021/22,4600.0,6301.1,HistGBM,166.3077,0
+maiz,SANTA FE,La Capital,2022/23,1900.0,5578.2,HistGBM,1726.1456,1
+maiz,SANTA FE,La Capital,2023/24,6400.0,7102.6,HistGBM,122.6003,0
+maiz,SANTA FE,La Capital,2024/25,8400.0,6524.4,HistGBM,279.76,0
+maiz,SANTA FE,Las Colonias,2021/22,5800.0,6578.3,HistGBM,152.7764,0
+maiz,SANTA FE,Las Colonias,2022/23,3200.0,4836.5,HistGBM,1320.237,1
+maiz,SANTA FE,Las Colonias,2023/24,6200.0,7876.1,HistGBM,135.9845,0
+maiz,SANTA FE,Las Colonias,2024/25,9100.0,7447.4,HistGBM,284.2618,0
+maiz,SANTA FE,Rosario,2021/22,4500.0,6769.4,HistGBM,147.6623,0
+maiz,SANTA FE,Rosario,2022/23,3000.0,5872.4,HistGBM,2022.3763,1
+maiz,SANTA FE,Rosario,2023/24,8700.0,8312.0,HistGBM,108.6406,0
+maiz,SANTA FE,Rosario,2024/25,8500.0,7525.2,HistGBM,248.406,0
+maiz,SANTA FE,San Cristobal,2021/22,4300.0,6436.0,HistGBM,183.467,0
+maiz,SANTA FE,San Cristobal,2022/23,3500.0,6471.4,HistGBM,1107.9193,1
+maiz,SANTA FE,San Cristobal,2023/24,5700.0,7069.6,HistGBM,156.4439,0
+maiz,SANTA FE,San Cristobal,2024/25,7000.0,6553.0,HistGBM,341.2876,0
+maiz,SANTA FE,San Javier,2021/22,4110.0,4445.9,HistGBM,200.9245,0
+maiz,SANTA FE,San Javier,2022/23,2630.0,4425.7,HistGBM,156.1679,0
+maiz,SANTA FE,San Javier,2023/24,3560.0,4846.4,HistGBM,166.6282,0
+maiz,SANTA FE,San Javier,2024/25,3472.0,4807.2,HistGBM,155.5944,0
+maiz,SANTA FE,San Jeronimo,2021/22,5500.0,6560.8,HistGBM,265.3953,0
+maiz,SANTA FE,San Jeronimo,2022/23,2500.0,5374.0,HistGBM,275.7056,0
+maiz,SANTA FE,San Jeronimo,2023/24,8500.0,9193.2,HistGBM,155.7478,0
+maiz,SANTA FE,San Jeronimo,2024/25,8000.0,7339.5,HistGBM,230.2718,0
+maiz,SANTA FE,San Justo,2021/22,4400.0,6123.7,HistGBM,163.722,0
+maiz,SANTA FE,San Justo,2022/23,2000.0,6355.2,HistGBM,433.4248,0
+maiz,SANTA FE,San Justo,2023/24,6300.0,6918.2,HistGBM,155.8754,0
+maiz,SANTA FE,San Justo,2024/25,7800.0,6140.8,HistGBM,385.5828,0
+maiz,SANTA FE,San Lorenzo,2021/22,5300.0,7311.7,HistGBM,147.2365,0
+maiz,SANTA FE,San Lorenzo,2022/23,3500.0,6336.0,HistGBM,1577.5126,1
+maiz,SANTA FE,San Lorenzo,2023/24,9200.0,8878.4,HistGBM,109.6756,0
+maiz,SANTA FE,San Lorenzo,2024/25,8500.0,8665.3,HistGBM,267.1308,0
+maiz,SANTA FE,San Martin,2021/22,5500.0,7381.7,HistGBM,168.1236,0
+maiz,SANTA FE,San Martin,2022/23,2500.0,6235.0,HistGBM,1174.0685,1
+maiz,SANTA FE,San Martin,2023/24,8500.0,8963.2,HistGBM,136.9264,0
+maiz,SANTA FE,San Martin,2024/25,8000.0,8585.4,HistGBM,272.9114,0
+maiz,SANTA FE,Vera,2021/22,4540.0,5316.1,HistGBM,188.7753,0
+maiz,SANTA FE,Vera,2022/23,2600.0,5071.9,HistGBM,291.2066,0
+maiz,SANTA FE,Vera,2023/24,3080.0,6087.6,HistGBM,152.4229,0
+maiz,SANTA FE,Vera,2024/25,3750.0,5029.4,HistGBM,266.0845,0
+maiz,SANTIAGO DEL ESTERO,Aguirre,2021/22,6800.0,5490.8,HistGBM,361.9255,0
+maiz,SANTIAGO DEL ESTERO,Aguirre,2022/23,4500.0,6207.8,HistGBM,661.4774,0
+maiz,SANTIAGO DEL ESTERO,Aguirre,2023/24,3100.0,6088.7,HistGBM,417.9245,0
+maiz,SANTIAGO DEL ESTERO,Aguirre,2024/25,6000.0,5743.4,HistGBM,404.539,0
+maiz,SANTIAGO DEL ESTERO,Alberdi,2021/22,7500.0,6723.1,HistGBM,196.2721,0
+maiz,SANTIAGO DEL ESTERO,Alberdi,2022/23,6000.0,6481.7,HistGBM,329.8982,0
+maiz,SANTIAGO DEL ESTERO,Alberdi,2023/24,2300.0,6340.6,HistGBM,153.1484,0
+maiz,SANTIAGO DEL ESTERO,Alberdi,2024/25,2200.0,5928.0,HistGBM,200.0949,0
+maiz,SANTIAGO DEL ESTERO,Avellaneda,2021/22,6900.0,6350.9,HistGBM,200.9675,0
+maiz,SANTIAGO DEL ESTERO,Avellaneda,2022/23,5500.0,6097.1,HistGBM,448.4308,0
+maiz,SANTIAGO DEL ESTERO,Avellaneda,2023/24,2900.0,6431.7,HistGBM,162.1892,0
+maiz,SANTIAGO DEL ESTERO,Avellaneda,2024/25,4600.0,6399.6,HistGBM,204.4455,0
+maiz,SANTIAGO DEL ESTERO,Banda,2021/22,6500.0,6192.9,HistGBM,243.8941,0
+maiz,SANTIAGO DEL ESTERO,Banda,2022/23,5500.0,6076.2,HistGBM,323.7534,0
+maiz,SANTIAGO DEL ESTERO,Banda,2023/24,4500.0,6416.6,HistGBM,183.3285,0
+maiz,SANTIAGO DEL ESTERO,Banda,2024/25,5600.0,6347.8,HistGBM,267.9061,0
+maiz,SANTIAGO DEL ESTERO,Belgrano,2021/22,7500.0,6390.0,HistGBM,162.1837,0
+maiz,SANTIAGO DEL ESTERO,Belgrano,2022/23,6300.0,5975.1,HistGBM,1647.758,1
+maiz,SANTIAGO DEL ESTERO,Belgrano,2023/24,3000.0,6286.7,HistGBM,119.14,0
+maiz,SANTIAGO DEL ESTERO,Belgrano,2024/25,6800.0,6566.3,HistGBM,256.3566,0
+maiz,SANTIAGO DEL ESTERO,Capital,2021/22,7500.0,6725.3,HistGBM,155.7955,0
+maiz,SANTIAGO DEL ESTERO,Capital,2022/23,5500.0,5854.0,HistGBM,228.8226,0
+maiz,SANTIAGO DEL ESTERO,Capital,2023/24,4500.0,6691.7,HistGBM,105.3412,0
+maiz,SANTIAGO DEL ESTERO,Capital,2024/25,5800.0,6746.4,HistGBM,262.4364,0
+maiz,SANTIAGO DEL ESTERO,Choya,2021/22,7500.0,5482.1,HistGBM,186.1908,0
+maiz,SANTIAGO DEL ESTERO,Choya,2022/23,5500.0,5700.5,HistGBM,300.9545,0
+maiz,SANTIAGO DEL ESTERO,Choya,2023/24,4500.0,5246.8,HistGBM,172.144,0
+maiz,SANTIAGO DEL ESTERO,Choya,2024/25,5600.0,5429.7,HistGBM,366.546,0
+maiz,SANTIAGO DEL ESTERO,Copo,2021/22,7200.0,5989.7,HistGBM,196.0094,0
+maiz,SANTIAGO DEL ESTERO,Copo,2022/23,6800.0,6247.8,HistGBM,340.5529,0
+maiz,SANTIAGO DEL ESTERO,Copo,2023/24,2700.0,5858.8,HistGBM,158.0799,0
+maiz,SANTIAGO DEL ESTERO,Copo,2024/25,2700.0,5409.9,HistGBM,227.8437,0
+maiz,SANTIAGO DEL ESTERO,Figueroa,2021/22,7500.0,5925.1,HistGBM,162.8303,0
+maiz,SANTIAGO DEL ESTERO,Figueroa,2022/23,5500.0,6623.9,HistGBM,210.3461,0
+maiz,SANTIAGO DEL ESTERO,Figueroa,2023/24,4000.0,6599.0,HistGBM,151.8452,0
+maiz,SANTIAGO DEL ESTERO,Figueroa,2024/25,5600.0,5585.4,HistGBM,320.5312,0
+maiz,SANTIAGO DEL ESTERO,General Taboada,2021/22,7600.0,6173.4,HistGBM,290.1072,0
+maiz,SANTIAGO DEL ESTERO,General Taboada,2022/23,7000.0,6429.9,HistGBM,392.6762,0
+maiz,SANTIAGO DEL ESTERO,General Taboada,2023/24,3100.0,6969.7,HistGBM,202.237,0
+maiz,SANTIAGO DEL ESTERO,General Taboada,2024/25,6500.0,6965.5,HistGBM,201.0113,0
+maiz,SANTIAGO DEL ESTERO,Guasayan,2021/22,7500.0,5867.4,HistGBM,201.3957,0
+maiz,SANTIAGO DEL ESTERO,Guasayan,2022/23,5500.0,6295.0,HistGBM,306.8251,0
+maiz,SANTIAGO DEL ESTERO,Guasayan,2023/24,4500.0,6152.3,HistGBM,180.6172,0
+maiz,SANTIAGO DEL ESTERO,Guasayan,2024/25,5600.0,5694.7,HistGBM,370.9011,0
+maiz,SANTIAGO DEL ESTERO,Jimenez,2021/22,7500.0,6420.2,HistGBM,288.9498,0
+maiz,SANTIAGO DEL ESTERO,Jimenez,2022/23,6000.0,6396.8,HistGBM,336.7356,0
+maiz,SANTIAGO DEL ESTERO,Jimenez,2023/24,4500.0,6745.8,HistGBM,250.1153,0
+maiz,SANTIAGO DEL ESTERO,Jimenez,2024/25,5700.0,6008.2,HistGBM,466.3829,0
+maiz,SANTIAGO DEL ESTERO,Juan F. Ibarra,2021/22,7300.0,6291.4,HistGBM,198.591,0
+maiz,SANTIAGO DEL ESTERO,Juan F. Ibarra,2022/23,6400.0,6254.5,HistGBM,325.2912,0
+maiz,SANTIAGO DEL ESTERO,Juan F. Ibarra,2023/24,2800.0,6459.7,HistGBM,176.9212,0
+maiz,SANTIAGO DEL ESTERO,Juan F. Ibarra,2024/25,4900.0,5730.4,HistGBM,207.1472,0
+maiz,SANTIAGO DEL ESTERO,Loreto,2021/22,7500.0,5683.8,HistGBM,257.5974,0
+maiz,SANTIAGO DEL ESTERO,Loreto,2022/23,5500.0,5511.0,HistGBM,284.0646,0
+maiz,SANTIAGO DEL ESTERO,Loreto,2023/24,4500.0,5705.8,HistGBM,166.0291,0
+maiz,SANTIAGO DEL ESTERO,Loreto,2024/25,5500.0,5672.6,HistGBM,287.0057,0
+maiz,SANTIAGO DEL ESTERO,Mitre,2021/22,7500.0,6173.9,HistGBM,223.0149,0
+maiz,SANTIAGO DEL ESTERO,Mitre,2022/23,5500.0,6062.3,HistGBM,484.8708,0
+maiz,SANTIAGO DEL ESTERO,Mitre,2023/24,4500.0,6422.0,HistGBM,163.3123,0
+maiz,SANTIAGO DEL ESTERO,Mitre,2024/25,5800.0,6037.3,HistGBM,204.8515,0
+maiz,SANTIAGO DEL ESTERO,Moreno,2021/22,7500.0,6634.5,HistGBM,195.8934,0
+maiz,SANTIAGO DEL ESTERO,Moreno,2022/23,6500.0,6279.2,HistGBM,330.3948,0
+maiz,SANTIAGO DEL ESTERO,Moreno,2023/24,2500.0,6707.4,HistGBM,169.1546,0
+maiz,SANTIAGO DEL ESTERO,Moreno,2024/25,2700.0,5162.1,HistGBM,256.7968,0
+maiz,SANTIAGO DEL ESTERO,Pellegrini,2021/22,7500.0,6454.7,HistGBM,225.8422,0
+maiz,SANTIAGO DEL ESTERO,Pellegrini,2022/23,5500.0,6561.3,HistGBM,319.167,0
+maiz,SANTIAGO DEL ESTERO,Pellegrini,2023/24,4500.0,6865.5,HistGBM,198.3251,0
+maiz,SANTIAGO DEL ESTERO,Pellegrini,2024/25,6000.0,6237.8,HistGBM,268.0036,0
+maiz,SANTIAGO DEL ESTERO,Rio Hondo,2021/22,8000.0,6400.8,HistGBM,222.8113,0
+maiz,SANTIAGO DEL ESTERO,Rio Hondo,2022/23,5500.0,6428.5,HistGBM,326.7974,0
+maiz,SANTIAGO DEL ESTERO,Rio Hondo,2023/24,4500.0,6357.3,HistGBM,202.2122,0
+maiz,SANTIAGO DEL ESTERO,Rio Hondo,2024/25,6000.0,6161.0,HistGBM,268.2431,0
+maiz,SANTIAGO DEL ESTERO,Rivadavia,2021/22,7300.0,5537.9,HistGBM,196.7452,0
+maiz,SANTIAGO DEL ESTERO,Rivadavia,2022/23,6000.0,5024.4,HistGBM,9036.169,1
+maiz,SANTIAGO DEL ESTERO,Rivadavia,2023/24,3100.0,6826.7,HistGBM,146.9914,0
+maiz,SANTIAGO DEL ESTERO,Rivadavia,2024/25,4200.0,5785.1,HistGBM,339.1389,0
+maiz,SANTIAGO DEL ESTERO,Robles,2021/22,8000.0,5678.4,HistGBM,351.6047,0
+maiz,SANTIAGO DEL ESTERO,Robles,2022/23,5500.0,5808.0,HistGBM,317.5358,0
+maiz,SANTIAGO DEL ESTERO,Robles,2023/24,4500.0,6570.0,HistGBM,181.7296,0
+maiz,SANTIAGO DEL ESTERO,Robles,2024/25,5800.0,6508.7,HistGBM,241.0778,0
+maiz,SANTIAGO DEL ESTERO,San Martin,2021/22,7500.0,6787.7,HistGBM,196.16,0
+maiz,SANTIAGO DEL ESTERO,San Martin,2022/23,5500.0,5017.7,HistGBM,1073.5847,1
+maiz,SANTIAGO DEL ESTERO,San Martin,2023/24,4500.0,6241.6,HistGBM,189.9192,0
+maiz,SANTIAGO DEL ESTERO,San Martin,2024/25,5600.0,6847.3,HistGBM,360.1958,0
+maiz,SANTIAGO DEL ESTERO,Sarmiento,2021/22,6700.0,6225.3,HistGBM,220.91,0
+maiz,SANTIAGO DEL ESTERO,Sarmiento,2022/23,5500.0,5774.1,HistGBM,332.8522,0
+maiz,SANTIAGO DEL ESTERO,Sarmiento,2023/24,2400.0,6445.2,HistGBM,178.9641,0
+maiz,SANTIAGO DEL ESTERO,Sarmiento,2024/25,3200.0,6224.6,HistGBM,242.6804,0
+maiz,TUCUMAN,Burruyacu,2021/22,5500.0,6637.0,HistGBM,208.3388,0
+maiz,TUCUMAN,Burruyacu,2022/23,4700.0,6932.0,HistGBM,628.0033,0
+maiz,TUCUMAN,Burruyacu,2023/24,3300.0,6988.5,HistGBM,250.0988,0
+maiz,TUCUMAN,Burruyacu,2024/25,4800.0,6199.3,HistGBM,486.4258,0
+maiz,TUCUMAN,Cruz Alta,2021/22,5600.0,6427.6,HistGBM,237.5965,0
+maiz,TUCUMAN,Cruz Alta,2022/23,5100.0,6906.1,HistGBM,354.0291,0
+maiz,TUCUMAN,Cruz Alta,2023/24,3400.0,6844.0,HistGBM,236.4719,0
+maiz,TUCUMAN,Cruz Alta,2024/25,5000.0,6256.5,HistGBM,483.5185,0
+maiz,TUCUMAN,Graneros,2021/22,5300.0,6464.4,HistGBM,179.289,0
+maiz,TUCUMAN,Graneros,2022/23,4300.0,6789.2,HistGBM,344.5468,0
+maiz,TUCUMAN,Graneros,2023/24,2000.0,6338.8,HistGBM,214.8254,0
+maiz,TUCUMAN,Graneros,2024/25,4500.0,5607.1,HistGBM,326.2247,0
+maiz,TUCUMAN,La Cocha,2021/22,5400.0,6269.9,HistGBM,159.1186,0
+maiz,TUCUMAN,La Cocha,2022/23,5000.0,7480.1,HistGBM,428.867,0
+maiz,TUCUMAN,La Cocha,2023/24,2200.0,6482.7,HistGBM,206.1461,0
+maiz,TUCUMAN,La Cocha,2024/25,4500.0,6267.9,HistGBM,284.701,0
+maiz,TUCUMAN,Leales,2021/22,5500.0,6636.8,HistGBM,223.6355,0
+maiz,TUCUMAN,Leales,2022/23,4900.0,6873.6,HistGBM,384.83,0
+maiz,TUCUMAN,Leales,2023/24,2500.0,6571.9,HistGBM,209.0255,0
+maiz,TUCUMAN,Leales,2024/25,4800.0,5903.6,HistGBM,500.9424,0
+maiz,TUCUMAN,Simoca,2021/22,5600.0,6621.7,HistGBM,158.0509,0
+maiz,TUCUMAN,Simoca,2022/23,5000.0,7451.9,HistGBM,593.8642,0
+maiz,TUCUMAN,Simoca,2023/24,2500.0,7199.3,HistGBM,203.4544,0
+maiz,TUCUMAN,Simoca,2024/25,4100.0,6507.6,HistGBM,379.1154,0
+maiz,TUCUMAN,Tafi Del Valle,2021/22,4000.0,3151.4,HistGBM,197.506,0
+maiz,TUCUMAN,Tafi Del Valle,2022/23,0.0,2874.8,HistGBM,656.6371,0
+maiz,TUCUMAN,Tafi Del Valle,2023/24,4000.0,3935.1,HistGBM,214.2311,0
+maiz,TUCUMAN,Tafi Del Valle,2024/25,0.0,2379.3,HistGBM,409.0517,0
+maiz,TUCUMAN,Trancas,2021/22,5800.0,6640.5,HistGBM,233.997,0
+maiz,TUCUMAN,Trancas,2022/23,5200.0,6641.7,HistGBM,638.9705,0
+maiz,TUCUMAN,Trancas,2023/24,0.0,6946.0,HistGBM,230.5474,0
+maiz,TUCUMAN,Trancas,2024/25,5000.0,6121.8,HistGBM,373.9198,0

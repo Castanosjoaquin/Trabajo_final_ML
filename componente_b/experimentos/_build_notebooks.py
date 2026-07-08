@@ -10,6 +10,7 @@ salidas.
 from __future__ import annotations
 
 import os
+import sys
 
 import nbformat as nbf
 from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
@@ -82,7 +83,15 @@ def ds_latente_code(model_name, params_var, fixed="None"):
 DS_LATENTE_MD = _ds_latente_md()
 
 
+# Si se pasan nombres por CLI, solo se (re)generan esos notebooks (así se puede
+# regenerar UNO sin pisar los outputs ya ejecutados del resto).
+#   python _build_notebooks.py 10_prediccion_final.ipynb
+ONLY = set(sys.argv[1:])
+
+
 def build(path, cells):
+    if ONLY and os.path.basename(path) not in ONLY:
+        return
     nb = new_notebook()
     nb.cells = cells
     nb.metadata = {
@@ -1123,6 +1132,235 @@ plt.tight_layout(); plt.show()"""),
     ]
 
 
+# ===========================================================================
+# NB 10 — Modelos finales + predicciones sobre el test (archivo de entrega)
+# ===========================================================================
+def nb10():
+    return [
+        md("""\
+# 10 — Modelos finales y predicciones sobre el test
+
+Notebook de **cierre y entrega**. Reúne los modelos finales de los dos
+componentes, con sus **hiperparámetros definitivos** (los re-tuneados por CV
+temporal honesta en `retuning_cv_honesta.json`), los re-entrena sobre **todo el
+train** y produce las **predicciones finales sobre el test** (≥2021):
+
+- **Componente B (supervisado)** — rinde predicho (`rinde_pred_kgha`) del modelo
+  campeón (elegido por **CV**, no por test), con la comparación de todos los
+  modelos para justificar la elección.
+- **Componente A (no supervisado)** — score de anomalía y flag `es_anomalo` del
+  detector final (VAE `recon_prob` seed-ensemble).
+
+Al final se arma **`predicciones_test.csv`** con el formato de entrega, y se deja
+una función `predecir_entrega(...)` lista para re-apuntar al **test set oficial**
+cuando se publique (24 h antes de la entrega).
+
+> **Adaptación al test oficial:** la consigna dice que 24 h antes se publica un
+> archivo de test con su estructura. Cuando llegue, sólo hay que pasarlo por
+> `predecir_entrega(panel_nuevo)` (misma tubería de features y modelos ya
+> entrenados) y entregar el CSV resultante. Acá lo demostramos sobre nuestro
+> propio test temporal (≥2021), para el que sí tenemos el rinde real y podemos
+> reportar métricas."""),
+        code("""\
+import sys, os, warnings, json
+sys.path.insert(0, os.path.abspath('..'))
+warnings.filterwarnings('ignore')
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
+
+import datos, evaluacion as ev, latente
+from modelos import (LinearRegressor, XGBoostRegressor, NeuralNetRegressor,
+                     RandomForestRegressorModel, HistGBMRegressor, StackingRegressorModel)
+
+CULTIVOS = ['soja', 'maiz']
+DS_KW = dict(use_agro=True, enc_smooth=10.0)          # config final del pipeline
+BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8'))
+def best_of(cultivo, name, fallback=None):
+    return BEST.get(cultivo, {}).get(name, {}).get('best_params', fallback or {})
+print('re-tuning cargado para:', list(BEST))"""),
+        md("""\
+## 1. Reconstrucción de los modelos finales
+
+Cada modelo se instancia con sus hiperparámetros definitivos. El **campeón se
+elige por el `cv_rmse`** (validación en train), de modo que la elección **no
+depende del test** — el test sólo confirma."""),
+        code("""\
+def construir_modelos(cultivo):
+    return {
+        'Lineal':        LinearRegressor(**best_of(cultivo, 'linear', {'penalty': 'ridge', 'alpha': 10.0})),
+        'Random Forest': RandomForestRegressorModel(**best_of(cultivo, 'rf'), random_state=42, n_jobs=-1),
+        'HistGBM':       HistGBMRegressor(**best_of(cultivo, 'hist_gbm'), random_state=42),
+        'XGBoost':       XGBoostRegressor(**best_of(cultivo, 'xgb'), random_state=42),
+        'Red neuronal':  NeuralNetRegressor(**best_of(cultivo, 'nn', {'hidden_dims': (64, 32), 'dropout': 0.3}),
+                                            max_epochs=250, patience=30, random_state=42),
+    }
+
+def campeon(cultivo):
+    cvs = {n: BEST[cultivo][k].get('cv_rmse', np.inf)
+           for n, k in [('Lineal','linear'), ('Random Forest','rf'), ('HistGBM','hist_gbm'),
+                        ('XGBoost','xgb'), ('Red neuronal','nn')] if k in BEST.get(cultivo, {})}
+    return min(cvs, key=cvs.get) if cvs else 'Random Forest'
+
+for c in CULTIVOS:
+    print(f'{c}: campeón por CV = {campeon(c)}')"""),
+        md("""\
+## 2. Comparación de todos los modelos en test (justifica el campeón)
+
+Entrenamos cada modelo en el train y evaluamos en test. Reportamos RMSE/R²/sMAPE,
+**skill vs. climatología** y marcamos el campeón elegido por CV."""),
+        code("""\
+def evaluar_cultivo(cultivo):
+    ds = datos.prepare(cultivo, **DS_KW)
+    yrs = ds.meta_train['campania_inicio'].values
+    modelos = construir_modelos(cultivo)
+    filas, preds = [], {}
+    preds['media x depto'] = ev.pred_media_depto(ds)
+    filas.append(ev.evaluar('media x depto', preds['media x depto'], ds))
+    for nombre, m in modelos.items():
+        p = m.fit(ds.X_train, ds.y_train).predict(ds.X_test)
+        preds[nombre] = p
+        filas.append(ev.evaluar(nombre, p, ds))
+    # stacking (usa años para OOF temporal)
+    stk = StackingRegressorModel(**best_of(cultivo, 'stacking', {})).fit(
+        ds.X_train, ds.y_train, years=yrs)
+    preds['Stacking'] = stk.predict(ds.X_test)
+    filas.append(ev.evaluar('Stacking', preds['Stacking'], ds))
+    tabla = ev.tabla_comparativa(filas, ordenar_por='rmse')
+    ref = ev.pred_media_depto(ds)
+    tabla['skill'] = [ev.skill_score(ds.y_test, preds[m], ref) if m in preds else np.nan
+                      for m in tabla['modelo']]
+    return ds, preds, tabla
+
+resultados = {}
+for c in CULTIVOS:
+    ds, preds, tabla = evaluar_cultivo(c)
+    resultados[c] = (ds, preds, tabla)
+    print(f'\\n===== {c} (campeón CV: {campeon(c)}) =====')
+    print(tabla.to_string(index=False))"""),
+        md("Diebold–Mariano del campeón vs. el resto (¿la ventaja es significativa?)."),
+        code("""\
+for c in CULTIVOS:
+    ds, preds, tabla = resultados[c]
+    camp = campeon(c)
+    print(f'--- {c}: {camp} vs. resto ---')
+    for m in preds:
+        if m == camp: continue
+        dm = ev.diebold_mariano(ds.y_test, preds[camp], preds[m], loss='se')
+        sig = 'sig.' if dm['p_value'] < 0.05 else 'n.s.'
+        print(f'  vs {m:16s} DM={dm[\"dm\"]:+.2f}  p={dm[\"p_value\"]:.3f}  [{sig}]')"""),
+        md("""\
+## 3. Componente A: score de anomalía final sobre el test
+
+El detector final es el **VAE `recon_prob` en seed-ensemble** (Componente A). Su
+`anomaly_score` (continuo) va alineado fila a fila con el test del predictor y es
+la señal principal.
+
+**Caveat del flag binario.** El umbral calibrado en train marca casi TODO el test
+como anómalo: entre 2021 y 2024 el score sube por *distribution shift* (años fuera
+del rango de train), no porque cada campaña sea extrema. Para la entrega, definimos
+`es_anomalo` como el **top-10% más anómalo por score dentro del set evaluado**
+(ranking relativo, sin usar etiquetas) — así el flag señala las campañas *más*
+anómalas de forma útil, y el score continuo queda para el ranking fino."""),
+        code("""\
+CONTAM = 0.10                                          # fracción marcada como anómala
+scores_A = {}
+for c in CULTIVOS:
+    vf = latente.vae_features(c)                       # cacheado en ../.latente_cache
+    score = vf['score_test']
+    thr = np.quantile(score, 1.0 - CONTAM)             # umbral relativo al set evaluado
+    flag_te = (score >= thr).astype(int)
+    scores_A[c] = (score, flag_te)
+    print(f'{c}: {int(flag_te.sum())} campañas marcadas anómalas de {len(flag_te)} '
+          f'(top-{int(CONTAM*100)}% por score)')"""),
+        md("""\
+## 4. Archivo de entrega: `predicciones_test.csv`
+
+Formato propuesto (adaptable a la estructura que publique la cátedra): una fila
+por **departamento × campaña × cultivo** del test, con identificadores + la
+predicción de rinde del campeón + el score/flag de anomalía. Se incluye
+`rinde_real_kgha` **solo como referencia** para nuestra evaluación (en el test
+oficial ciego no estaría)."""),
+        code("""\
+bloques = []
+for c in CULTIVOS:
+    ds, preds, tabla = resultados[c]
+    camp = campeon(c)
+    score, flag = scores_A[c]
+    out = ds.meta_test[['provincia', 'departamento', 'campania']].copy()
+    out.insert(0, 'cultivo', c)
+    out['rinde_real_kgha'] = ds.y_test                 # referencia (no va en test ciego)
+    out['rinde_pred_kgha'] = np.round(preds[camp], 1)
+    out['modelo'] = camp
+    out['anomaly_score'] = np.round(score, 4)
+    out['es_anomalo'] = flag.astype(int)
+    bloques.append(out)
+
+entrega = pd.concat(bloques, ignore_index=True)
+entrega.to_csv('predicciones_test.csv', index=False, encoding='utf-8')
+print('guardado: predicciones_test.csv', entrega.shape)
+entrega.head(8)"""),
+        code("""\
+# Métricas finales del archivo entregado (por cultivo), para el informe
+for c in CULTIVOS:
+    sub = entrega[entrega.cultivo == c]
+    m = ev.metricas(sub.rinde_real_kgha.values, sub.rinde_pred_kgha.values)
+    print(f'{c:5s} ({sub.modelo.iloc[0]:13s}): '
+          f'RMSE={m[\"rmse\"]:.0f}  R2={m[\"r2\"]:.3f}  sMAPE={m[\"smape\"]:.1f}%')"""),
+        md("""\
+## 5. Predicción sobre el test set OFICIAL (cuando se publique)
+
+Cuando la cátedra publique el archivo de test (24 h antes), guardarlo como panel
+con el **mismo esquema** que `panel_union.parquet` (columnas de clima/NDVI/ERA5 +
+identificadores) y correr la función de abajo. Entrena los modelos sobre **todo**
+nuestro panel conocido y predice sobre las filas nuevas, devolviendo el CSV en el
+mismo formato."""),
+        code("""\
+def predecir_entrega(panel_nuevo, cultivos=CULTIVOS, salida='predicciones_oficial.csv'):
+    \"\"\"Predice rinde + anomalía sobre un panel de test externo.
+
+    panel_nuevo: DataFrame con el MISMO esquema que panel_union (features de clima/
+    NDVI/ERA5 + provincia/departamento/campania/campania_inicio/cultivo). Entrena
+    sobre todo el panel conocido (train = histórico) y predice las filas nuevas.
+    \"\"\"
+    panel_base = datos.load_panel()
+    te_start = int(panel_nuevo['campania_inicio'].min())
+    panel = pd.concat([panel_base, panel_nuevo], ignore_index=True)
+    bloques = []
+    for c in cultivos:
+        ds = datos.build_reg_dataset(panel, c, test_start=te_start,
+                                     train_end=te_start - 1, **DS_KW)
+        camp = campeon(c)
+        modelo = construir_modelos(c)[camp]
+        pred = modelo.fit(ds.X_train, ds.y_train).predict(ds.X_test)
+        out = ds.meta_test[['provincia', 'departamento', 'campania']].copy()
+        out.insert(0, 'cultivo', c)
+        out['rinde_pred_kgha'] = np.round(pred, 1)
+        out['modelo'] = camp
+        bloques.append(out)
+    entrega = pd.concat(bloques, ignore_index=True)
+    entrega.to_csv(salida, index=False, encoding='utf-8')
+    return entrega
+
+# Ejemplo de uso (descomentar cuando exista el archivo oficial):
+# panel_oficial = pd.read_parquet('test_oficial.parquet')
+# predecir_entrega(panel_oficial)
+print('predecir_entrega() lista para el test oficial.')"""),
+        md("""\
+## Conclusión
+
+- El **campeón se elige por `cv_rmse`** (validación en train), no por test:
+  **Random Forest en soja** y **HistGBM en maíz**. Nota honesta: en maíz, RF le
+  gana a HistGBM en el test (ver la tabla), pero HistGBM ganó la CV — respetamos
+  la elección por CV para **no decidir sobre el test**. Es el protocolo correcto y
+  la comparación + Diebold–Mariano quedan transparentes para el lector.
+- El **detector final** (VAE seed-ensemble) aporta el `anomaly_score` continuo por
+  campaña; el flag `es_anomalo` marca el top-10% por score (ver caveat de
+  distribution shift), integrando ambos componentes en una sola salida.
+- `predicciones_test.csv` es el entregable; `predecir_entrega()` re-genera el CSV
+  sobre el test oficial en cuanto se publique, sin tocar el resto del pipeline."""),
+    ]
+
+
 if __name__ == "__main__":
     build(os.path.join(HERE, "00_eda_rinde_y_features.ipynb"), nb00())
     build(os.path.join(HERE, "06_modelo_por_zona.ipynb"), nb06())
@@ -1134,3 +1372,4 @@ if __name__ == "__main__":
     build(os.path.join(HERE, "07_integracion_A_B.ipynb"), nb07())
     build(os.path.join(HERE, "08_momentos_y_lags.ipynb"), nb08())
     build(os.path.join(HERE, "09_router_por_zona.ipynb"), nb09())
+    build(os.path.join(HERE, "10_prediccion_final.ipynb"), nb10())
