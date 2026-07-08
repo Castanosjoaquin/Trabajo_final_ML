@@ -24,13 +24,14 @@ import pytest
 from src.config import PANEL_PATH
 from src import data as cdata
 
-# Baseline registrado el 2026-07-04 (split train/test: el val 2018–2020 se plegó
-# al train → n_train mayor; el test no cambió).
+# Baseline re-registrado el 2026-07-08 tras regenerar el panel con CHIRPS (panel
+# 27865 filas -> 20672 tras dedup; pipeline 72 features) y el clip de rinde_kgha
+# 0.5%/99.5% por cultivo en compute_z_rinde.
 BASELINE = {
-    "soja": {"X_train": "b246ea7c5442f956", "X_test": "9ebcb26f7515b0c8",
-             "y_test": "3950e6765e4197f3", "n_train": 6377, "n_test": 954},
-    "maiz": {"X_train": "2a4bb42bbe244e00", "X_test": "9086c84b232b0aa1",
-             "y_test": "3b9534a774778c17", "n_train": 8347, "n_test": 1172},
+    "soja": {"X_train": "c5d286c94ad362dc", "X_test": "a9736293782a332c",
+             "y_test": "7d395383a26c032f", "n_train": 6142, "n_test": 942},
+    "maiz": {"X_train": "61c19c94a7fe94c9", "X_test": "0c7d2bd8ce1e05e3",
+             "y_test": "969f07acd8815182", "n_train": 8082, "n_test": 1160},
 }
 
 

@@ -25,8 +25,9 @@ CULTIVOS = ["soja", "maiz"]
 # --- Meses de la campaña (Sep–Mar) ---
 MESES = ["sep", "oct", "nov", "dic", "ene", "feb", "mar"]
 
-# --- Prefijos de variables climáticas (NASA POWER + ONI) ---
-# NO incluye rinde ni superficie. 7 variables × 7 meses + ONI × 5 meses = 54.
+# --- Prefijos de variables climáticas (NASA POWER + ONI + CHIRPS) ---
+# NO incluye rinde ni superficie. 7 vars NASA POWER × 7 meses + ONI × 5 meses
+# + CHIRPS × 7 meses = 61 (con NDVI-AVHRR y ERA5 la X final llega a 72 features).
 CLIM_PREFIXES = [
     "allsky_sfc_sw_dwn",  # radiación solar
     "prectotcorr",        # precipitación NASA POWER
@@ -36,7 +37,7 @@ CLIM_PREFIXES = [
     "t2m_min",            # temperatura mínima
     "ws2m",               # viento
     "oni",                # ONI (ENSO) — solo meses disponibles en el panel
-    "chirps_precip",      # precipitación CHIRPS (no está en el panel actual)
+    "chirps_precip",      # precipitación CHIRPS (7 meses en el panel unificado)
 ]
 # NDVI: el único usado es el AVHRR mensual (1981+, `ndvi_avhrr_<mes>`), integrado en
 # el panel unificado por build_panel_union.py. El NDVI viejo de MODIS se RETIRÓ
