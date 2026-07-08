@@ -6,63 +6,57 @@ ejecutado (tablas y gráficos embebidos) y se puede re-correr de cero.
 
 | nb | notebook | qué hace |
 |---|---|---|
-| 0 | `00_eda_rinde_y_features` | **EDA para predicción de rinde**: target (distribución/tendencia/heterogeneidad), la relación clima–rinde **cambia por zona** (motiva separar por zonas), features **agronómicas** de ventana crítica, y zonas geográficas balanceadas |
-| 1 | `01_baselines` | El problema, los datos y el split temporal. Baselines (media global, **media por departamento**, OLS) sobre **ambos datasets**: `base` y `era5_ndvi` |
-| 2 | `02_hp_regresion_lineal` | Búsqueda de HP del lineal (Ridge/Lasso/ElasticNet); métricas finales + coeficientes; + comparación de datasets y latente |
-| 3 | `03_hp_xgboost` | Búsqueda aleatoria de XGBoost; métricas finales + importancias; + comparación de datasets y latente |
-| 4 | `04_hp_red_neuronal` | Búsqueda de la red neuronal; métricas finales + curva de entrenamiento; + comparación de datasets y latente |
-| 5 | `05_comparacion_modelos` | Comparación final + **análisis de por qué el R² es bajo y qué modificar** |
+| 0 | `00_eda_rinde_y_features` | **EDA para predicción de rinde**: target (distribución/tendencia/heterogeneidad), la relación clima–rinde **cambia por zona**, features **agronómicas** de ventana crítica, y zonas geográficas balanceadas |
+| 1 | `01_baselines` | El problema, los datos y el split temporal. Baselines: media global, **media por departamento** (climatología), OLS |
+| 2 | `02_hp_regresion_lineal` | Búsqueda de HP del lineal (Ridge/Lasso/ElasticNet); métricas + coeficientes; + latente del Componente A |
+| 3 | `03_hp_xgboost` | Búsqueda aleatoria de XGBoost; métricas + importancias; + latente |
+| 4 | `04_hp_red_neuronal` | Búsqueda de la red neuronal (MLP); métricas + curva de entrenamiento; + latente |
+| 5 | `05_comparacion_modelos` | **Comparación integral**: los 6 modelos + baselines, con RMSE/R²/sMAPE, **skill score** y **matriz de Diebold–Mariano** (¿las diferencias son significativas?) |
 | 6 | `06_modelo_por_zona` | **Un modelo por zona** (geo-clustering): pooled vs. por-zona, zona por zona. Ayuda en la Pampa, colapsa en el norte ruidoso; neto global no supera al pooled |
+| 7 | `07_integracion_A_B` | **Integración A↔B (núcleo del proyecto)**: consistencia cruzada Spearman (score VAE vs. residuo), lift del latente, y **cuantificación económica** de la sequía 2022/23 (contrafactual × superficie, vs. benchmark BCR) |
+| 8 | `08_momentos_y_lags` | Ablations: **dos momentos** (pre-siembra / pre-cosecha / full) y **lags del rinde** (autorregresivas con `shift`, sin leakage) |
+| 9 | `09_router_por_zona` | **Router por zonas** (`WrapperPorZona`): especializa por zona solo donde la **CV en train** lo respalda; iguala/supera al pooled sin el colapso del nb 06 |
 
-## Dos datasets y el latente del Componente A
+## Panel unificado y el latente del Componente A
 
-Cada notebook de HP (02–04), con su configuración final, evalúa:
-
-- **`base`** (solo clima) vs **`era5_ndvi`** (clima + NDVI-AVHRR + ERA5-Land), y
-- sobre el mejor, tres estrategias que reusan el **mejor detector del Componente A**
-  (VAE `recon_prob`, `../latente.py`): concatenar su **espacio latente**, regresión
-  **solo en el latente**, y una categórica **`es_anomalo`** (su score umbralado).
-
-> Los notebooks se entregan **sin ejecutar**. La primera corrida entrena el VAE por
-> cultivo/dataset (se cachea en `../.latente_cache/`), así que tarda unos minutos.
-
-## Resultado (soja, test ≥2021)
-
-| modelo | MAE | RMSE | R² |
-|--------|----:|----:|----:|
-| **XGBoost** | 510 | 655 | **0.272** |
-| Red neuronal | 513 | 667 | 0.243 |
-| media × depto | 591 | 714 | 0.133 |
-| Lineal (Lasso) | 555 | 720 | 0.119 |
-| media global | 654 | 778 | −0.029 |
-
-Los modelos no lineales (XGBoost, red neuronal) superan claramente al baseline
-agronómico (media por departamento); el margen mide cuánto aporta el **clima del año**
-por encima de "cada depto rinde lo de siempre".
+El Componente B usa **un único panel** (clima NASA POWER + ONI + CHIRPS + NDVI-AVHRR +
+ERA5-Land) con features agronómicas de ventana crítica (`use_agro`) y suavizado del
+target-encoding de depto (`enc_smooth`). Los notebooks de HP (02–04), con su config
+final, evalúan además tres estrategias que reusan el **mejor detector del Componente A**
+(VAE `recon_prob`, `../latente.py`): concatenar su **latente**, regresión **solo en el
+latente**, y la categórica **`es_anomalo`** (score umbralado). El VAE se cachea en
+`../.latente_cache/`.
 
 ## Metodología
 
 - **Split temporal**: train ≤2020, test ≥2021 (consistente con el Componente A). El
   test se usa **una sola vez**, para las métricas del modelo final.
-- **Selección de HP**: validación cruzada **temporal** (ventana expansiva; la
-  validación es siempre posterior al train de cada fold), en `evaluacion.buscar`.
-- **Métricas**: MAE y RMSE (kg/ha), R² y MAPE (`evaluacion.metricas`).
+- **Selección de HP**: validación cruzada **temporal** (ventana expansiva), con el
+  `depto_enc` recomputado por fold (sin fuga del target), en `evaluacion.buscar`. El
+  re-tuning de todos los modelos está en `_retune_all.py` → `retuning_cv_honesta.json`.
+- **Métricas**: MAE, RMSE (kg/ha), R², sMAPE; **skill score** vs. climatología y test de
+  **Diebold–Mariano** para comparar modelos (`evaluacion.py`).
 
 ## Reproducir
 
 ```bash
 pip install -r ../../requirements.txt
-python fix_openmp_macos.py                      # macOS: ver ../modelos/README.md
-python experimentos/_build_notebooks.py         # (re)genera los .ipynb
-jupyter nbconvert --to notebook --execute --inplace experimentos/*.ipynb
+# En Windows: prefijar con  PYTHONUTF8=1 PYTHONIOENCODING=utf-8
+python _retune_all.py                            # re-tunea todos los modelos (CV honesta)
+python _build_notebooks.py                       # (re)genera los .ipynb 00–09
+jupyter nbconvert --to notebook --execute --inplace *.ipynb
 ```
 
 Para reproducir con **maíz**: cambiar `CULTIVO = 'maiz'` en la celda de setup de cada
-notebook.
+notebook (y correr `_retune_all.py maiz`).
 
 ## Estructura interna
-- **`../datos.py`** — pipeline: panel → features (clima + depto-encoding + año) →
-  split temporal → escalado sin leakage → `RegDataset`.
-- **`../evaluacion.py`** — métricas, baselines, `buscar` (CV temporal) y gráficos.
-- **`../modelos/`** — los tres regresores con interfaz común.
-- **`_build_notebooks.py`** — generador de los `.ipynb`.
+- **`../datos.py`** — pipeline: panel → features (clima + agro + depto-encoding + año +
+  lags/momentos) → split temporal → escalado sin leakage → `RegDataset`.
+- **`../evaluacion.py`** — métricas (incl. sMAPE, skill, Diebold–Mariano), baselines,
+  `buscar` (CV temporal con `depto_enc` honesto) y gráficos.
+- **`../modelos/`** — los regresores con interfaz común (lineal, RF, HistGBM, XGBoost,
+  MLP, stacking, detrended).
+- **`../integracion.py`** — acople A↔B (consistencia cruzada, contrafactual, económico).
+- **`../wrapper_zonas.py`** — router por zonas con selección por CV.
+- **`_build_notebooks.py`** / **`_retune_all.py`** — generador de `.ipynb` y re-tuning.

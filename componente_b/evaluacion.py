@@ -206,7 +206,7 @@ def buscar(model_cls: Callable, grid: Dict[str, Sequence], ds,
     # X por fold con depto_enc honesto (ver fold_X); se computa una sola vez.
     fold_Xs = [fold_X(ds, tr_idx, va_idx) for tr_idx, va_idx in folds]
 
-    filas = []
+    filas, scores = [], []
     for params in combos:
         fold_scores = []
         for (tr_idx, va_idx), (Xtr, Xva) in zip(folds, fold_Xs):
@@ -214,15 +214,18 @@ def buscar(model_cls: Callable, grid: Dict[str, Sequence], ds,
             model.fit(Xtr, ds.y_train[tr_idx])
             pred = model.predict(Xva)
             fold_scores.append(metricas(ds.y_train[va_idx], pred)[metric])
-        filas.append({**params,
-                      f"cv_{metric}": float(np.mean(fold_scores)),
+        mean_score = float(np.mean(fold_scores))
+        scores.append(mean_score)
+        filas.append({**params, f"cv_{metric}": mean_score,
                       f"cv_{metric}_std": float(np.std(fold_scores))})
 
     tabla = pd.DataFrame(filas).sort_values(
         f"cv_{metric}", ascending=not greater_better).reset_index(drop=True)
-    best = {k: tabla.loc[0, k] for k in grid}
-    # Castear a tipos nativos (evita np.int64/np.float64 en los constructores).
-    best = {k: (v.item() if hasattr(v, "item") else v) for k, v in best.items()}
+    # best-params: tomar el COMBO ORIGINAL ganador (conserva los tipos Python;
+    # releerlo del DataFrame convierte int->float cuando la columna mezcla None
+    # con enteros, p. ej. max_depth=[None,12] -> 12.0, y sklearn lo rechaza).
+    best_i = int(np.argmax(scores) if greater_better else np.argmin(scores))
+    best = dict(combos[best_i])
     return tabla, best
 
 

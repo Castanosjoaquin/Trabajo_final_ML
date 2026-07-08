@@ -1,83 +1,84 @@
-# Fuentes del dataset `panel_nucleo.parquet`
+# Fuentes del dataset `panel_union.parquet`
 
-El panel es un merge puro de 4 fuentes públicas, sin normalización ni feature
-engineering. Granularidad: **departamento × campaña × cultivo** (~2287 filas × 70 columnas).
+El panel es un merge de **6 fuentes públicas**, construido por
+`componente_a/eda/build_panel_union.py` (el ETL canónico, compartido por ambos
+componentes). Granularidad: **departamento × campaña × cultivo** (soja y maíz).
+Tamaño actual: **~27.865 filas × 84 columnas**, campañas 1981–2024; al cargarlo,
+`src/data.py` deduplica las filas espurias del join de centroides por nombre
+(→ ~20.672 filas efectivas). No se imputa ningún rinde.
+
+Cobertura geográfica: región núcleo (centro-sur de Santa Fe, sudeste de Córdoba,
+norte de Buenos Aires) más extensión a todos los departamentos con al menos
+`MIN_CAMPANAS=20` campañas de rinde válido (sin restricción núcleo hardcodeada;
+la columna `region` marca núcleo vs. resto para ablations).
 
 ---
 
-## 1. MAGyP — Rendimientos agrícolas
+## 1. MAGyP — Rendimientos agrícolas (target)
 
-- **Fuente**: `datos.magyp.gob.ar`, serie histórica departamental (1941–2024)
-- **Filtro aplicado**: 26 departamentos de la región núcleo (BCR), `campania_inicio >= 1981`
-- **Columnas**: `rinde_kgha` (target del Componente B), `sup_sembrada_ha`, `sup_cosechada_ha`, `produccion_tn`
-- **Cobertura**: 100%, sin NaN
-- **Granularidad real**: departamento × campaña × cultivo → es la fuente que define la granularidad del panel completo
-
----
+- **Fuente**: `datos.magyp.gob.ar`, estimaciones agrícolas departamentales.
+- **Columnas**: `rinde_kgha` (**target** del Componente B), `sup_sembrada_ha`,
+  `sup_cosechada_ha`, `produccion_tn`.
+- **Filtro**: series con ≥20 campañas por (depto, provincia, cultivo); sin imputación.
+- **Granularidad**: define la del panel — departamento × campaña × **cultivo**.
 
 ## 2. ONI — Índice Oceánico Niño (ENSO)
 
-- **Fuente**: NOAA, vía GitHub (`ahuang11/oni`), serie mensual 1950–2025
-- **Procesamiento**: para cada campaña se extrae el valor mensual crudo del índice
-- **Columnas**: `oni_oct`, `oni_nov`, `oni_dic`, `oni_ene`, `oni_feb` (anomalía SST mensual)
-- **Cobertura**: 100%
-- **Granularidad real**: una sola serie temporal global. El mismo valor se repite
-  para los 26 departamentos × 2 cultivos de cada campaña — el ENSO es un fenómeno
-  climático regional/global, no varía geográficamente a esta escala
-- **Feature engineering (en EDA, no en ETL)**: `oni_oct_feb_mean`, `oni_oct_feb_min`,
-  categoría Niña/Niño/Neutro — se calculan a partir de estas 5 columnas
-
----
+- **Fuente**: NOAA, vía GitHub (`ahuang11/oni`), serie mensual.
+- **Columnas**: `oni_oct`, `oni_nov`, `oni_dic`, `oni_ene`, `oni_feb` (5 meses).
+- **Granularidad**: serie global — el mismo valor se repite para todos los
+  departamentos × cultivos de cada campaña (el ENSO no varía a esta escala).
 
 ## 3. NASA POWER — Clima diario agregado
 
-- **Fuente**: API REST `power.larc.nasa.gov`, un request por centroide departamental
-- **Variables crudas**: `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`, `ALLSKY_SFC_SW_DWN`, `WS2M` (diarias, 1981–2024)
-- **Agregación**: promedio mensual de cada variable para los meses Sep–Mar de la campaña
-- **Columnas**: 49 en total (7 variables × 7 meses: `t2m_sep` … `ws2m_mar`)
-- **Cobertura**: ~98% (1.8% NaN, principalmente en columnas de radiación solar para campañas muy tempranas)
-- **Granularidad real**: departamento × campaña (no depende del cultivo — el clima es el mismo para soja y maíz del mismo depto/campaña)
-- **Feature engineering (en EDA, no en ETL)**: GDD, días T>35°C, precipitación por fase
-  fenológica (siembra/vegetativo/R1-R5/llenado), tmean, tmax_p95, rad_solar_mean, etc. —
-  se calculan a partir de las columnas mensuales crudas
+- **Fuente**: API REST `power.larc.nasa.gov`, un request por centroide departamental.
+- **Variables (7)**: `T2M`, `T2M_MAX`, `T2M_MIN`, `PRECTOTCORR`, `RH2M`,
+  `ALLSKY_SFC_SW_DWN`, `WS2M`.
+- **Agregación**: promedio mensual, meses Sep–Mar → **7 × 7 = 49 columnas**.
+- **Cobertura**: ~98%; los NaN se concentran en la **radiación solar** de las
+  campañas más tempranas (1981–1983) — por eso el train del Componente B arranca
+  en 1984 tras el `dropna` de features.
+- **Granularidad**: departamento × campaña (no depende del cultivo).
+- ⚠️ **Caveat**: la caché de NASA POWER se indexa por **nombre** de departamento,
+  así que departamentos homónimos de provincias distintas comparten serie climática.
+
+## 4. CHIRPS — Precipitación satelital
+
+- **Fuente**: Google Earth Engine (`UCSB-CHG/CHIRPS/DAILY`), agregada al polígono
+  de cada departamento.
+- **Columnas**: `chirps_precip_sep` … `chirps_precip_mar` (**7 meses**).
+- **Rol**: fuente de precipitación independiente de NASA POWER; incorporada al
+  set de features (`CLIM_PREFIXES`), lleva la X del pipeline a 72 features base.
+
+## 5. NDVI — Índice de vegetación (AVHRR/VIIRS)
+
+- **Fuente**: Google Earth Engine, uniendo `NOAA/CDR/AVHRR/NDVI/V5` (1981–2013)
+  con `NOAA/CDR/VIIRS/NDVI/V1` (2014+); compuesto de máximo mensual promediado
+  sobre el polígono departamental (FAO GAUL nivel 2).
+- **Columnas**: `ndvi_avhrr_sep` … `ndvi_avhrr_mar` (**7 meses**).
+- **Por qué AVHRR y no MODIS**: el NDVI MODIS del pipeline viejo se **retiró**
+  (2026-07) — solo cubría 2002+ (recortaba a la mitad el historial 1981–2001, que
+  incluye campañas clave como 1988/89) y 3 de sus 4 columnas eran estáticas por
+  depto. AVHRR/VIIRS da cobertura mensual completa **1981–2024** con señal temporal.
+
+## 6. ERA5-Land — Estado del suelo y heladas
+
+- **Fuente**: Google Earth Engine (`ECMWF/ERA5_LAND/DAILY_AGGR`).
+- **Columnas (4)**: `sm_planting` (humedad de suelo en siembra, Sep–Nov),
+  `sm_winter` (humedad de suelo de invierno, Jun–Ago), `frost_days` (días de
+  helada Sep–Mar) y `frost_days_early` (heladas tempranas Sep–Nov).
+- **Rol**: `sm_winter` es de las pocas señales *anticipables* pre-siembra (ver el
+  notebook de momentos del Componente B).
 
 ---
 
-## 4. NDVI — Índice de vegetación (MODIS)
+## Del panel a las features
 
-- **Fuente**: HDX/WFP, satélite MODIS C6.1, archivo `arg-ndvi-adm2-full.csv`
-- **Procesamiento**: filtro admin2, mapeo PCODE→departamento, agregación oct–mar por campaña
-- **Columnas**: `ndvi_mean`, `ndvi_min`, `ndvi_max`, `ndvi_anomalia_pct`
-- **Granularidad real**: departamento × campaña
-
-### ⚠️ El problema de cobertura
-
-**MODIS empezó a operar en 2002.** Esto significa que para las campañas
-1981/82 a 2001/02 (21 de 44 campañas, ~52% del panel) **el NDVI no existe
-físicamente** — no es un dato faltante por error de descarga o de merge, es
-una limitación de la fuente satelital.
-
-| Período | Cobertura NDVI |
-|---|---|
-| 1981–2001 (21 campañas) | 0% — NaN total |
-| 2002–2024 (23 campañas) | ~92% |
-| **Total panel** | **~48%** |
-
-### Implicancias para el modelado
-
-No hay forma de "rellenar" estos NaN sin inventar datos — cualquier imputación
-para 1981-2001 sería ficticia. Las dos alternativas reales son:
-
-1. **Excluir NDVI** del set de features para el dataset completo (1981–2024)
-2. **Usar NDVI solo en el subconjunto 2002–2024**, como ablation explícito —
-   esto es justamente lo que pide el enunciado en la sección de ablations
-   ("Componente B: aporte marginal de NDVI")
-
-La decisión recomendada es la (2): en el dataset completo, el AE y el
-predictor "base" no usan NDVI (evita perder la mitad del historial 1981–2001,
-que incluye campañas clave como 1988/89). Para el ablation de NDVI, se filtra
-`df[df.campania_inicio >= 2002]` y se comparan métricas con/sin las 4 columnas
-NDVI sobre ese subconjunto reducido (~1100 filas).
-
-Esta separación se hace en el notebook de modelado, no en el ETL — el panel
-mantiene las 4 columnas NDVI con sus NaN tal cual vienen de la fuente.
+- Los centroides departamentales salen de 26 deptos núcleo con coordenadas fijas
+  más geocodificación vía Nominatim/OSM (con caché) para el resto.
+- Las fuentes satelitales (CHIRPS, NDVI-AVHRR, ERA5) se extraen de Earth Engine
+  dentro del mismo ETL (requiere auth de GEE; hay flags `--skip-chirps` /
+  `--skip-satelital`). Las filas sin cobertura satelital se descartan.
+- El **feature engineering** (features agronómicas de ventana crítica, lags del
+  rinde, normalización por depto) vive en `componente_a/src/data.py` y
+  `componente_b/datos.py`, no en el ETL — el panel guarda las columnas crudas.

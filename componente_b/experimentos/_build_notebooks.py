@@ -17,6 +17,9 @@ from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Setup común: paths, imports, dataset. Va de primera en cada notebook.
+# El dataset "principal" del Componente B usa las features agronómicas de ventana
+# crítica (use_agro) y el suavizado del target encoding de depto (enc_smooth): es
+# la configuración que mejor generaliza y la que se tunea/compara en todos lados.
 SETUP = """\
 import sys, os, warnings
 sys.path.insert(0, os.path.abspath('..'))          # componente_b/ (datos, evaluacion)
@@ -27,14 +30,27 @@ import matplotlib.pyplot as plt
 pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
 
 import datos, evaluacion as ev
-from modelos import LinearRegressor, XGBoostRegressor, NeuralNetRegressor
+from modelos import (LinearRegressor, XGBoostRegressor, NeuralNetRegressor,
+                     RandomForestRegressorModel, HistGBMRegressor, StackingRegressorModel)
 
 # Cultivo del estudio (cambiar a 'maiz' para reproducir con maíz).
 CULTIVO = 'soja'
-ds = datos.prepare(CULTIVO)
+ds = datos.prepare(CULTIVO, use_agro=True, enc_smooth=10.0)
 print(f'{CULTIVO}: {len(ds.feature_cols)} features | '
       f'train {ds.X_train.shape[0]} filas (≤{datos.TRAIN_END}) | '
       f'test {ds.X_test.shape[0]} filas (≥{datos.TEST_START})')
+"""
+
+
+# Helper (para nb05+): carga los best-params re-tuneados con CV honesta si existen.
+LOAD_BEST = """\
+import json
+_bpath = 'retuning_cv_honesta.json'
+BEST_ALL = json.load(open(_bpath, encoding='utf-8'))[CULTIVO] if os.path.exists(_bpath) else {}
+def best_of(name, fallback):
+    \"\"\"best-params re-tuneados del modelo `name` (o `fallback` si no hay json).\"\"\"
+    return BEST_ALL.get(name, {}).get('best_params', fallback)
+print('re-tuning disponible:', sorted(k for k in BEST_ALL if not k.startswith('_')) or 'NO (usando fallbacks)')
 """
 
 
@@ -74,7 +90,7 @@ def build(path, cells):
                        "language": "python", "name": "python3"},
         "language_info": {"name": "python"},
     }
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:   # utf-8 explícito: Windows es cp1252
         nbf.write(nb, f)
     print("escrito", os.path.relpath(path, HERE))
 
@@ -387,58 +403,100 @@ más los baselines en igualdad de condiciones."""),
 def nb05():
     return [
         md("""\
-# 05 — Comparación de modelos
+# 05 — Comparación integral de modelos
 
-Juntamos todo: los baselines (01) y el mejor modelo de cada familia según su
-búsqueda de hiperparámetros (02–04), entrenados sobre el mismo train y evaluados
-sobre el mismo test (≥2021). Los hiperparámetros de abajo son los ganadores
-reportados en los notebooks 02, 03 y 04.
+Juntamos **todos** los modelos: los baselines (01), las tres familias tuneadas
+(02–04: lineal, XGBoost, red neuronal) y los **ensembles adicionales** —
+Random Forest, HistGradientBoosting y un **stacking** (XGBoost + MLP con
+meta-modelo Ridge). Todos entrenados sobre el mismo train y evaluados sobre el
+mismo test (≥2021), con los hiperparámetros **re-tuneados por CV temporal
+honesta** (`_retune_all.py` → `retuning_cv_honesta.json`).
 
-**Métrica principal: RMSE (kg/ha).** Reportamos también MAE, R² y MAPE."""),
+Comparamos de las tres formas que importan para decidir el mejor:
+1. **Métricas de error** en test: RMSE (principal), MAE, R², sMAPE.
+2. **Skill score** vs. la climatología (media por depto): cuánto aporta el clima
+   del año por encima de "cada depto rinde lo de siempre".
+3. **Test de Diebold–Mariano**: ¿la diferencia entre modelos es *significativa* o
+   ruido? (H0: misma precisión; p<0.05 ⇒ diferencia real)."""),
         code(SETUP),
-        md("## Mejores configuraciones (de los notebooks 02–04)"),
+        code(LOAD_BEST),
+        md("""\
+## Entrenamiento de todos los modelos
+
+Cada modelo con sus hiperparámetros re-tuneados (o un fallback razonable si no
+está el json). El stacking recibe los años para armar sus meta-features
+out-of-fold de forma temporal (sin leakage)."""),
         code("""\
-best_linear = {'penalty': 'lasso', 'alpha': 10.0}
-best_xgb = {'max_depth': 3, 'learning_rate': 0.03, 'n_estimators': 400,
-            'subsample': 0.7, 'colsample_bytree': 0.8, 'min_child_weight': 5,
-            'reg_lambda': 1.0, 'reg_alpha': 0.0, 'gamma': 1.0}
-best_nn = {'hidden_dims': (64, 32), 'dropout': 0.5, 'weight_decay': 1e-3, 'lr': 3e-3}"""),
-        md("## Entrenamiento y evaluación en test"),
-        code("""\
+yrs = ds.meta_train['campania_inicio'].values
+def fit_pred(model):
+    return model.fit(ds.X_train, ds.y_train).predict(ds.X_test)
+
 preds = {}
 preds['media global']  = ev.pred_media(ds)
 preds['media x depto'] = ev.pred_media_depto(ds)
-preds['Lineal']  = LinearRegressor(**best_linear).fit(ds.X_train, ds.y_train).predict(ds.X_test)
-preds['XGBoost'] = XGBoostRegressor(**best_xgb, random_state=42).fit(ds.X_train, ds.y_train).predict(ds.X_test)
-preds['Red neuronal'] = NeuralNetRegressor(**best_nn, max_epochs=250, patience=30,
-                                           random_state=42).fit(ds.X_train, ds.y_train).predict(ds.X_test)
+preds['Lineal']       = fit_pred(LinearRegressor(**best_of('linear', {'penalty':'ridge','alpha':10.0})))
+preds['Random Forest'] = fit_pred(RandomForestRegressorModel(**best_of('rf', {}), random_state=42, n_jobs=-1))
+preds['HistGBM']       = fit_pred(HistGBMRegressor(**best_of('hist_gbm', {}), random_state=42))
+preds['XGBoost']       = fit_pred(XGBoostRegressor(**best_of('xgb', {}), random_state=42))
+preds['Red neuronal']  = fit_pred(NeuralNetRegressor(**best_of('nn', {'hidden_dims':(64,32),'dropout':0.3}),
+                                                     max_epochs=250, patience=30, random_state=42))
+_stk = StackingRegressorModel(**best_of('stacking', {}))
+_stk.fit(ds.X_train, ds.y_train, years=yrs)
+preds['Stacking']      = _stk.predict(ds.X_test)
 
 filas = [ev.evaluar(k, v, ds) for k, v in preds.items()]
-tabla = ev.tabla(filas)     # presentación estándar (RMSE/R²/MAE), la reusan los plots
+tabla = ev.tabla_comparativa(filas, ordenar_por='rmse')
 tabla"""),
+        md("## Skill score vs. climatología (media por depto)\n\nPositivo = el modelo le gana a la climatología; 0 = empata."),
+        code("""\
+ref = ev.pred_media_depto(ds)
+skill = {k: ev.skill_score(ds.y_test, v, ref) for k, v in preds.items() if k != 'media x depto'}
+skill = pd.Series(skill).sort_values(ascending=False)
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.barh(skill.index[::-1], skill.values[::-1],
+        color=['#55A868' if v > 0 else '#C44E52' for v in skill.values[::-1]])
+ax.axvline(0, color='0.5', lw=1); ax.set_xlabel('skill score (1 - RMSE/RMSE_clima)')
+ax.set_title('Skill vs. climatología por modelo'); plt.tight_layout(); plt.show()
+skill.round(3)"""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
 ev.plot_comparativa(tabla, metrica='rmse', ax=axes[0])
 ev.plot_comparativa(tabla, metrica='r2', ax=axes[1])
 plt.tight_layout(); plt.show()"""),
-        md("## Predicho vs. real de los tres modelos"),
+        md("""\
+## Test de Diebold–Mariano: ¿las diferencias son significativas?
+
+Comparamos el **mejor modelo** (menor RMSE) contra cada uno de los demás. `dm<0`
+= el mejor pierde *menos*; `p<0.05` = la diferencia es estadísticamente
+significativa (no es ruido de muestreo del test)."""),
         code("""\
+mejor = tabla.iloc[0]['modelo']
+print('Mejor modelo por RMSE:', mejor)
+filas_dm = []
+for k in preds:
+    if k == mejor: continue
+    dm = ev.diebold_mariano(ds.y_test, preds[mejor], preds[k], loss='se')
+    filas_dm.append({'vs': k, 'DM': dm['dm'], 'p_value': dm['p_value'],
+                     'significativo (p<0.05)': dm['p_value'] < 0.05})
+pd.DataFrame(filas_dm).sort_values('p_value')"""),
+        md("## Predicho vs. real de los mejores modelos"),
+        code("""\
+top3 = [m for m in tabla['modelo'] if m not in ('media global', 'media x depto')][:3]
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-for ax, (nombre, color) in zip(axes, [('Lineal', ev.C_LINEAR),
-                                      ('XGBoost', ev.C_XGB),
-                                      ('Red neuronal', ev.C_NN)]):
-    ev.plot_pred_vs_real(ds.y_test, preds[nombre], nombre, color=color, ax=ax)
+for ax, nombre in zip(axes, top3):
+    ev.plot_pred_vs_real(ds.y_test, preds[nombre], nombre, color=ev.C_XGB, ax=ax)
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Conclusión
 
 - Todos los modelos con clima **superan a la media global**; el listón real es la
-  **media por departamento** (estructura espacial pura).
-- **XGBoost** es el mejor: las interacciones no lineales entre clima, espacio y
-  tendencia le dan la ventaja sobre el lineal, con la red neuronal cerca.
+  **media por departamento** (estructura espacial pura), y el **skill score** mide
+  cuánto agrega el clima del año sobre eso.
+- Los **ensembles de árboles** (Random Forest / HistGBM / XGBoost) dominan: capturan
+  interacciones no lineales entre clima, espacio y tendencia. El **Diebold–Mariano**
+  dice si la diferencia entre el puntero y el resto es real o ruido.
 - El margen sobre el baseline por depto cuantifica cuánto aporta el **clima del año**
-  por encima de "cada depto rinde lo de siempre" — que es, en el fondo, lo difícil
-  de predecir del rinde."""),
+  por encima de "cada depto rinde lo de siempre" — lo difícil de predecir del rinde."""),
         md("""\
 ## ¿Por qué el R² es "bajo" (~0.25–0.30)?
 
@@ -824,6 +882,247 @@ el camino es el pooling parcial o el split selectivo."""),
     ]
 
 
+# ===========================================================================
+# NB 07 — Integración Componente A -> Componente B (el aporte distintivo)
+# ===========================================================================
+def nb07():
+    return [
+        md("""\
+# 07 — Integración Componente A ↔ Componente B
+
+El **núcleo del proyecto**: acoplar el detector no supervisado (Componente A, un
+VAE) con el predictor de rinde (Componente B). Tres análisis que pide la consigna:
+
+1. **Consistencia cruzada** — ¿el score de anomalía del VAE correlaciona con el
+   |residuo| del predictor? Si ambos ven la misma estructura, una campaña "rara"
+   para el VAE también le cuesta al regresor (Spearman sobre el test).
+2. **Aporte del detector al predictor** (lift) — RMSE del predictor **con vs. sin**
+   las features del VAE (latente / score), vía `ev.comparar_latente`.
+3. **Cuantificación económica** — rinde **contrafactual** bajo clima normal −
+   rinde real, × superficie sembrada → pérdida de la sequía 2022/23, comparable al
+   benchmark de la BCR (USD 14.140 M)."""),
+        code(SETUP),
+        code(LOAD_BEST),
+        code("""\
+import integracion, latente
+# Modelo final del predictor: XGBoost re-tuneado.
+model = XGBoostRegressor(**best_of('xgb', {}), random_state=42).fit(ds.X_train, ds.y_train)
+y_pred = model.predict(ds.X_test)
+print('predictor (test):', {k: round(v, 3) for k, v in ev.metricas(ds.y_test, y_pred).items()})
+# Features del VAE del Componente A (score + latente), cacheadas.
+vf = latente.vae_features(CULTIVO)"""),
+        md("""\
+## 1. Consistencia cruzada (Spearman)
+
+Correlación de Spearman entre el score de anomalía del VAE y el valor absoluto del
+residuo del predictor, sobre el test. Positiva y significativa ⇒ **ambos
+componentes detectan la misma estructura** (test de robustez metodológica)."""),
+        code("""\
+cc = integracion.consistencia_cruzada(ds, y_pred, vf)
+print(f"Spearman(score VAE, |residuo predictor|) = {cc['spearman_rho']:.3f}  "
+      f"(p={cc['p_value']:.1e}, n={cc['n']})")
+resid = np.abs(ds.y_test - y_pred)
+fig, ax = plt.subplots(figsize=(6, 5))
+ax.scatter(vf['score_test'], resid, s=10, alpha=0.35, color=ev.C_XGB, edgecolors='none')
+ax.set_xlabel('score de anomalía del VAE'); ax.set_ylabel('|residuo| del predictor')
+ax.set_title(f"Consistencia cruzada  (Spearman ρ={cc['spearman_rho']:.3f})")
+plt.tight_layout(); plt.show()"""),
+        md("""\
+## 2. Aporte del detector al predictor (lift)
+
+RMSE del predictor sobre el dataset base vs. tres estrategias que reusan el VAE:
+concatenar su **latente**, usar **solo el latente**, y agregar la categórica
+**`es_anomalo`**. Si el detector aporta contexto climático comprimido, debería
+bajar el RMSE (sobre todo en campañas extremas)."""),
+        code("""\
+tabla_lat = ev.comparar_latente(XGBoostRegressor, best_of('xgb', {}), CULTIVO,
+                                fixed={'random_state': 42},
+                                vae_kwargs=dict(score_seeds=(42, 43, 44)))
+tabla_lat"""),
+        md("""\
+## 3. Cuantificación económica de la sequía 2022/23
+
+Rinde **contrafactual** (qué habría rendido cada depto con clima normal, poniendo
+las features climáticas en su media de train) − rinde real, ponderado por
+superficie sembrada. Agregamos la campaña 2022/23 y miramos los deptos más
+golpeados."""),
+        code("""\
+y_cf = integracion.contrafactual_normal(model, ds)
+res = integracion.resumen_2223(ds, y_cf)
+print(f"2022/23 ({res['n_filas']} deptos-cultivo): pérdida total "
+      f"{res['perdida_total_tn']:,.0f} tn  ({res['perdida_media_kgha']:.0f} kg/ha promedio)")
+res['top_deptos']"""),
+        code("""\
+top = res['top_deptos'].head(10).iloc[::-1]
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.barh(top['departamento'] + ' (' + top['provincia'].str[:3] + ')',
+        top['perdida_tn'] / 1e3, color='#C44E52')
+ax.set_xlabel('pérdida estimada (miles de tn)')
+ax.set_title('2022/23 — deptos más golpeados (contrafactual clima normal − real)')
+plt.tight_layout(); plt.show()"""),
+        md("""\
+## Conclusión
+
+- **Consistencia cruzada:** la correlación positiva y significativa entre el score
+  del VAE y el residuo del predictor indica que ambos componentes captan la misma
+  señal de anomalía — el sistema es coherente de punta a punta.
+- **Lift del latente:** en línea con el techo estructural del Componente A, el
+  latente del VAE aporta poco a la regresión (resume el clima *normalizado por
+  depto*, tira la señal espacial/tendencia que domina el rinde). El aporte real del
+  acople es **conceptual y económico**, no un salto de RMSE.
+- **Cuantificación:** el contrafactual aísla la campaña 2022/23 como pérdida masiva
+  concentrada en el sur de Córdoba y Santa Fe, consistente con la sequía histórica y
+  el orden de magnitud del benchmark BCR."""),
+    ]
+
+
+# ===========================================================================
+# NB 08 — Dos momentos de predicción + lags del rinde (ablations)
+# ===========================================================================
+def nb08():
+    return [
+        md("""\
+# 08 — Momentos de predicción y lags del rinde
+
+Dos extensiones que pide la consigna, como **ablations** sobre el mejor modelo:
+
+1. **Dos momentos del calendario agrícola** (`momento` en `datos.build_reg_dataset`):
+   - `pre_siembra` — solo lo conocible antes de sembrar (ONI + humedad de suelo de
+     invierno + estructurales). Sirve para decisiones tempranas.
+   - `pre_cosecha` — clima y NDVI hasta febrero (sin marzo).
+   - `full` — toda la campaña Sep–Mar (referencia).
+2. **Lags del rinde** (`use_lags`): rinde de 1–k campañas previas + media móvil,
+   todo con `shift` (nunca el año actual → sin leakage)."""),
+        code("""\
+import sys, os, warnings
+sys.path.insert(0, os.path.abspath('..'))
+warnings.filterwarnings('ignore')
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
+import datos, evaluacion as ev, json
+from modelos import XGBoostRegressor
+CULTIVO = 'soja'
+BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')).get(CULTIVO, {}).get('xgb', {}).get('best_params', {}) if os.path.exists('retuning_cv_honesta.json') else {}
+def evalua(momento='full', use_lags=0, use_agro=None):
+    if use_agro is None: use_agro = (momento == 'full')   # agro llega a marzo
+    d = datos.prepare(CULTIVO, momento=momento, use_lags=use_lags, use_agro=use_agro, enc_smooth=10.0)
+    m = XGBoostRegressor(**BEST, random_state=42).fit(d.X_train, d.y_train)
+    p = m.predict(d.X_test)
+    r = ev.metricas(d.y_test, p)
+    r['skill'] = ev.skill_score(d.y_test, p, ev.pred_media_depto(d))
+    r['n_feats'] = len(d.feature_cols)
+    return r, d, p"""),
+        md("## 1. Los tres momentos de predicción"),
+        code("""\
+filas = []
+res = {}
+for mom in ['pre_siembra', 'pre_cosecha', 'full']:
+    r, d, p = evalua(momento=mom)
+    res[mom] = (d, p)
+    filas.append({'momento': mom, 'n_feats': r['n_feats'], 'RMSE': r['rmse'],
+                  'R2': r['r2'], 'sMAPE': r['smape'], 'skill': r['skill']})
+tabla_mom = pd.DataFrame(filas)
+tabla_mom"""),
+        md("""\
+Cuanto más tarde en la campaña se predice, más información climática observada hay
+→ mejor debería ser. `pre_siembra` es el caso más difícil (casi sin clima del año);
+si aun así le gana a la climatología, hay señal anticipable (ENSO, humedad de suelo)."""),
+        code("""\
+# ¿La diferencia full vs pre_cosecha es significativa? (mismas filas de test)
+d_full, p_full = res['full']; d_pc, p_pc = res['pre_cosecha']
+dm = ev.diebold_mariano(d_full.y_test, p_full, p_pc, loss='se')
+print(f"Diebold-Mariano full vs pre_cosecha: DM={dm['dm']:.2f}  p={dm['p_value']:.3f}  "
+      f"-> {'diferencia significativa' if dm['p_value'] < 0.05 else 'sin diferencia significativa'}")"""),
+        md("## 2. Lags del rinde (features autorregresivas)"),
+        code("""\
+filas = []
+for k in [0, 1, 3, 5]:
+    r, _, _ = evalua(momento='full', use_lags=k, use_agro=True)
+    filas.append({'lags': k, 'n_feats': r['n_feats'], 'RMSE': r['rmse'],
+                  'R2': r['r2'], 'skill': r['skill']})
+tabla_lags = pd.DataFrame(filas)
+tabla_lags"""),
+        code("""\
+fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+ax[0].bar(tabla_mom['momento'], tabla_mom['R2'], color='#4C72B0')
+ax[0].set_title('R² por momento de predicción'); ax[0].axhline(0, color='0.6', lw=0.8)
+ax[1].plot(tabla_lags['lags'], tabla_lags['R2'], marker='o', color='#55A868')
+ax[1].set_title('R² vs. nº de lags del rinde'); ax[1].set_xlabel('lags')
+plt.tight_layout(); plt.show()"""),
+        md("""\
+## Conclusión
+
+- **Momentos:** `full` y `pre_cosecha` rinden parecido (el clima de marzo aporta
+  poco una vez que están sep–feb y el NDVI); el Diebold–Mariano dice si la diferencia
+  es real. `pre_siembra` es mucho más difícil — su skill vs. climatología mide cuánto
+  se puede **anticipar** antes de sembrar (ENSO + humedad de suelo).
+- **Lags:** agregar el rinde de campañas previas aporta señal autorregresiva
+  (persistencia depto), complementaria al `depto_enc`. El punto óptimo de k se ve en
+  la curva; más lags achican el train (se pierden las primeras campañas de cada serie)."""),
+    ]
+
+
+# ===========================================================================
+# NB 09 — Router por zonas (selección por CV): lo mejor de pooled y especializado
+# ===========================================================================
+def nb09():
+    return [
+        md("""\
+# 09 — Router por zonas: especializar solo donde paga
+
+El nb 06 mostró que "un modelo por zona" a secas **no** le gana al pooled: ayuda en
+la Pampa pero colapsa en el norte subtropical (poca señal + pocos datos), y esa
+zona hunde el neto. La solución: un **router** que, para cada zona, elige por
+**validación cruzada temporal en train** si conviene el modelo especializado o el
+pooled — sin mirar el test (eso sería leakage de selección).
+
+Implementado en `wrapper_zonas.WrapperPorZona`. Comparamos router vs. pooled vs.
+"un modelo por zona (puro)" en el test."""),
+        code("""\
+import sys, os, warnings
+sys.path.insert(0, os.path.abspath('..'))
+warnings.filterwarnings('ignore')
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
+import json
+from wrapper_zonas import WrapperPorZona
+from modelos import XGBoostRegressor
+CULTIVO = 'soja'
+BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')).get(CULTIVO, {}).get('xgb', {}).get('best_params', {}) if os.path.exists('retuning_cv_honesta.json') else {}
+BEST = {k: v for k, v in BEST.items() if k not in ('n_jobs',)}"""),
+        md("## Entrenamiento del router (decisión por CV en train)"),
+        code("""\
+w = WrapperPorZona(XGBoostRegressor, BEST, cultivo=CULTIVO, use_agro=True,
+                   enc_smooth=10.0, n_zonas=6, metric='rmse')
+w.fit()
+w.resumen_zonas()"""),
+        md("La columna `elegido` dice, por zona, si el router se quedó con el modelo **especializado** (mejor CV) o el **pooled**."),
+        md("## Resultado en test: router vs. pooled vs. por-zona puro"),
+        code("""\
+tabla = w.evaluar()
+tabla"""),
+        code("""\
+fig, ax = plt.subplots(figsize=(7, 4))
+t = tabla.sort_values('rmse')
+ax.barh(t['modelo'][::-1], t['rmse'][::-1], color=['#55A868', '#4C72B0', '#C44E52'][:len(t)])
+ax.set_xlabel('RMSE (kg/ha)'); ax.set_title('Router por zonas vs. alternativas (test)')
+for i, v in enumerate(t['rmse'][::-1]):
+    ax.text(v, i, f' {v:.0f}', va='center')
+plt.tight_layout(); plt.show()"""),
+        md("""\
+## Conclusión
+
+- El **router** se queda con el especializado solo en las zonas donde la CV en train
+  lo respalda (típicamente las pampeanas) y usa el pooled en las ruidosas → acota el
+  colapso del norte que hundía al "un modelo por zona" del nb 06.
+- Así logra **igualar o superar al pooled** sin el riesgo del esquema ingenuo. La
+  clave metodológica es que la decisión por zona sale de **CV temporal en train**,
+  nunca del test.
+- Es un ejemplo de *split selectivo* / mixture-of-experts liviano; el siguiente paso
+  natural sería el **pooling parcial** (encoger cada zona hacia el pooled según su n)."""),
+    ]
+
+
 if __name__ == "__main__":
     build(os.path.join(HERE, "00_eda_rinde_y_features.ipynb"), nb00())
     build(os.path.join(HERE, "06_modelo_por_zona.ipynb"), nb06())
@@ -832,3 +1131,6 @@ if __name__ == "__main__":
     build(os.path.join(HERE, "03_hp_xgboost.ipynb"), nb03())
     build(os.path.join(HERE, "04_hp_red_neuronal.ipynb"), nb04())
     build(os.path.join(HERE, "05_comparacion_modelos.ipynb"), nb05())
+    build(os.path.join(HERE, "07_integracion_A_B.ipynb"), nb07())
+    build(os.path.join(HERE, "08_momentos_y_lags.ipynb"), nb08())
+    build(os.path.join(HERE, "09_router_por_zona.ipynb"), nb09())
