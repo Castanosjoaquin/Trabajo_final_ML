@@ -98,9 +98,21 @@ def compute_z_rinde(panel: pd.DataFrame, rolling_window: int = ROLLING_WINDOW,
     es imprescindible porque el nombre de departamento se repite entre
     provincias; cultivo separa soja (~2700 kg/ha) de maíz (~6700). Usa shift(1)
     para no filtrar el valor actual en su propia media. Etiqueta SOLO para
-    evaluación."""
+    evaluación.
+
+    `rinde_kgha` se clipea al 0.5%/99.5% por cultivo antes del rolling: sin
+    esto, valores de carga errónea (p. ej. 20000 kg/ha en soja, imposible)
+    generan un roll_std minúsculo en ventanas tempranas con pocos datos y
+    z_rinde explota (se vieron valores de |z|>40 sin este clip)."""
     geo = ["provincia", "departamento"] if "provincia" in panel.columns else ["departamento"]
     df = panel.sort_values(geo + ["cultivo", "campania_inicio"]).copy()
+    limites = df.groupby("cultivo")["rinde_kgha"].transform(
+        lambda s: s.clip(lower=s.quantile(0.005), upper=s.quantile(0.995))
+    )
+    n_clip = int((df["rinde_kgha"] != limites).sum())
+    if n_clip:
+        print(f"[data] clip rinde_kgha (0.5%/99.5% por cultivo): {n_clip} filas afectadas")
+    df["rinde_kgha"] = limites
     grp = df.groupby(geo + ["cultivo"])["rinde_kgha"]
     roll_mean = grp.transform(
         lambda s: s.shift(1).rolling(rolling_window, min_periods=3).mean()
