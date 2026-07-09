@@ -99,7 +99,7 @@ class WrapperPorZona:
         kw = dict(use_agro=self.use_agro, enc_smooth=self.enc_smooth)
 
         # --- 1. pooled ---
-        panel = datos.assign_zonas(datos.load_panel(self.dataset),
+        panel = datos.assign_zonas(datos.load_panel(),
                                    n_zonas=self.n_zonas, method=self.method,
                                    seed=self.seed)
         self.ds_pool = datos.build_reg_dataset(panel, self.cultivo, **kw)

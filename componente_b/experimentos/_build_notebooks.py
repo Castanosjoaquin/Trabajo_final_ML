@@ -34,12 +34,16 @@ import datos, evaluacion as ev
 from modelos import (LinearRegressor, XGBoostRegressor, NeuralNetRegressor,
                      RandomForestRegressorModel, HistGBMRegressor, StackingRegressorModel)
 
-# Cultivo del estudio (cambiar a 'maiz' para reproducir con maíz).
-CULTIVO = 'soja'
-ds = datos.prepare(CULTIVO, use_agro=True, enc_smooth=10.0)
-print(f'{CULTIVO}: {len(ds.feature_cols)} features | '
-      f'train {ds.X_train.shape[0]} filas (≤{datos.TRAIN_END}) | '
-      f'test {ds.X_test.shape[0]} filas (≥{datos.TEST_START})')
+# Todo el análisis se hace sobre los DOS cultivos. El dataset "principal" usa las
+# features agronómicas de ventana crítica (use_agro) y el suavizado del target
+# encoding de depto (enc_smooth): la configuración que mejor generaliza.
+CULTIVOS = ['soja', 'maiz']
+DSS = {c: datos.prepare(c, use_agro=True, enc_smooth=10.0) for c in CULTIVOS}
+for c in CULTIVOS:
+    d = DSS[c]
+    print(f'{c:5s}: {len(d.feature_cols)} features | '
+          f'train {d.X_train.shape[0]} filas (≤{datos.TRAIN_END}) | '
+          f'test {d.X_test.shape[0]} filas (≥{datos.TEST_START})')
 """
 
 
@@ -47,11 +51,11 @@ print(f'{CULTIVO}: {len(ds.feature_cols)} features | '
 LOAD_BEST = """\
 import json
 _bpath = 'retuning_cv_honesta.json'
-BEST_ALL = json.load(open(_bpath, encoding='utf-8'))[CULTIVO] if os.path.exists(_bpath) else {}
-def best_of(name, fallback):
-    \"\"\"best-params re-tuneados del modelo `name` (o `fallback` si no hay json).\"\"\"
-    return BEST_ALL.get(name, {}).get('best_params', fallback)
-print('re-tuning disponible:', sorted(k for k in BEST_ALL if not k.startswith('_')) or 'NO (usando fallbacks)')
+_BEST = json.load(open(_bpath, encoding='utf-8')) if os.path.exists(_bpath) else {}
+def best_of(cultivo, name, fallback):
+    \"\"\"best-params re-tuneados de `name` para `cultivo` (o `fallback` si no hay json).\"\"\"
+    return _BEST.get(cultivo, {}).get(name, {}).get('best_params', fallback)
+print('re-tuning disponible:', sorted(_BEST) or 'NO (usando fallbacks)')
 """
 
 
@@ -72,12 +76,13 @@ El latente/score se computan en `latente.py` (y se cachean). *La primera corrida
 entrena el VAE, así que tarda unos minutos.*""")
 
 
-def ds_latente_code(model_name, params_var, fixed="None"):
+def ds_latente_code(model_name, best_var, fixed="None"):
+    # best_var es un dict {cultivo: best_params}; se evalúa el latente por cultivo.
     return new_code_cell(
-        f"tabla_lat = ev.comparar_latente(\n"
-        f"    {model_name}, {params_var}, CULTIVO, fixed={fixed},\n"
-        f"    vae_kwargs=dict(score_seeds=(42, 43, 44)))\n"
-        f"tabla_lat")
+        f"for c in CULTIVOS:\n"
+        f"    print(f'=== {{c}} ===')\n"
+        f"    display(ev.comparar_latente({model_name}, {best_var}[c], c, fixed={fixed},\n"
+        f"                                vae_kwargs=dict(score_seeds=(42, 43, 44))))")
 
 
 DS_LATENTE_MD = _ds_latente_md()
@@ -141,44 +146,41 @@ train, sin leakage): **clima mensual** (Sep–Mar), **codificación del departam
 por su rinde medio en train (estructura espacial) y el **año** (tendencia
 tecnológica). El target es el rinde crudo en kg/ha."""),
         code("""\
-print('features:', ds.feature_cols[:6], '...', ds.feature_cols[-2:])
-print(f'\\nrinde train: media={ds.y_train.mean():.0f}  std={ds.y_train.std():.0f} kg/ha')
-print(f'rinde test : media={ds.y_test.mean():.0f}  std={ds.y_test.std():.0f} kg/ha')
-ds.meta_test.head(3)"""),
+for c in CULTIVOS:
+    d = DSS[c]
+    print(f'--- {c} ---  features: {d.feature_cols[:4]} ... {d.feature_cols[-2:]}')
+    print(f'  rinde train: media={d.y_train.mean():.0f}  std={d.y_train.std():.0f} kg/ha | '
+          f'test: media={d.y_test.mean():.0f}  std={d.y_test.std():.0f} kg/ha')"""),
         md("""\
-## Baselines
+## Baselines (ambos cultivos)
 
 Para regresión reportamos cuatro métricas (definidas en `evaluacion.metricas`):
 **MAE** y **RMSE** en kg/ha (RMSE castiga más los errores grandes), **R²** (varianza
-explicada; 0 = tan bueno como predecir la media, negativo = peor) y **MAPE** (error
-porcentual)."""),
+explicada; 0 = tan bueno como predecir la media, negativo = peor) y **sMAPE**. Todo
+el análisis se hace para soja **y** maíz."""),
         code("""\
-filas = [
-    ev.evaluar('media global',  ev.pred_media(ds),      ds),
-    ev.evaluar('media x depto',  ev.pred_media_depto(ds), ds),
-]
-tabla_base = ev.tabla_comparativa(filas, ordenar_por='rmse')
-tabla_base"""),
+def baselines_ols(c):
+    d = DSS[c]
+    ols = LinearRegressor(penalty='none').fit(d.X_train, d.y_train)
+    return [{'cultivo': c, **ev.evaluar('media global',  ev.pred_media(d),       d)},
+            {'cultivo': c, **ev.evaluar('media x depto',  ev.pred_media_depto(d), d)},
+            {'cultivo': c, **ev.evaluar('OLS (lineal)',   ols.predict(d.X_test),  d)}]
+
+filas = [f for c in CULTIVOS for f in baselines_ols(c)]
+tabla = pd.DataFrame(filas)[['cultivo', 'modelo', 'mae', 'rmse', 'r2', 'smape']]
+tabla"""),
         md("""\
 La **media por departamento** ya explica bastante más varianza que la media global:
 casi todo el poder predictivo "fácil" del rinde es *dónde* está el campo, no el
-clima del año. Ese es el número que cualquier modelo con clima tiene que superar."""),
-        md("""\
-## Regresión lineal (OLS, sin regularizar)
-
-Primer modelo con clima. Sin tuning todavía — eso es el notebook 02."""),
-        code("""\
-ols = LinearRegressor(penalty='none').fit(ds.X_train, ds.y_train)
-pred_ols = ols.predict(ds.X_test)
-
-filas.append(ev.evaluar('OLS (lineal)', pred_ols, ds))
-tabla = ev.tabla_comparativa(filas, ordenar_por='rmse')
-tabla"""),
+clima del año. Ese es el número que cualquier modelo con clima tiene que superar.
+La OLS con clima mejora sobre ese piso en ambos cultivos."""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(11, 5))
-ev.plot_pred_vs_real(ds.y_test, ev.pred_media_depto(ds), 'Baseline: media x depto',
-                     color=ev.C_BASE, ax=axes[0])
-ev.plot_pred_vs_real(ds.y_test, pred_ols, 'OLS (lineal)', color=ev.C_LINEAR, ax=axes[1])
+for ax, c in zip(axes, CULTIVOS):
+    d = DSS[c]
+    ols = LinearRegressor(penalty='none').fit(d.X_train, d.y_train)
+    ev.plot_pred_vs_real(d.y_test, ols.predict(d.X_test), f'OLS — {c}',
+                         color=ev.C_LINEAR, ax=ax)
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Conclusión
@@ -216,44 +218,48 @@ folds de ventana expansiva sobre el train, donde la validación es siempre
 búsqueda** — se usa una sola vez, al final, para reportar las métricas del modelo
 elegido."""),
         code(SETUP),
-        md("## La búsqueda\n\nGrid completo, optimizando RMSE de validación."),
+        md("## La búsqueda (para soja y maíz)\n\nGrid completo, optimizando RMSE de validación temporal, por cultivo."),
         code("""\
 grid = {
     'penalty':  ['none', 'ridge', 'lasso', 'elasticnet'],
     'alpha':    [0.1, 1.0, 10.0, 50.0, 100.0],
     'l1_ratio': [0.2, 0.5, 0.8],
 }
-tabla, best = ev.buscar(LinearRegressor, grid, ds, metric='rmse', n_splits=4)
-print('Mejores hiperparámetros:', best)
-tabla.head(10)"""),
+BEST_LIN, TAB = {}, {}
+for c in CULTIVOS:
+    TAB[c], BEST_LIN[c] = ev.buscar(LinearRegressor, grid, DSS[c], metric='rmse', n_splits=4)
+    print(f'{c}: mejores HP = {BEST_LIN[c]}')
+TAB['soja'].head(8)"""),
         md("""\
-## Modelo final
+## Modelo final (ambos cultivos)
 
 Reentrenamos con los mejores hiperparámetros sobre **todo** el train y evaluamos en
-el test. Estas son las **métricas del modelo final**."""),
+el test, para cada cultivo."""),
         code("""\
-modelo = LinearRegressor(**best).fit(ds.X_train, ds.y_train)
-pred = modelo.predict(ds.X_test)
-print('Config final:', modelo.get_config())
-# Métricas del modelo final vs el baseline, en la tabla estándar (RMSE/R²/MAE)
-ev.tabla([ev.evaluar('Lineal (final)', pred, ds),
-          ev.evaluar('baseline media x depto', ev.pred_media_depto(ds), ds)])"""),
+filas = []
+for c in CULTIVOS:
+    d = DSS[c]
+    m = LinearRegressor(**BEST_LIN[c]).fit(d.X_train, d.y_train)
+    filas.append({'cultivo': c, **ev.evaluar('Lineal (final)', m.predict(d.X_test), d)})
+    filas.append({'cultivo': c, **ev.evaluar('media x depto', ev.pred_media_depto(d), d)})
+pd.DataFrame(filas)[['cultivo', 'modelo', 'mae', 'rmse', 'r2', 'smape']]"""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(11, 5))
-ev.plot_pred_vs_real(ds.y_test, pred, f'Lineal {best[\"penalty\"]} (final)',
-                     color=ev.C_LINEAR, ax=axes[0])
-ev.plot_residuos(ds.y_test, pred, 'Residuos', color=ev.C_LINEAR, ax=axes[1])
+for ax, c in zip(axes, CULTIVOS):
+    d = DSS[c]; m = LinearRegressor(**BEST_LIN[c]).fit(d.X_train, d.y_train)
+    ev.plot_pred_vs_real(d.y_test, m.predict(d.X_test), f'Lineal — {c}',
+                         color=ev.C_LINEAR, ax=ax)
 plt.tight_layout(); plt.show()"""),
         md("## Coeficientes: qué features sobreviven\n\nCon Lasso/ElasticNet muchos coeficientes van a cero — el modelo se queda con las features informativas."),
         code("""\
-coef = getattr(modelo._model, 'coef_', None)
-if coef is not None:
-    s = pd.Series(coef, index=ds.feature_cols)
-    n_cero = int((s.abs() < 1e-8).sum())
-    print(f'coeficientes en cero: {n_cero}/{len(s)}')
-    print('\\nTop 10 |coef|:')
-    print(s.reindex(s.abs().sort_values(ascending=False).index).head(10))"""),
-        DS_LATENTE_MD, ds_latente_code("LinearRegressor", "best"),
+for c in CULTIVOS:
+    d = DSS[c]; m = LinearRegressor(**BEST_LIN[c]).fit(d.X_train, d.y_train)
+    coef = getattr(m._model, 'coef_', None)
+    if coef is None: continue
+    s = pd.Series(coef, index=d.feature_cols)
+    print(f'{c}: {int((s.abs() < 1e-8).sum())}/{len(s)} coeficientes en cero. Top 6 |coef|:')
+    print(s.reindex(s.abs().sort_values(ascending=False).index).head(6).round(1).to_dict())"""),
+        DS_LATENTE_MD, ds_latente_code("LinearRegressor", "BEST_LIN"),
         md("""\
 ## Conclusión
 
@@ -284,7 +290,7 @@ muchos ejes de regularización, y los buscamos todos:
 Como el espacio es enorme, usamos **búsqueda aleatoria** (`n_iter`) con la misma
 CV temporal del notebook 02. El test no se toca hasta el final."""),
         code(SETUP),
-        md("## La búsqueda\n\nBúsqueda aleatoria de 25 combinaciones sobre el grid, optimizando RMSE de validación temporal."),
+        md("## La búsqueda (para soja y maíz)\n\nBúsqueda aleatoria de 25 combinaciones sobre el grid, optimizando RMSE de validación temporal, por cultivo."),
         code("""\
 grid = {
     'max_depth':        [3, 4, 6, 8],
@@ -297,33 +303,40 @@ grid = {
     'reg_alpha':        [0.0, 1.0],
     'gamma':            [0.0, 1.0],
 }
-tabla, best = ev.buscar(XGBoostRegressor, grid, ds, metric='rmse',
-                        n_iter=25, random_state=42, n_splits=4)
-print('Mejores hiperparámetros:', best)
-tabla.head(10)"""),
+BEST_XGB, TAB = {}, {}
+for c in CULTIVOS:
+    TAB[c], BEST_XGB[c] = ev.buscar(XGBoostRegressor, grid, DSS[c], metric='rmse',
+                                    n_iter=25, random_state=42, n_splits=4)
+    print(f'{c}: mejores HP = {BEST_XGB[c]}')
+TAB['soja'].head(8)"""),
         md("""\
-## Modelo final
+## Modelo final (ambos cultivos)
 
 Reentrenamos con los mejores hiperparámetros sobre todo el train y evaluamos en el
-test. **Métricas del modelo final:**"""),
+test, para cada cultivo."""),
         code("""\
-modelo = XGBoostRegressor(**best, random_state=42).fit(ds.X_train, ds.y_train)
-pred = modelo.predict(ds.X_test)
-ev.tabla([ev.evaluar('XGBoost (final)', pred, ds),
-          ev.evaluar('baseline media x depto', ev.pred_media_depto(ds), ds)])"""),
+filas = []
+for c in CULTIVOS:
+    d = DSS[c]
+    m = XGBoostRegressor(**BEST_XGB[c], random_state=42).fit(d.X_train, d.y_train)
+    filas.append({'cultivo': c, **ev.evaluar('XGBoost (final)', m.predict(d.X_test), d)})
+    filas.append({'cultivo': c, **ev.evaluar('media x depto', ev.pred_media_depto(d), d)})
+pd.DataFrame(filas)[['cultivo', 'modelo', 'mae', 'rmse', 'r2', 'smape']]"""),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(11, 5))
-ev.plot_pred_vs_real(ds.y_test, pred, 'XGBoost (final)', color=ev.C_XGB, ax=axes[0])
-ev.plot_residuos(ds.y_test, pred, 'Residuos', color=ev.C_XGB, ax=axes[1])
+for ax, c in zip(axes, CULTIVOS):
+    d = DSS[c]; m = XGBoostRegressor(**BEST_XGB[c], random_state=42).fit(d.X_train, d.y_train)
+    ev.plot_pred_vs_real(d.y_test, m.predict(d.X_test), f'XGBoost — {c}', color=ev.C_XGB, ax=ax)
 plt.tight_layout(); plt.show()"""),
-        md("## Importancia de features\n\nQué variables usa más el modelo para partir los árboles."),
+        md("## Importancia de features (por cultivo)\n\nQué variables usa más el modelo para partir los árboles."),
         code("""\
-imp = pd.Series(modelo._model.feature_importances_, index=ds.feature_cols)
-imp = imp.sort_values(ascending=False).head(12)
-fig, ax = plt.subplots(figsize=(6, 4))
-ax.barh(imp.index[::-1], imp.values[::-1], color=ev.C_XGB)
-ax.set_title('XGBoost — top 12 feature importances'); plt.tight_layout(); plt.show()"""),
-        DS_LATENTE_MD, ds_latente_code("XGBoostRegressor", "best", "{'random_state': 42}"),
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+for ax, c in zip(axes, CULTIVOS):
+    d = DSS[c]; m = XGBoostRegressor(**BEST_XGB[c], random_state=42).fit(d.X_train, d.y_train)
+    imp = pd.Series(m._model.feature_importances_, index=d.feature_cols).sort_values(ascending=False).head(10)
+    ax.barh(imp.index[::-1], imp.values[::-1], color=ev.C_XGB); ax.set_title(f'top features — {c}')
+plt.tight_layout(); plt.show()"""),
+        DS_LATENTE_MD, ds_latente_code("XGBoostRegressor", "BEST_XGB", "{'random_state': 42}"),
         md("""\
 ## Conclusión
 
@@ -359,7 +372,7 @@ ganas (memoriza el rinde medio de cada depto en train y no generaliza al test, q
 además cae en años *fuera* del rango de train). Por eso la grilla apunta a redes
 chicas y regularización fuerte — el `dropout` alto es el que más mueve la aguja."""),
         code(SETUP),
-        md("## La búsqueda\n\nBúsqueda aleatoria de 14 combinaciones, optimizando RMSE de validación temporal."),
+        md("## La búsqueda (para soja y maíz)\n\nBúsqueda aleatoria de 14 combinaciones, optimizando RMSE de validación temporal, por cultivo."),
         code("""\
 grid = {
     'hidden_dims':  [(16,), (32,), (64, 32)],
@@ -367,35 +380,42 @@ grid = {
     'weight_decay': [1e-3, 1e-2, 3e-2],
     'lr':           [1e-3, 3e-3],
 }
-tabla, best = ev.buscar(NeuralNetRegressor, grid, ds, metric='rmse',
-                        n_iter=14, random_state=42, n_splits=4,
-                        fixed={'max_epochs': 200, 'patience': 25, 'l1_lambda': 0.0})
-print('Mejores hiperparámetros:', best)
-tabla.head(10)"""),
+BEST_NN, TAB = {}, {}
+for c in CULTIVOS:
+    TAB[c], BEST_NN[c] = ev.buscar(NeuralNetRegressor, grid, DSS[c], metric='rmse',
+                                   n_iter=14, random_state=42, n_splits=4,
+                                   fixed={'max_epochs': 200, 'patience': 25, 'l1_lambda': 0.0})
+    print(f'{c}: mejores HP = {BEST_NN[c]}')
+TAB['soja'].head(8)"""),
         md("""\
-## Modelo final
+## Modelo final (ambos cultivos)
 
 Reentrenamos con los mejores hiperparámetros sobre todo el train y evaluamos en el
-test. **Métricas del modelo final:**"""),
+test, para cada cultivo."""),
         code("""\
-modelo = NeuralNetRegressor(**best, l1_lambda=0.0, max_epochs=250, patience=30,
-                            random_state=42).fit(ds.X_train, ds.y_train)
-pred = modelo.predict(ds.X_test)
-ev.tabla([ev.evaluar('Red neuronal (final)', pred, ds),
-          ev.evaluar('baseline media x depto', ev.pred_media_depto(ds), ds)])"""),
+MODN = {}
+filas = []
+for c in CULTIVOS:
+    d = DSS[c]
+    MODN[c] = NeuralNetRegressor(**BEST_NN[c], l1_lambda=0.0, max_epochs=250, patience=30,
+                                 random_state=42).fit(d.X_train, d.y_train)
+    filas.append({'cultivo': c, **ev.evaluar('Red neuronal (final)', MODN[c].predict(d.X_test), d)})
+    filas.append({'cultivo': c, **ev.evaluar('media x depto', ev.pred_media_depto(d), d)})
+pd.DataFrame(filas)[['cultivo', 'modelo', 'mae', 'rmse', 'r2', 'smape']]"""),
         code("""\
-fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
-ev.plot_pred_vs_real(ds.y_test, pred, 'Red neuronal (final)', color=ev.C_NN, ax=axes[0])
-ev.plot_residuos(ds.y_test, pred, 'Residuos', color=ev.C_NN, ax=axes[1])
-h = modelo.history_
-axes[2].plot(h['train_loss'], label='train', color=ev.C_LINEAR)
-if h['val_loss']:
-    axes[2].plot(h['val_loss'], label='val', color=ev.C_NN)
-axes[2].set_title('Curva de entrenamiento (MSE, target escalado)')
-axes[2].set_xlabel('época'); axes[2].legend()
+fig, axes = plt.subplots(len(CULTIVOS), 2, figsize=(11, 4.5 * len(CULTIVOS)))
+for i, c in enumerate(CULTIVOS):
+    d = DSS[c]
+    ev.plot_pred_vs_real(d.y_test, MODN[c].predict(d.X_test), f'Red neuronal — {c}',
+                         color=ev.C_NN, ax=axes[i, 0])
+    h = MODN[c].history_
+    axes[i, 1].plot(h['train_loss'], label='train', color=ev.C_LINEAR)
+    if h['val_loss']:
+        axes[i, 1].plot(h['val_loss'], label='val', color=ev.C_NN)
+    axes[i, 1].set_title(f'Curva de entrenamiento — {c}'); axes[i, 1].set_xlabel('época'); axes[i, 1].legend()
 plt.tight_layout(); plt.show()"""),
         DS_LATENTE_MD,
-        ds_latente_code("NeuralNetRegressor", "best",
+        ds_latente_code("NeuralNetRegressor", "BEST_NN",
                         "dict(l1_lambda=0.0, max_epochs=250, patience=30, random_state=42)"),
         md("""\
 ## Conclusión
@@ -436,64 +456,65 @@ Cada modelo con sus hiperparámetros re-tuneados (o un fallback razonable si no
 está el json). El stacking recibe los años para armar sus meta-features
 out-of-fold de forma temporal (sin leakage)."""),
         code("""\
-yrs = ds.meta_train['campania_inicio'].values
-def fit_pred(model):
-    return model.fit(ds.X_train, ds.y_train).predict(ds.X_test)
+def entrenar_todos(c):
+    d = DSS[c]; yrs = d.meta_train['campania_inicio'].values
+    P = {}
+    P['media global']  = ev.pred_media(d)
+    P['media x depto'] = ev.pred_media_depto(d)
+    P['Lineal']        = LinearRegressor(**best_of(c, 'linear', {'penalty':'ridge','alpha':10.0})).fit(d.X_train, d.y_train).predict(d.X_test)
+    P['Random Forest'] = RandomForestRegressorModel(**best_of(c, 'rf', {}), random_state=42, n_jobs=-1).fit(d.X_train, d.y_train).predict(d.X_test)
+    P['HistGBM']       = HistGBMRegressor(**best_of(c, 'hist_gbm', {}), random_state=42).fit(d.X_train, d.y_train).predict(d.X_test)
+    P['XGBoost']       = XGBoostRegressor(**best_of(c, 'xgb', {}), random_state=42).fit(d.X_train, d.y_train).predict(d.X_test)
+    P['Red neuronal']  = NeuralNetRegressor(**best_of(c, 'nn', {'hidden_dims':(64,32),'dropout':0.3}),
+                                            max_epochs=250, patience=30, random_state=42).fit(d.X_train, d.y_train).predict(d.X_test)
+    stk = StackingRegressorModel(**best_of(c, 'stacking', {})); stk.fit(d.X_train, d.y_train, years=yrs)
+    P['Stacking']      = stk.predict(d.X_test)
+    return P
 
-preds = {}
-preds['media global']  = ev.pred_media(ds)
-preds['media x depto'] = ev.pred_media_depto(ds)
-preds['Lineal']       = fit_pred(LinearRegressor(**best_of('linear', {'penalty':'ridge','alpha':10.0})))
-preds['Random Forest'] = fit_pred(RandomForestRegressorModel(**best_of('rf', {}), random_state=42, n_jobs=-1))
-preds['HistGBM']       = fit_pred(HistGBMRegressor(**best_of('hist_gbm', {}), random_state=42))
-preds['XGBoost']       = fit_pred(XGBoostRegressor(**best_of('xgb', {}), random_state=42))
-preds['Red neuronal']  = fit_pred(NeuralNetRegressor(**best_of('nn', {'hidden_dims':(64,32),'dropout':0.3}),
-                                                     max_epochs=250, patience=30, random_state=42))
-_stk = StackingRegressorModel(**best_of('stacking', {}))
-_stk.fit(ds.X_train, ds.y_train, years=yrs)
-preds['Stacking']      = _stk.predict(ds.X_test)
+PREDS = {c: entrenar_todos(c) for c in CULTIVOS}
 
-filas = [ev.evaluar(k, v, ds) for k, v in preds.items()]
-tabla = ev.tabla_comparativa(filas, ordenar_por='rmse')
+filas = []
+for c in CULTIVOS:
+    d = DSS[c]; ref = ev.pred_media_depto(d)
+    for k, v in PREDS[c].items():
+        row = {'cultivo': c, **ev.evaluar(k, v, d)}
+        row['skill'] = ev.skill_score(d.y_test, v, ref) if k != 'media x depto' else 0.0
+        filas.append(row)
+tabla = pd.DataFrame(filas)[['cultivo', 'modelo', 'mae', 'rmse', 'r2', 'smape', 'skill']]
 tabla"""),
-        md("## Skill score vs. climatología (media por depto)\n\nPositivo = el modelo le gana a la climatología; 0 = empata."),
+        md("## Skill score vs. climatología y RMSE, por cultivo\n\nPositivo = el modelo le gana a la climatología; 0 = empata."),
         code("""\
-ref = ev.pred_media_depto(ds)
-skill = {k: ev.skill_score(ds.y_test, v, ref) for k, v in preds.items() if k != 'media x depto'}
-skill = pd.Series(skill).sort_values(ascending=False)
-fig, ax = plt.subplots(figsize=(7, 4))
-ax.barh(skill.index[::-1], skill.values[::-1],
-        color=['#55A868' if v > 0 else '#C44E52' for v in skill.values[::-1]])
-ax.axvline(0, color='0.5', lw=1); ax.set_xlabel('skill score (1 - RMSE/RMSE_clima)')
-ax.set_title('Skill vs. climatología por modelo'); plt.tight_layout(); plt.show()
-skill.round(3)"""),
-        code("""\
-fig, axes = plt.subplots(1, 2, figsize=(13, 4.5))
-ev.plot_comparativa(tabla, metrica='rmse', ax=axes[0])
-ev.plot_comparativa(tabla, metrica='r2', ax=axes[1])
+fig, axes = plt.subplots(2, 2, figsize=(13, 8))
+for j, c in enumerate(CULTIVOS):
+    sub = tabla[tabla.cultivo == c]
+    ev.plot_comparativa(sub, metrica='rmse', ax=axes[0, j]); axes[0, j].set_title(f'RMSE — {c}')
+    s = sub[sub.modelo != 'media x depto'].set_index('modelo')['skill'].sort_values()
+    axes[1, j].barh(s.index, s.values, color=['#55A868' if v > 0 else '#C44E52' for v in s.values])
+    axes[1, j].axvline(0, color='0.5', lw=1); axes[1, j].set_title(f'skill vs. climatología — {c}')
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Test de Diebold–Mariano: ¿las diferencias son significativas?
 
-Comparamos el **mejor modelo** (menor RMSE) contra cada uno de los demás. `dm<0`
-= el mejor pierde *menos*; `p<0.05` = la diferencia es estadísticamente
-significativa (no es ruido de muestreo del test)."""),
+Para cada cultivo comparamos el **mejor modelo** (menor RMSE) contra cada uno de
+los demás. `DM<0` = el mejor pierde *menos*; `p<0.05` = la diferencia es
+estadísticamente significativa (no es ruido de muestreo del test)."""),
         code("""\
-mejor = tabla.iloc[0]['modelo']
-print('Mejor modelo por RMSE:', mejor)
-filas_dm = []
-for k in preds:
-    if k == mejor: continue
-    dm = ev.diebold_mariano(ds.y_test, preds[mejor], preds[k], loss='se')
-    filas_dm.append({'vs': k, 'DM': dm['dm'], 'p_value': dm['p_value'],
-                     'significativo (p<0.05)': dm['p_value'] < 0.05})
-pd.DataFrame(filas_dm).sort_values('p_value')"""),
-        md("## Predicho vs. real de los mejores modelos"),
+for c in CULTIVOS:
+    d = DSS[c]; P = PREDS[c]
+    mejor = tabla[tabla.cultivo == c].sort_values('rmse').iloc[0]['modelo']
+    print(f'--- {c}: mejor por RMSE = {mejor} ---')
+    for k in P:
+        if k == mejor: continue
+        dm = ev.diebold_mariano(d.y_test, P[mejor], P[k], loss='se')
+        print(f'  vs {k:16s} DM={dm[\"dm\"]:+.2f}  p={dm[\"p_value\"]:.3f}  '
+              f'[{\"sig.\" if dm[\"p_value\"] < 0.05 else \"n.s.\"}]')"""),
+        md("## Predicho vs. real del modelo campeón, por cultivo"),
         code("""\
-top3 = [m for m in tabla['modelo'] if m not in ('media global', 'media x depto')][:3]
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-for ax, nombre in zip(axes, top3):
-    ev.plot_pred_vs_real(ds.y_test, preds[nombre], nombre, color=ev.C_XGB, ax=ax)
+fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+for ax, c in zip(axes, CULTIVOS):
+    d = DSS[c]
+    mejor = tabla[tabla.cultivo == c].sort_values('rmse').iloc[0]['modelo']
+    ev.plot_pred_vs_real(d.y_test, PREDS[c][mejor], f'{mejor} — {c}', color=ev.C_XGB, ax=ax)
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Conclusión
@@ -577,17 +598,21 @@ pd.set_option('display.float_format', lambda v: f'{v:,.1f}')
 import datos
 from src import data as A                          # componente_a (path ya en sys.path)
 
-CULTIVO = 'soja'
+# EDA sobre los DOS cultivos. DF[c] = dataframe del cultivo c con features agro +
+# atajos de clima en la ventana crítica (floración + llenado).
+CULTIVOS = ['soja', 'maiz']
 panel = datos.load_panel()
-df = panel[panel.cultivo == CULTIVO].copy()
-df, AGRO = A.add_agro_features(df, CULTIVO)         # features agronómicas de ventana crítica
-# atajos de clima en la ventana crítica del cultivo (floración + llenado)
-MESES_CRIT = A.CRITICAL_MONTHS[CULTIVO]
-df['precip_crit'] = df[[f'prectotcorr_{m}' for m in MESES_CRIT]].sum(axis=1)
-df['tmax_crit']   = df[[f't2m_max_{m}'   for m in MESES_CRIT]].mean(axis=1)
-print(f'{CULTIVO}: {len(df)} filas | {df.provincia.nunique()} provincias | '
-      f'años {int(df.campania_inicio.min())}–{int(df.campania_inicio.max())} | '
-      f'ventana crítica: {MESES_CRIT}')
+DF, AGRO_COLS, MCRIT = {}, {}, {}
+for c in CULTIVOS:
+    d = panel[panel.cultivo == c].copy()
+    d, AGRO_COLS[c] = A.add_agro_features(d, c)
+    MCRIT[c] = A.CRITICAL_MONTHS[c]
+    d['precip_crit'] = d[[f'prectotcorr_{m}' for m in MCRIT[c]]].sum(axis=1)
+    d['tmax_crit']   = d[[f't2m_max_{m}'   for m in MCRIT[c]]].mean(axis=1)
+    DF[c] = d
+    print(f'{c:5s}: {len(d)} filas | {d.provincia.nunique()} provincias | '
+          f'años {int(d.campania_inicio.min())}-{int(d.campania_inicio.max())} | '
+          f'ventana crítica: {MCRIT[c]}')
 """
 
 
@@ -617,24 +642,26 @@ Dos cosas saltan a la vista y condicionan todo el modelado: el rinde tiene una
 **tendencia creciente** (mejora tecnológica a lo largo de las décadas) y una enorme
 **dispersión espacial** (cada provincia rinde distinto)."""),
         code("""\
-fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-ax[0].hist(df.rinde_kgha, bins=40, color='#4C72B0')
-ax[0].set_title(f'Distribución de rinde ({CULTIVO})'); ax[0].set_xlabel('kg/ha')
-g = df.groupby('campania_inicio').rinde_kgha.mean()
-ax[1].plot(g.index, g.values, marker='o', ms=3, color='#55A868')
-ax[1].set_title('Rinde medio por campaña (tendencia)'); ax[1].set_xlabel('año')
-ax[1].set_ylabel('kg/ha'); plt.tight_layout(); plt.show()"""),
+fig, axes = plt.subplots(len(CULTIVOS), 2, figsize=(12, 4 * len(CULTIVOS)))
+for i, c in enumerate(CULTIVOS):
+    d = DF[c]
+    axes[i, 0].hist(d.rinde_kgha, bins=40, color='#4C72B0')
+    axes[i, 0].set_title(f'Distribución de rinde — {c}'); axes[i, 0].set_xlabel('kg/ha')
+    g = d.groupby('campania_inicio').rinde_kgha.mean()
+    axes[i, 1].plot(g.index, g.values, marker='o', ms=3, color='#55A868')
+    axes[i, 1].set_title(f'Rinde medio por campaña — {c}')
+    axes[i, 1].set_xlabel('año'); axes[i, 1].set_ylabel('kg/ha')
+plt.tight_layout(); plt.show()"""),
         code("""\
-prov = (df.groupby('provincia')
-          .agg(n=('rinde_kgha', 'size'), rinde=('rinde_kgha', 'mean'),
-               precip=('precip_crit', 'mean'), tmax=('tmax_crit', 'mean'),
-               wbal=('agro_waterbal_crit', 'mean')))
-prov = prov[prov.n >= 50].sort_values('rinde')
-fig, ax = plt.subplots(figsize=(7, 5))
-ax.barh(prov.index, prov.rinde, color='#4C72B0')
-ax.set_title('Rinde medio por provincia'); ax.set_xlabel('kg/ha')
-plt.tight_layout(); plt.show()
-prov.round(1)"""),
+for c in CULTIVOS:
+    d = DF[c]
+    prov = (d.groupby('provincia')
+              .agg(n=('rinde_kgha', 'size'), rinde=('rinde_kgha', 'mean'),
+                   precip=('precip_crit', 'mean'), tmax=('tmax_crit', 'mean'),
+                   wbal=('agro_waterbal_crit', 'mean')))
+    prov = prov[prov.n >= 50].sort_values('rinde')
+    print(f'=== {c}: rinde y clima por provincia (n>=50) ===')
+    display(prov.round(1))"""),
         md("""\
 Las provincias no solo rinden distinto: tienen **climas distintos** (mirá `precip`,
 `tmax`, `wbal` arriba). El norte (Chaco, Santiago) es más cálido y con otro régimen
@@ -766,102 +793,57 @@ para el pooled y para cada zona (comparación justa)."""),
 import sys, os, warnings
 sys.path.insert(0, os.path.abspath('..'))
 warnings.filterwarnings('ignore')
-import numpy as np, pandas as pd, matplotlib.pyplot as plt
+import numpy as np, pandas as pd, matplotlib.pyplot as plt, json
 pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
 import datos, evaluacion as ev
 from modelos import XGBoostRegressor
 
-CULTIVO = 'soja'
-N_ZONAS = 6
-# Config ganadora de XGBoost (nb 03). Misma para pooled y por zona.
-BEST = dict(max_depth=3, learning_rate=0.05, n_estimators=200, subsample=0.7,
-            colsample_bytree=1.0, min_child_weight=1, reg_lambda=5.0,
-            reg_alpha=1.0, gamma=1.0)
-def fit_xgb(ds):
-    return XGBoostRegressor(**BEST, random_state=42).fit(ds.X_train, ds.y_train)
-
-# Panel con zonas + dataset pooled de referencia (base + agro).
+CULTIVOS = ['soja', 'maiz']; N_ZONAS = 6
+_BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')) if os.path.exists('retuning_cv_honesta.json') else {}
+def best_xgb(c):
+    return {k: v for k, v in _BEST.get(c, {}).get('xgb', {}).get('best_params', {}).items() if k != 'n_jobs'}
 panel = datos.assign_zonas(datos.load_panel(), n_zonas=N_ZONAS, method='geo')
-ds_pool = datos.build_reg_dataset(panel, CULTIVO, use_agro=True)
-print(f'{CULTIVO}: pooled train={len(ds_pool.y_train)} test={len(ds_pool.y_test)} '
-      f'| {N_ZONAS} zonas geográficas')"""),
-        md("## Composición de las zonas\n\nCada zona agrupa departamentos cercanos; las ordenamos de norte a sur (por latitud)."),
-        code("""\
-d = panel[panel.cultivo == CULTIVO].dropna(subset=['zona'])
-comp = (d.groupby('zona')
-          .agg(n=('rinde_kgha', 'size'),
-               prov_principal=('provincia', lambda s: s.mode().iat[0]),
-               rinde=('rinde_kgha', 'mean'), lat=('lat', 'mean'))
-          .sort_values('lat', ascending=False))
-comp"""),
-        md("""\
-## Modelo pooled y su desempeño DENTRO de cada zona
 
-Primero el pooled (un solo modelo con todas las filas). Además de la métrica global,
-medimos su R² **dentro del test de cada zona** — así después comparamos, zona por
-zona, contra el modelo especializado."""),
-        code("""\
-mp = fit_xgb(ds_pool)
-pred_pool = mp.predict(ds_pool.X_test)
-met_pool = ev.metricas(ds_pool.y_test, pred_pool)
-print('POOLED (base+agro) global:', {k: round(v, 3) for k, v in met_pool.items()})
+def analizar_zona(c):
+    \"\"\"Pooled vs. un-modelo-por-zona para un cultivo. Devuelve tabla por zona +
+    métricas globales de ambos esquemas.\"\"\"
+    best = best_xgb(c)
+    ds_pool = datos.build_reg_dataset(panel, c, use_agro=True, enc_smooth=10.0)
+    mp = XGBoostRegressor(**best, random_state=42).fit(ds_pool.X_train, ds_pool.y_train)
+    pred = mp.predict(ds_pool.X_test); met_pool = ev.metricas(ds_pool.y_test, pred)
+    zt = ds_pool.meta_test['zona'].values
+    r2_pool = {z: ev.metricas(ds_pool.y_test[zt == z], pred[zt == z])['r2'] for z in np.unique(zt)}
+    zds = datos.build_zona_datasets(c, n_zonas=N_ZONAS, method='geo', use_agro=True, enc_smooth=10.0)
+    filas, yt, yp = [], [], []
+    for z, dz in zds.items():
+        m = XGBoostRegressor(**best, random_state=42).fit(dz.X_train, dz.y_train); pr = m.predict(dz.X_test)
+        filas.append({'zona': z, 'n_test': len(dz.y_test), 'R2_pooled': r2_pool.get(z, np.nan),
+                      'R2_por_zona': ev.metricas(dz.y_test, pr)['r2']})
+        yt.append(dz.y_test); yp.append(pr)
+    return dict(pool=met_pool, zona_glob=ev.metricas(np.concatenate(yt), np.concatenate(yp)),
+                tabla=pd.DataFrame(filas).sort_values('zona'))
 
-zt = ds_pool.meta_test['zona'].values
-pool_por_zona = {z: ev.metricas(ds_pool.y_test[zt == z], pred_pool[zt == z])['r2']
-                 for z in np.unique(zt)}"""),
-        md("""\
-## Un modelo por zona
-
-Para cada zona: su propio split temporal, codificación de depto, escalado y XGBoost
-(todo calculado dentro de la zona). Reportamos la métrica por zona y la global
-uniendo los tests de todas las zonas (que juntos son el test completo)."""),
+print('zonas:', sorted(panel.zona.dropna().unique()))"""),
+        md("## Pooled vs. un modelo por zona (soja y maíz)\n\nPor zona: R² del pooled dentro de esa zona vs. R² del modelo especializado de la zona."),
         code("""\
-zds = datos.build_zona_datasets(CULTIVO, n_zonas=N_ZONAS,
-                                method='geo', use_agro=True)
-filas, yt_all, yp_all = [], [], []
-for z, dz in zds.items():
-    m = fit_xgb(dz); pr = m.predict(dz.X_test)
-    mm = ev.metricas(dz.y_test, pr)
-    filas.append({'zona': z, 'n_train': len(dz.y_train), 'n_test': len(dz.y_test),
-                  'R2_pooled': pool_por_zona.get(z, np.nan),
-                  'R2_por_zona': mm['r2'], 'RMSE_por_zona': mm['rmse']})
-    yt_all.append(dz.y_test); yp_all.append(pr)
-tabla_zona = pd.DataFrame(filas).sort_values('R2_por_zona', ascending=False)
-tabla_zona"""),
+RES = {c: analizar_zona(c) for c in CULTIVOS}
+for c in CULTIVOS:
+    print(f'=== {c} ===  pooled global R²={RES[c][\"pool\"][\"r2\"]:.3f} | '
+          f'un modelo por zona R²={RES[c][\"zona_glob\"][\"r2\"]:.3f}')
+    display(RES[c]['tabla'])"""),
         md("""\
 ### Zona por zona: ¿dónde ayuda especializar?
 
-La barra verde (modelo por zona) contra la azul (pooled) en el test de cada zona."""),
+Barra verde (modelo por zona) contra azul (pooled) en el test de cada zona, por cultivo."""),
         code("""\
-t = tabla_zona.sort_values('zona')
-x = np.arange(len(t)); w = 0.4
-fig, ax = plt.subplots(figsize=(9, 5))
-ax.bar(x - w/2, t.R2_pooled, w, label='pooled', color='#4C72B0')
-ax.bar(x + w/2, t.R2_por_zona, w, label='modelo por zona', color='#55A868')
-ax.axhline(0, color='0.6', lw=0.8)
-ax.set_xticks(x); ax.set_xticklabels(t.zona)
-ax.set_ylabel('R² en el test de la zona')
-ax.set_title('Pooled vs. modelo por zona, zona por zona'); ax.legend()
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+for ax, c in zip(axes, CULTIVOS):
+    t = RES[c]['tabla']; x = np.arange(len(t)); w = 0.4
+    ax.bar(x - w/2, t.R2_pooled, w, label='pooled', color='#4C72B0')
+    ax.bar(x + w/2, t.R2_por_zona, w, label='modelo por zona', color='#55A868')
+    ax.axhline(0, color='0.6', lw=0.8); ax.set_xticks(x); ax.set_xticklabels(t.zona)
+    ax.set_ylabel('R² en test de la zona'); ax.set_title(f'{c}'); ax.legend()
 plt.tight_layout(); plt.show()"""),
-        md("""\
-## El neto global y la zona que rompe
-
-Uniendo los tests, comparamos pooled vs un-modelo-por-zona. Y miramos la zona que
-colapsa: es el **norte subtropical**, justo donde el EDA (nb 00) mostró correlación
-clima–rinde casi nula — ahí el modelo especializado sobreajusta ruido y extrapola
-pésimo, arrastrando el promedio."""),
-        code("""\
-yt_all = np.concatenate(yt_all); yp_all = np.concatenate(yp_all)
-met_zona_glob = ev.metricas(yt_all, yp_all)
-comp_tabla = ev.tabla_comparativa([
-    {'modelo': 'pooled (base+agro)', **met_pool},
-    {'modelo': 'un modelo por zona', **met_zona_glob},
-], ordenar_por='rmse')
-peor = tabla_zona.sort_values('R2_por_zona').iloc[0]['zona']
-print('Zona que colapsa:', peor, '->',
-      dict(panel[(panel.cultivo == CULTIVO) & (panel.zona == peor)]
-           .provincia.value_counts().head(3)))
-comp_tabla"""),
         md("""\
 ## Interpretación
 
@@ -914,12 +896,15 @@ VAE) con el predictor de rinde (Componente B). Tres análisis que pide la consig
         code(LOAD_BEST),
         code("""\
 import integracion, latente
-# Modelo final del predictor: XGBoost re-tuneado.
-model = XGBoostRegressor(**best_of('xgb', {}), random_state=42).fit(ds.X_train, ds.y_train)
-y_pred = model.predict(ds.X_test)
-print('predictor (test):', {k: round(v, 3) for k, v in ev.metricas(ds.y_test, y_pred).items()})
-# Features del VAE del Componente A (score + latente), cacheadas.
-vf = latente.vae_features(CULTIVO)"""),
+# Modelo final del predictor (XGBoost re-tuneado) + features del VAE, por cultivo.
+# OJO: la 1ra vez entrena el VAE de cada cultivo y lo cachea (tarda unos minutos).
+MOD, YP, VF = {}, {}, {}
+for c in CULTIVOS:
+    d = DSS[c]
+    MOD[c] = XGBoostRegressor(**best_of(c, 'xgb', {}), random_state=42).fit(d.X_train, d.y_train)
+    YP[c] = MOD[c].predict(d.X_test)
+    VF[c] = latente.vae_features(c)
+    print(f'{c}: predictor test RMSE={ev.metricas(d.y_test, YP[c])[\"rmse\"]:.0f}')"""),
         md("""\
 ## 1. Consistencia cruzada (Spearman)
 
@@ -927,14 +912,16 @@ Correlación de Spearman entre el score de anomalía del VAE y el valor absoluto
 residuo del predictor, sobre el test. Positiva y significativa ⇒ **ambos
 componentes detectan la misma estructura** (test de robustez metodológica)."""),
         code("""\
-cc = integracion.consistencia_cruzada(ds, y_pred, vf)
-print(f"Spearman(score VAE, |residuo predictor|) = {cc['spearman_rho']:.3f}  "
-      f"(p={cc['p_value']:.1e}, n={cc['n']})")
-resid = np.abs(ds.y_test - y_pred)
-fig, ax = plt.subplots(figsize=(6, 5))
-ax.scatter(vf['score_test'], resid, s=10, alpha=0.35, color=ev.C_XGB, edgecolors='none')
-ax.set_xlabel('score de anomalía del VAE'); ax.set_ylabel('|residuo| del predictor')
-ax.set_title(f"Consistencia cruzada  (Spearman ρ={cc['spearman_rho']:.3f})")
+fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+for ax, c in zip(axes, CULTIVOS):
+    d = DSS[c]
+    cc = integracion.consistencia_cruzada(d, YP[c], VF[c])
+    print(f'{c}: Spearman(score VAE, |residuo|) = {cc[\"spearman_rho\"]:.3f} '
+          f'(p={cc[\"p_value\"]:.1e}, n={cc[\"n\"]})')
+    ax.scatter(VF[c]['score_test'], np.abs(d.y_test - YP[c]), s=10, alpha=0.35,
+               color=ev.C_XGB, edgecolors='none')
+    ax.set_xlabel('score de anomalía VAE'); ax.set_ylabel('|residuo| predictor')
+    ax.set_title(f'{c}  (ρ={cc[\"spearman_rho\"]:.3f})')
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## 2. Aporte del detector al predictor (lift)
@@ -942,32 +929,36 @@ plt.tight_layout(); plt.show()"""),
 RMSE del predictor sobre el dataset base vs. tres estrategias que reusan el VAE:
 concatenar su **latente**, usar **solo el latente**, y agregar la categórica
 **`es_anomalo`**. Si el detector aporta contexto climático comprimido, debería
-bajar el RMSE (sobre todo en campañas extremas)."""),
+bajar el RMSE (sobre todo en campañas extremas). Se reporta por cultivo."""),
         code("""\
-tabla_lat = ev.comparar_latente(XGBoostRegressor, best_of('xgb', {}), CULTIVO,
-                                fixed={'random_state': 42},
-                                vae_kwargs=dict(score_seeds=(42, 43, 44)))
-tabla_lat"""),
+for c in CULTIVOS:
+    print(f'=== lift del latente — {c} ===')
+    tl = ev.comparar_latente(XGBoostRegressor, best_of(c, 'xgb', {}), c,
+                             fixed={'random_state': 42},
+                             vae_kwargs=dict(score_seeds=(42, 43, 44)))
+    display(tl)"""),
         md("""\
 ## 3. Cuantificación económica de la sequía 2022/23
 
 Rinde **contrafactual** (qué habría rendido cada depto con clima normal, poniendo
 las features climáticas en su media de train) − rinde real, ponderado por
-superficie sembrada. Agregamos la campaña 2022/23 y miramos los deptos más
-golpeados."""),
+superficie sembrada. Agregamos la campaña 2022/23 por cultivo y miramos los deptos
+más golpeados."""),
         code("""\
-y_cf = integracion.contrafactual_normal(model, ds)
-res = integracion.resumen_2223(ds, y_cf)
-print(f"2022/23 ({res['n_filas']} deptos-cultivo): pérdida total "
-      f"{res['perdida_total_tn']:,.0f} tn  ({res['perdida_media_kgha']:.0f} kg/ha promedio)")
-res['top_deptos']"""),
+RES = {}
+for c in CULTIVOS:
+    d = DSS[c]
+    y_cf = integracion.contrafactual_normal(MOD[c], d)
+    RES[c] = integracion.resumen_2223(d, y_cf)
+    print(f'{c} 2022/23 ({RES[c][\"n_filas\"]} deptos): pérdida total '
+          f'{RES[c][\"perdida_total_tn\"]:,.0f} tn ({RES[c][\"perdida_media_kgha\"]:.0f} kg/ha prom.)')"""),
         code("""\
-top = res['top_deptos'].head(10).iloc[::-1]
-fig, ax = plt.subplots(figsize=(8, 5))
-ax.barh(top['departamento'] + ' (' + top['provincia'].str[:3] + ')',
-        top['perdida_tn'] / 1e3, color='#C44E52')
-ax.set_xlabel('pérdida estimada (miles de tn)')
-ax.set_title('2022/23 — deptos más golpeados (contrafactual clima normal − real)')
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+for ax, c in zip(axes, CULTIVOS):
+    top = RES[c]['top_deptos'].head(8).iloc[::-1]
+    ax.barh(top['departamento'] + ' (' + top['provincia'].str[:3] + ')',
+            top['perdida_tn'] / 1e3, color='#C44E52')
+    ax.set_xlabel('pérdida estimada (miles de tn)'); ax.set_title(f'2022/23 — {c}')
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Conclusión
@@ -1010,26 +1001,27 @@ import numpy as np, pandas as pd, matplotlib.pyplot as plt
 pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
 import datos, evaluacion as ev, json
 from modelos import XGBoostRegressor
-CULTIVO = 'soja'
-BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')).get(CULTIVO, {}).get('xgb', {}).get('best_params', {}) if os.path.exists('retuning_cv_honesta.json') else {}
-def evalua(momento='full', use_lags=0, use_agro=None):
+CULTIVOS = ['soja', 'maiz']
+_BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')) if os.path.exists('retuning_cv_honesta.json') else {}
+def evalua(cultivo, momento='full', use_lags=0, use_agro=None):
     if use_agro is None: use_agro = (momento == 'full')   # agro llega a marzo
-    d = datos.prepare(CULTIVO, momento=momento, use_lags=use_lags, use_agro=use_agro, enc_smooth=10.0)
-    m = XGBoostRegressor(**BEST, random_state=42).fit(d.X_train, d.y_train)
+    best = _BEST.get(cultivo, {}).get('xgb', {}).get('best_params', {})
+    d = datos.prepare(cultivo, momento=momento, use_lags=use_lags, use_agro=use_agro, enc_smooth=10.0)
+    m = XGBoostRegressor(**best, random_state=42).fit(d.X_train, d.y_train)
     p = m.predict(d.X_test)
     r = ev.metricas(d.y_test, p)
     r['skill'] = ev.skill_score(d.y_test, p, ev.pred_media_depto(d))
     r['n_feats'] = len(d.feature_cols)
     return r, d, p"""),
-        md("## 1. Los tres momentos de predicción"),
+        md("## 1. Los tres momentos de predicción (soja y maíz)"),
         code("""\
-filas = []
-res = {}
-for mom in ['pre_siembra', 'pre_cosecha', 'full']:
-    r, d, p = evalua(momento=mom)
-    res[mom] = (d, p)
-    filas.append({'momento': mom, 'n_feats': r['n_feats'], 'RMSE': r['rmse'],
-                  'R2': r['r2'], 'sMAPE': r['smape'], 'skill': r['skill']})
+filas, RESM = [], {}
+for c in CULTIVOS:
+    for mom in ['pre_siembra', 'pre_cosecha', 'full']:
+        r, d, p = evalua(c, momento=mom)
+        RESM[(c, mom)] = (d, p)
+        filas.append({'cultivo': c, 'momento': mom, 'n_feats': r['n_feats'],
+                      'RMSE': r['rmse'], 'R2': r['r2'], 'sMAPE': r['smape'], 'skill': r['skill']})
 tabla_mom = pd.DataFrame(filas)
 tabla_mom"""),
         md("""\
@@ -1037,26 +1029,30 @@ Cuanto más tarde en la campaña se predice, más información climática observ
 → mejor debería ser. `pre_siembra` es el caso más difícil (casi sin clima del año);
 si aun así le gana a la climatología, hay señal anticipable (ENSO, humedad de suelo)."""),
         code("""\
-# ¿La diferencia full vs pre_cosecha es significativa? (mismas filas de test)
-d_full, p_full = res['full']; d_pc, p_pc = res['pre_cosecha']
-dm = ev.diebold_mariano(d_full.y_test, p_full, p_pc, loss='se')
-print(f"Diebold-Mariano full vs pre_cosecha: DM={dm['dm']:.2f}  p={dm['p_value']:.3f}  "
-      f"-> {'diferencia significativa' if dm['p_value'] < 0.05 else 'sin diferencia significativa'}")"""),
-        md("## 2. Lags del rinde (features autorregresivas)"),
+# ¿La diferencia full vs pre_cosecha es significativa? (mismas filas de test), por cultivo
+for c in CULTIVOS:
+    d_full, p_full = RESM[(c, 'full')]; d_pc, p_pc = RESM[(c, 'pre_cosecha')]
+    dm = ev.diebold_mariano(d_full.y_test, p_full, p_pc, loss='se')
+    print(f'{c}: DM full vs pre_cosecha = {dm[\"dm\"]:.2f}  p={dm[\"p_value\"]:.3f}  '
+          f'-> {\"significativa\" if dm[\"p_value\"] < 0.05 else \"no significativa\"}')"""),
+        md("## 2. Lags del rinde (features autorregresivas), por cultivo"),
         code("""\
 filas = []
-for k in [0, 1, 3, 5]:
-    r, _, _ = evalua(momento='full', use_lags=k, use_agro=True)
-    filas.append({'lags': k, 'n_feats': r['n_feats'], 'RMSE': r['rmse'],
-                  'R2': r['r2'], 'skill': r['skill']})
+for c in CULTIVOS:
+    for k in [0, 1, 3, 5]:
+        r, _, _ = evalua(c, momento='full', use_lags=k, use_agro=True)
+        filas.append({'cultivo': c, 'lags': k, 'n_feats': r['n_feats'],
+                      'RMSE': r['rmse'], 'R2': r['r2'], 'skill': r['skill']})
 tabla_lags = pd.DataFrame(filas)
 tabla_lags"""),
         code("""\
-fig, ax = plt.subplots(1, 2, figsize=(12, 4))
-ax[0].bar(tabla_mom['momento'], tabla_mom['R2'], color='#4C72B0')
-ax[0].set_title('R² por momento de predicción'); ax[0].axhline(0, color='0.6', lw=0.8)
-ax[1].plot(tabla_lags['lags'], tabla_lags['R2'], marker='o', color='#55A868')
-ax[1].set_title('R² vs. nº de lags del rinde'); ax[1].set_xlabel('lags')
+fig, axes = plt.subplots(len(CULTIVOS), 2, figsize=(12, 4 * len(CULTIVOS)))
+for i, c in enumerate(CULTIVOS):
+    tm = tabla_mom[tabla_mom.cultivo == c]; tl = tabla_lags[tabla_lags.cultivo == c]
+    axes[i, 0].bar(tm['momento'], tm['R2'], color='#4C72B0'); axes[i, 0].axhline(0, color='0.6', lw=0.8)
+    axes[i, 0].set_title(f'R² por momento — {c}')
+    axes[i, 1].plot(tl['lags'], tl['R2'], marker='o', color='#55A868')
+    axes[i, 1].set_title(f'R² vs. nº de lags — {c}'); axes[i, 1].set_xlabel('lags')
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Conclusión
@@ -1096,27 +1092,36 @@ pd.set_option('display.float_format', lambda v: f'{v:,.3f}')
 import json
 from wrapper_zonas import WrapperPorZona
 from modelos import XGBoostRegressor
-CULTIVO = 'soja'
-BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')).get(CULTIVO, {}).get('xgb', {}).get('best_params', {}) if os.path.exists('retuning_cv_honesta.json') else {}
-BEST = {k: v for k, v in BEST.items() if k not in ('n_jobs',)}"""),
-        md("## Entrenamiento del router (decisión por CV en train)"),
+CULTIVOS = ['soja', 'maiz']
+_BEST = json.load(open('retuning_cv_honesta.json', encoding='utf-8')) if os.path.exists('retuning_cv_honesta.json') else {}
+def best_xgb(c):
+    return {k: v for k, v in _BEST.get(c, {}).get('xgb', {}).get('best_params', {}).items() if k != 'n_jobs'}"""),
+        md("## Entrenamiento del router (decisión por CV en train), por cultivo"),
         code("""\
-w = WrapperPorZona(XGBoostRegressor, BEST, cultivo=CULTIVO, use_agro=True,
-                   enc_smooth=10.0, n_zonas=6, metric='rmse')
-w.fit()
-w.resumen_zonas()"""),
+W = {}
+for c in CULTIVOS:
+    W[c] = WrapperPorZona(XGBoostRegressor, best_xgb(c), cultivo=c, use_agro=True,
+                          enc_smooth=10.0, n_zonas=6, metric='rmse')
+    W[c].fit()
+    print(f'=== {c}: decisión por zona ===')
+    display(W[c].resumen_zonas())"""),
         md("La columna `elegido` dice, por zona, si el router se quedó con el modelo **especializado** (mejor CV) o el **pooled**."),
         md("## Resultado en test: router vs. pooled vs. por-zona puro"),
         code("""\
-tabla = w.evaluar()
+filas = []
+for c in CULTIVOS:
+    t = W[c].evaluar(); t.insert(0, 'cultivo', c)
+    filas.append(t)
+tabla = pd.concat(filas, ignore_index=True)
 tabla"""),
         code("""\
-fig, ax = plt.subplots(figsize=(7, 4))
-t = tabla.sort_values('rmse')
-ax.barh(t['modelo'][::-1], t['rmse'][::-1], color=['#55A868', '#4C72B0', '#C44E52'][:len(t)])
-ax.set_xlabel('RMSE (kg/ha)'); ax.set_title('Router por zonas vs. alternativas (test)')
-for i, v in enumerate(t['rmse'][::-1]):
-    ax.text(v, i, f' {v:.0f}', va='center')
+fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+for ax, c in zip(axes, CULTIVOS):
+    t = W[c].evaluar().sort_values('rmse')
+    ax.barh(t['modelo'][::-1], t['rmse'][::-1], color=['#55A868', '#4C72B0', '#C44E52'][:len(t)])
+    ax.set_xlabel('RMSE (kg/ha)'); ax.set_title(f'Router por zonas — {c}')
+    for i, v in enumerate(t['rmse'][::-1]):
+        ax.text(v, i, f' {v:.0f}', va='center')
 plt.tight_layout(); plt.show()"""),
         md("""\
 ## Conclusión
