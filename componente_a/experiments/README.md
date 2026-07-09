@@ -2,58 +2,48 @@
 
 Notebooks **narrativos y reproducibles** del Componente A: cada uno toma una hipótesis
 de modelado, muestra el experimento que la puso a prueba y la conclusión que justifica
-el diseño final. Pensados para que **alguien ajeno al proyecto** pueda leerlos de
-corrido (vienen ejecutados, con tablas y gráficos embebidos) o **re-correr todo**.
-Todos los números salen de los runs actuales (mismo panel, misma evaluación).
+el diseño final. Vienen ejecutados (tablas y gráficos embebidos) y se pueden re-correr
+de cero con "Run all": **entrenan de verdad**, no leen resultados guardados. Todos los
+experimentos corren sobre **los dos cultivos** (soja y maíz).
 
 | nb | notebook | pregunta que responde |
 |---|---|---|
-| 0 | `00_el_problema_y_los_datos` | El problema, el panel, la etiqueta proxy `z_rinde` (y sus decisiones de diseño), splits y normalización |
-| 1 | `01_evaluacion_y_baselines` | Cómo se evalúa (PR-AUC multi-seed, *distribution shift* del umbral, por qué no hay val) y **todos los baselines**: estadísticos (z-score, Mahalanobis) y de modelos (IForest, One-Class SVM), con la presentación estándar `lab.tabla` |
-| 2 | `02_reconstruccion_ae_a_vae` | AE (los HP no eran el cuello) → score max/top-k (refutado) → DAE → híbrido AE+IForest (refutado) → **VAE `recon_prob`**: el salto es el *score*, no la arquitectura |
-| 3 | `03_varianza_y_seed_ensemble` | De dónde viene la varianza del VAE (MC no, reg no, Student-t no) y cómo la elimina el **seed-ensemble ×10** → modelo final (soja 0.592, maíz 0.508) |
-| 4 | `04_el_techo_estructural` | ¿Por qué nadie pasa de ~0.6? Cross-modelo (todos fallan en las mismas anomalías, sin firma climática), Dataset Cartography, auditoría de etiqueta, t-SNE |
-| 5 | `05_features_nuevas` | Features agro, NDVI-AVHRR y ERA5: ayudan al IForest, perjudican al VAE, ninguna supera al base → el techo se confirma |
-| 6 | `06_modernos_leaderboard_y_conclusiones` | Benchmark justo vs deepod (DeepSVDD/ICL/NeuTraL), leaderboard final, el modelo final por dentro, limitaciones y conclusiones |
+| 0 | `00_datos_y_pipeline` | El panel, la etiqueta proxy `z_rinde` (y sus decisiones de diseño), splits temporales y normalización z-score por departamento |
+| 1 | `01_evaluacion_y_baselines` | Cómo se evalúa (PR-AUC multi-seed, *distribution shift* del umbral) + **todos los baselines**: estadísticos (z-score, Mahalanobis) y de modelos (IForest, One-Class SVM), con matrices de confusión |
+| 2 | `02_ae_y_dae` | AE y Denoising AE con score MSE: el error de reconstrucción plano **no alcanza** (queda debajo de los baselines) — el cuello no son los HP. + IForest/OCSVM sobre el latente del AE |
+| 3 | `03_vae` | **VAE**: búsqueda de arquitectura multi-seed (config final: 128–64, latente 16, β=1) y los tres scores — `recon_error` falla, **`recon_prob` ≈ `neg_elbo` es el salto** (soja 0.598 vs 0.31 del AE) |
+| 4 | `04_ensemble` | **Seed-ensemble ×10 = el modelo final**: promedia el score de 10 inicializaciones → el desvío se desploma (soja ±0.041→±0.017) y la media sube (0.605 soja / 0.515 maíz en el leaderboard final) |
+| 5 | `05_robustez` | Robustez a ruido gaussiano en las features de test: degradación **gradual y monótona**, sin colapso (≈−30% relativo recién a σ=2) |
+| 6 | `06_leaderboard_y_conclusiones` | Leaderboard final soja+maíz (incluye **DeepSVDD tuneado** como referencia moderna, vía `deepod`), recapitulación del recorrido y conclusiones |
 
-## Reproducibilidad: entrenar en el notebook
-
-Cada modelo se carga de `runs/` (rápido) o se **entrena de verdad** con un flag:
-
-```python
-import explib
-# carga el run guardado:
-res = explib.run_experiment("configs/vae/vae_v4_reconprob_lat16.yaml", "soja")
-# o entrena de cero con el pipeline real (y lo guarda en runs/):
-res = explib.run_experiment("configs/vae/vae_v4_reconprob_lat16.yaml", "soja", force_train=True)
-```
-
-Ver la configuración y la arquitectura de cualquier modelo:
-```python
-explib.show_yaml("configs/vae/vae_v4_reconprob_lat16.yaml")
-explib.describe_architecture("configs/vae/vae_v4_reconprob_lat16.yaml")
-```
-
-## Setup (cualquiera, desde cero)
+## Setup
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r ../../requirements.txt
-jupyter notebook experiments/        # leer / correr
+pip install -r ../../requirements.txt        # incluye deepod (para el nb 06)
+jupyter notebook .                           # leer / correr
 ```
 
-## Nota metodológica (importante)
-La **selección de modelo** debería hacerse en **validación** y el **test** usarse una
-sola vez. Acá el val es tan chico (5–9 anomalías) que sus métricas son ruido (PR-AUC ≈
-tasa base) y no permiten seleccionar; mostramos test para *ilustrar* las comparaciones,
-con el riesgo de *data snooping* dejado explícito (nb. 1).
+Con las **10 semillas** del estudio la corrida completa tarda un rato. Para una
+corrida rápida, reducir `SEEDS` en la celda de setup de cada notebook (o exportar
+`LAB_SEEDS="42,43,44"` antes de lanzar Jupyter).
 
 ## Estructura interna
-- **`explib.py`** — motor: carga de runs (siempre la corrida más reciente de cada
-  config), `run_experiment` (entrenar-o-cargar), `show_yaml`/`describe_architecture`,
-  tablas (`compare_table`, `run_metrics`, `summary_fields`, `tbl_leaderboard`,
-  `tbl_modern`) y plots (`plot_all_metrics`, `plot_loss`, `plot_compare`,
-  `plot_pr_curves`, `plot_confusion_grid`, `plot_score_hist_grid`, `plot_embeddings`,
-  `plot_leaderboard_compare`).
-- **`_build_notebooks.py`** — generador de los `.ipynb` (después se ejecutan con
-  `jupyter nbconvert --execute --inplace` para embeber salidas).
+
+- **`lab.py`** — utilidades compartidas de los notebooks: métricas y evaluación
+  multi-seed (`lab.metrics`, `lab.evaluate`), tablas (`lab.tabla`,
+  `lab.leaderboard`) y gráficos (`plot_leaderboard`, `plot_pr`, `confusion_top`,
+  `plot_scores`, embeddings 2D).
+- **`../src/data.py`** — pipeline: panel → etiqueta → split → normalización
+  (`data.prepare()` + `data.build_crop_dataset(panel_z, cultivo)`).
+- **`../src/models/`** — detectores con interfaz común `fit(X)` /
+  `score_samples(X)`: baselines, AE/DAE, VAE, seed-ensemble y wrapper de `deepod`.
+
+## Nota metodológica
+
+No hay bloque de validación separado: los HP se comparan con la **media−desvío de
+PR-AUC multi-seed** y el test se reserva para la comparación final (nb 06). Donde una
+decisión se ilustra sobre test, el riesgo de *data snooping* queda declarado en el
+propio notebook. La etiqueta proxy se usa **solo para evaluar**: el entrenamiento es
+sin etiquetas, sobre campañas normales curadas por la proxy histórica (one-class con
+supervisión débil en la curación, no "no supervisado puro").

@@ -1,3 +1,7 @@
+> **NOTA (2026-07-08):** brainstorm inicial de modelos/experimentos (documento histórico).
+> Lo efectivamente realizado está en los notebooks de `componente_a/experiments/` y
+> `componente_b/experimentos/`.
+
 parte a:
 baseline: 
 - isolation forest

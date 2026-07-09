@@ -12,10 +12,10 @@ ejecutado (tablas y gráficos embebidos) y se puede re-correr de cero.
 | 3 | `03_hp_xgboost` | Búsqueda aleatoria de XGBoost; métricas + importancias; + latente |
 | 4 | `04_hp_red_neuronal` | Búsqueda de la red neuronal (MLP); métricas + curva de entrenamiento; + latente |
 | 5 | `05_comparacion_modelos` | **Comparación integral**: los 6 modelos + baselines, con RMSE/R²/sMAPE, **skill score** y **matriz de Diebold–Mariano** (¿las diferencias son significativas?) |
-| 6 | `06_modelo_por_zona` | **Un modelo por zona** (geo-clustering): pooled vs. por-zona, zona por zona. Ayuda en la Pampa, colapsa en el norte ruidoso; neto global no supera al pooled |
+| 6 | `06_modelo_por_zona` | **Un modelo por zona** (geo-clustering): pooled vs. por-zona, zona por zona. Con los HP re-tuneados, especializar mejora el global en ambos cultivos (aunque no en todas las zonas) |
 | 7 | `07_integracion_A_B` | **Integración A↔B (núcleo del proyecto)**: consistencia cruzada Spearman (score VAE vs. residuo), lift del latente, y **cuantificación económica** de la sequía 2022/23 (contrafactual × superficie, vs. benchmark BCR) |
-| 8 | `08_momentos_y_lags` | Ablations: **dos momentos** (pre-siembra / pre-cosecha / full) y **lags del rinde** (autorregresivas con `shift`, sin leakage) |
-| 9 | `09_router_por_zona` | **Router por zonas** (`WrapperPorZona`): especializa por zona solo donde la **CV en train** lo respalda; iguala/supera al pooled sin el colapso del nb 06 |
+| 9 | `09_router_por_zona` | **Router por zonas** (`WrapperPorZona`): especializa por zona solo donde la **CV en train** lo respalda; supera al pooled en test (punto medio entre pooled y por-zona puro) |
+| 10 | `10_prediccion_final` | **Modelo final ejecutable**: reconstruye el modelo final (**Random Forest en ambos cultivos**), lo justifica contra todos los demás (tabla + Diebold–Mariano), agrega el score de anomalía del Componente A, escribe `predicciones_test.csv` y define `predecir_entrega()` para un test externo |
 
 ## Panel unificado y el latente del Componente A
 
@@ -42,13 +42,13 @@ latente**, y la categórica **`es_anomalo`** (score umbralado). El VAE se cachea
 ```bash
 pip install -r ../../requirements.txt
 # En Windows: prefijar con  PYTHONUTF8=1 PYTHONIOENCODING=utf-8
-python _retune_all.py                            # re-tunea todos los modelos (CV honesta)
-python _build_notebooks.py                       # (re)genera los .ipynb 00–09
-jupyter nbconvert --to notebook --execute --inplace *.ipynb
+python _retune_all.py        # (opcional) re-tunea todos los modelos con CV honesta
+                             #   → regenera retuning_cv_honesta.json (ya versionado)
+jupyter nbconvert --to notebook --execute --inplace *.ipynb   # o "Run all" por notebook
 ```
 
-Para reproducir con **maíz**: cambiar `CULTIVO = 'maiz'` en la celda de setup de cada
-notebook (y correr `_retune_all.py maiz`).
+Todos los notebooks corren sobre **los dos cultivos** (soja y maíz) en la misma
+pasada; no hay que cambiar ninguna variable.
 
 ## Estructura interna
 - **`../datos.py`** — pipeline: panel → features (clima + agro + depto-encoding + año +
@@ -59,4 +59,6 @@ notebook (y correr `_retune_all.py maiz`).
   MLP, stacking, detrended).
 - **`../integracion.py`** — acople A↔B (consistencia cruzada, contrafactual, económico).
 - **`../wrapper_zonas.py`** — router por zonas con selección por CV.
-- **`_build_notebooks.py`** / **`_retune_all.py`** — generador de `.ipynb` y re-tuning.
+- **`_retune_all.py`** — re-tuning de todos los modelos (CV temporal honesta) →
+  `retuning_cv_honesta.json`, que los notebooks 05–10 leen para reconstruir los
+  modelos finales.

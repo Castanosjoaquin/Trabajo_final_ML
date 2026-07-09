@@ -1,5 +1,11 @@
 # Resumen del proyecto: predicción y detección de anomalías de rinde agrícola
 
+> **NOTA (2026-07-08):** documento de planificación/estado intermedio; algunos números
+> (54 features, tamaños de splits, resultados) quedaron desactualizados tras el rebuild
+> final del panel (72 features base). Las cifras vigentes están en el `README.md` raíz,
+> los READMEs de cada componente y el informe (`latex.txt`).
+
+
 Proyecto final de Machine Learning sobre rinde de **soja y maíz** en Argentina (con foco original en la región núcleo). El trabajo tiene tres partes: la construcción de un dataset panel a partir de fuentes públicas, un **Componente A** de detección no supervisada de campañas anómalas, y un **Componente B** de regresión supervisada del rinde.
 
 ---

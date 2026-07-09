@@ -50,17 +50,9 @@ los modelos con CV temporal honesta está en
 
 ## ⚠️ macOS: conflicto de OpenMP (xgboost + torch)
 
-En macOS, xgboost y torch traen cada uno su propio `libomp.dylib`. Con ambos en
-el mismo proceso, entrenar xgboost **segfaultea (exit 139)**. El paquete mitiga
-esto importando xgboost antes que torch, pero eso no alcanza cuando otro módulo
-(p. ej. el pipeline del Componente A) ya importó torch.
-
-Fix definitivo (una sola vez, y de nuevo si reinstalás xgboost/torch):
-
-```bash
-python componente_b/fix_openmp_macos.py
-```
-
-Hace que xgboost use el mismo `libomp` que torch → una sola copia del runtime, sin
-crash y sin importar el orden de import. Requiere `brew install libomp` para que
-xgboost cargue (dependencia de la wheel).
+En macOS, xgboost y torch traen cada uno su propio `libomp.dylib`; con ambos en el
+mismo proceso, entrenar xgboost puede **segfaultear (exit 139)**. Este paquete lo
+mitiga importando xgboost antes que torch. Si igual aparece el crash (p. ej. porque
+otro módulo ya importó torch), el workaround es enlazar la copia de `libomp` de
+xgboost a la de torch (una sola copia del runtime) o exportar
+`KMP_DUPLICATE_LIB_OK=TRUE` como último recurso. En Windows/Linux no ocurre.
