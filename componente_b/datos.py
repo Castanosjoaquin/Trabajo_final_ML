@@ -35,13 +35,18 @@ import pandas as pd
 # Reutilizar el pipeline del Componente A (carga + dedup + lista de features).
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _A_ROOT = os.path.join(_REPO_ROOT, "componente_a")
-for _p in (_REPO_ROOT, _A_ROOT):
+_B_ROOT = os.path.dirname(os.path.abspath(__file__))
+for _p in (_REPO_ROOT, _A_ROOT, _B_ROOT):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
 from src import data as _A_data      # noqa: E402  (componente_a/src)
 from src import config as _A_config  # noqa: E402
 
+# Import PLANO, no relativo: latente.py hace `import datos`, así que este módulo
+# también se carga como top-level y un `from . import ...` reventaría ahí.
+# momentum no importa datos → sin ciclo.
+import momentum as _momentum  # noqa: E402
 
 # Split temporal (mismo criterio que el Componente A).
 TRAIN_END = 2020
@@ -129,6 +134,7 @@ def crop_frame(panel: pd.DataFrame, cultivo: str,
 def build_reg_dataset(panel: pd.DataFrame, cultivo: str,
                       use_depto_encoding: bool = True, use_year: bool = True,
                       use_agro: bool = False, use_suelo: bool = False,
+                      use_momentum: Optional[float] = None,
                       enc_smooth: float = 0.0,
                       use_lags: int = 0, momento: str = "full",
                       train_end: int = TRAIN_END,
@@ -136,6 +142,14 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str,
     """Arma el RegDataset de un cultivo: split temporal, features y escalado.
 
     Las features climáticas salen del panel unificado (clima + NDVI + ERA5).
+    `use_momentum` (gamma en [0,1)) agrega `momentum_z_rinde`: el EWMA del z_rinde
+    histórico del departamento, calculado SOLO con campañas anteriores. gamma alto
+    = más memoria. Es un parámetro del DATASET, no del estimador, así que no puede
+    barrerse con `evaluacion.buscar`: hay que armar un RegDataset por gamma y
+    comparar con `evaluacion.cv_score`. El momentum del score de anomalía
+    (`momentum_anomaly_score`) se agrega aparte, porque requiere entrenar el VAE
+    (ver `momentum.momentum_score_alineado` + `latente.vae_features`).
+
     `use_suelo` agrega las 13 features derivadas de suelo y geografía
     (`add_suelo_features`): agua útil integrada, textura y químicas 0-30 cm,
     elevación, pendiente y distancia a cursos de agua. Son estáticas por
@@ -186,6 +200,24 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str,
         df, suelo_cols = _A_data.add_suelo_features(df)
         feature_cols += suelo_cols
 
+    # --- Momentum inter-campaña (EWMA con decaimiento `use_momentum` = gamma) ---
+    # Resume la historia del departamento dándole más peso a lo reciente. Como solo
+    # mira campañas ESTRICTAMENTE anteriores (ver momentum.ewma_pasado), está
+    # disponible en todos los momentos, igual que las estáticas.
+    if use_momentum is not None:
+        # `z_rinde` no viene en el panel crudo. El merge lleva "cultivo" en la clave:
+        # sin él, drop_duplicates se queda con la fila de maíz por orden alfabético
+        # y soja hereda un z_rinde ajeno (mismo bug documentado en latente.py).
+        key = geo + ["campania_inicio", "cultivo"]
+        z = (_A_data.compute_z_rinde(panel)[key + ["z_rinde"]]
+             .drop_duplicates(key))
+        n0 = len(df)
+        df = df.merge(z, on=key, how="left")
+        assert len(df) == n0, f"el merge de z_rinde duplicó filas: {n0} -> {len(df)}"
+        df, mom_cols = _momentum.add_momentum(df, geo, use_momentum,
+                                              train_mask=tr_mask.values)
+        df = df.drop(columns=["z_rinde"])   # la señal cruda no entra en X
+        feature_cols += mom_cols
 
     # --- Lags del rinde (autorregresivas, sin filtrar el año actual) ---
     lag_cols: List[str] = []
