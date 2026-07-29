@@ -27,17 +27,32 @@ import pandas as pd
 from .config import (CLIM_PREFIXES, CRITICAL_MONTHS, ERA5_COLS, MESES,
                      PANEL_PATH, ROLLING_WINDOW, Z_THRESH,
                      TRAIN_END, TEST_START,
-                     EXCLUDED_TRAIN_YEARS, _REPO_ROOT)
+                     EXCLUDED_TRAIN_YEARS, _REPO_ROOT,
+                     GEO_COLS, SUELO_ESPESOR_MM, SUELO_PROF_SUPERFICIAL,
+                     SUELO_PROFUNDIDADES, SUELO_PROPS)
 
 # --- Columnas clave que deben existir en el panel ---
 _REQUIRED_BASE = ["cultivo", "campania", "campania_inicio", "departamento", "rinde_kgha"]
 
 
 def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = True,
-                       use_era5: bool = True) -> List[str]:
+                       use_era5: bool = True, use_suelo: bool = False) -> List[str]:
     """Lista explícita de columnas que entran en X (promedios mensuales Sep–Mar
     de las variables climáticas + NDVI + ERA5). Solo incluye las que realmente
-    existen en el panel. Con el panel unificado, NDVI y ERA5 vienen por defecto."""
+    existen en el panel. Con el panel unificado, NDVI y ERA5 vienen por defecto.
+
+    `use_suelo` agrega las 48 columnas CRUDAS de suelo y geografía. Está en False
+    a propósito y conviene dejarlo así salvo para la ablación "todo crudo":
+
+      1. Prenderlo lleva X de 72 a 120 features, con las 4 profundidades de cada
+         propiedad fuertemente correlacionadas entre sí. Para usar suelo en el
+         modelo, la vía recomendada es `add_suelo_features`, que deriva 13
+         features agronómicamente interpretables.
+      2. Cambia X_train/X_test y por lo tanto rompe los baselines de
+         tests/test_repro.py. Con el default en False, sumar las columnas al
+         panel es estrictamente aditivo y los experimentos ya corridos siguen
+         siendo comparables.
+    """
     cols: List[str] = []
     for pfx in CLIM_PREFIXES:
         for mes in MESES:
@@ -50,6 +65,11 @@ def build_feature_list(panel: pd.DataFrame, use_ndvi: bool = True,
                  if f"ndvi_avhrr_{mes}" in panel.columns]
     if use_era5:
         cols += [c for c in ERA5_COLS if c in panel.columns]
+    if use_suelo:
+        cols += [f"suelo_{p}_{prof}" for p in SUELO_PROPS
+                 for prof in SUELO_PROFUNDIDADES
+                 if f"suelo_{p}_{prof}" in panel.columns]
+        cols += [c for c in GEO_COLS if c in panel.columns]
     return cols
 
 
@@ -184,6 +204,77 @@ def add_agro_features(df: pd.DataFrame, cultivo: str) -> tuple:
         df["agro_thermamp_crit"] = amp_acc / n_amp;   new_cols.append("agro_thermamp_crit")
     if n_wb:
         df["agro_waterbal_crit"] = wb_sum;            new_cols.append("agro_waterbal_crit")
+    return df, new_cols
+
+
+def add_suelo_features(df: pd.DataFrame) -> tuple:
+    """Deriva features de suelo y geografía a partir de las 48 columnas crudas.
+
+    Devuelve (df_con_cols, nombres_nuevos). Existe para no meter las 48 crudas en
+    X: las 4 profundidades de cada propiedad están muy correlacionadas entre sí,
+    así que aportan poco y multiplican la dimensión (72 -> 120). Acá quedan 13
+    features con sentido agronómico. Se normalizan luego por depto como el resto.
+
+    IMPORTANTE: al ser estáticas por departamento, la normalización por depto de
+    `_normalize_per_depto` las anula (varianza 0 dentro del grupo -> se van a 0 con
+    el fallback de std global). Sirven en Componente B, que escala global, y en
+    cualquier modelo que compare ENTRE departamentos — no en el pipeline de A tal
+    como está hoy. Ver el notebook de EDA de suelo antes de usarlas en A.
+
+    Features:
+    - suelo_awc_mm       : agua útil integrada 0-60 cm, en mm de lámina. Es la
+                           variable de interés real (CAD): Σ (wv0033 - wv1500) ×
+                           espesor. Comparable directamente contra la precipitación.
+    - suelo_awc_sup_mm   : lo mismo pero 0-30 cm (lo que explora la raíz temprano).
+    - suelo_clay_sup     : arcilla media 0-30 cm, ponderada por espesor.
+    - suelo_sand_sup     : arena media 0-30 cm. No se incluye limo: las tres suman
+                           100 %, así que sería exactamente redundante.
+    - suelo_{soc,nitrogen,phh2o,cec,bdod}_sup : químicas medias 0-30 cm.
+    - geo_*              : elevación, rugosidad, pendiente y distancia a río.
+    """
+    df = df.copy()
+    new_cols: List[str] = []
+
+    def _tiene(*cols) -> bool:
+        return all(c in df.columns for c in cols)
+
+    # --- Agua útil integrada (capacidad de agua disponible, en mm) ---
+    # SoilGrids predice cada profundidad de forma INDEPENDIENTE, así que en suelos
+    # muy arcillosos capacidad de campo y punto de marchitez se cruzan y la resta
+    # da negativa (7 deptos de Misiones, mínimo -2.85 % vol). Un agua útil negativa
+    # no existe: se clipea a 0 antes de integrar.
+    for etiqueta, profs in [("suelo_awc_mm", SUELO_PROFUNDIDADES),
+                            ("suelo_awc_sup_mm", SUELO_PROF_SUPERFICIAL)]:
+        lamina = None
+        for prof in profs:
+            fc, pm = f"suelo_wv0033_{prof}", f"suelo_wv1500_{prof}"
+            if not _tiene(fc, pm):
+                continue
+            # % vol -> fracción -> mm de agua en el espesor del horizonte
+            awc = np.clip(df[fc].values - df[pm].values, 0, None) / 100.0
+            mm = awc * SUELO_ESPESOR_MM[prof]
+            lamina = mm if lamina is None else lamina + mm
+        if lamina is not None:
+            df[etiqueta] = lamina
+            new_cols.append(etiqueta)
+
+    # --- Promedios 0-30 cm ponderados por espesor ---
+    peso_total = sum(SUELO_ESPESOR_MM[p] for p in SUELO_PROF_SUPERFICIAL)
+    for prop in ["clay", "sand", "soc", "nitrogen", "phh2o", "cec", "bdod"]:
+        cols = [f"suelo_{prop}_{p}" for p in SUELO_PROF_SUPERFICIAL]
+        if not _tiene(*cols):
+            continue
+        acum = None
+        for p in SUELO_PROF_SUPERFICIAL:
+            v = df[f"suelo_{prop}_{p}"].values * SUELO_ESPESOR_MM[p]
+            acum = v if acum is None else acum + v
+        nombre = f"suelo_{prop}_sup"
+        df[nombre] = acum / peso_total
+        new_cols.append(nombre)
+
+    # --- Geografía: pasan tal cual, ya son un valor por departamento ---
+    new_cols += [c for c in GEO_COLS if c in df.columns]
+
     return df, new_cols
 
 

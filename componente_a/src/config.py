@@ -57,6 +57,24 @@ CRITICAL_MONTHS = {
     "maiz": ["nov", "dic", "ene"],
 }
 
+# --- Suelo (SoilGrids v2.0) y geografía (SRTM + HydroSHEDS) ---
+# Capas ESTÁTICAS por departamento: no varían por campaña ni por cultivo. Las
+# extrae eda/build_capas_estaticas.py y las mergea el paso 6c del ETL. Son 44
+# columnas de suelo (11 propiedades × 4 profundidades) + 4 de geografía.
+SUELO_PROFUNDIDADES = ["0_5", "5_15", "15_30", "30_60"]
+SUELO_PROPS = ["bdod", "cec", "clay", "sand", "silt", "nitrogen", "phh2o", "soc",
+               "wv0010", "wv0033", "wv1500"]
+GEO_COLS = ["geo_elev_mean", "geo_elev_std", "geo_slope_mean", "geo_dist_rio_km"]
+
+# Espesor de cada horizonte en mm. Se usa para integrar el agua útil a lámina
+# (mm de agua disponible) y para ponderar los promedios por profundidad: un
+# promedio simple le daría el mismo peso a un horizonte de 5 cm que a uno de 30.
+SUELO_ESPESOR_MM = {"0_5": 50, "5_15": 100, "15_30": 150, "30_60": 300}
+
+# Horizontes del promedio "superficial" (0-30 cm) de las variables químicas,
+# donde se concentra la actividad radicular temprana.
+SUELO_PROF_SUPERFICIAL = ["0_5", "5_15", "15_30"]
+
 # --- Etiqueta proxy ---
 ROLLING_WINDOW = 5     # ventana de la media móvil del rinde
 Z_THRESH = -1.5        # anomalía = z_rinde < Z_THRESH

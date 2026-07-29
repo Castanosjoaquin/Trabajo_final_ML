@@ -42,6 +42,7 @@ for _p in (_REPO_ROOT, _A_ROOT):
 from src import data as _A_data      # noqa: E402  (componente_a/src)
 from src import config as _A_config  # noqa: E402
 
+
 # Split temporal (mismo criterio que el Componente A).
 TRAIN_END = 2020
 TEST_START = 2021
@@ -127,13 +128,19 @@ def crop_frame(panel: pd.DataFrame, cultivo: str,
 
 def build_reg_dataset(panel: pd.DataFrame, cultivo: str,
                       use_depto_encoding: bool = True, use_year: bool = True,
-                      use_agro: bool = False, enc_smooth: float = 0.0,
+                      use_agro: bool = False, use_suelo: bool = False,
+                      enc_smooth: float = 0.0,
                       use_lags: int = 0, momento: str = "full",
                       train_end: int = TRAIN_END,
                       test_start: int = TEST_START) -> RegDataset:
     """Arma el RegDataset de un cultivo: split temporal, features y escalado.
 
     Las features climáticas salen del panel unificado (clima + NDVI + ERA5).
+    `use_suelo` agrega las 13 features derivadas de suelo y geografía
+    (`add_suelo_features`): agua útil integrada, textura y químicas 0-30 cm,
+    elevación, pendiente y distancia a cursos de agua. Son estáticas por
+    departamento, así que valen para TODOS los momentos, incluido pre-siembra.
+
     `use_agro` agrega las features agronómicas de ventana crítica del Componente A
     (balance hídrico, estrés térmico; ver `add_agro_features`).
 
@@ -167,6 +174,18 @@ def build_reg_dataset(panel: pd.DataFrame, cultivo: str,
     if use_agro:
         df, agro_cols = _A_data.add_agro_features(df, cultivo)
         feature_cols += agro_cols
+
+    # --- Suelo y geografía (estáticas por departamento) ---
+    # NO se filtran por `momento`, a diferencia de las agronómicas: no dependen de
+    # la campaña, así que están disponibles en todos los checkpoints —incluso
+    # pre-siembra— sin ningún riesgo de leakage.
+    # Nota: sirven acá porque el escalado de B es GLOBAL. En el pipeline del
+    # Componente A, que normaliza por departamento, una feature estática tiene
+    # varianza 0 dentro del grupo y se anula (queda exactamente en 0).
+    if use_suelo:
+        df, suelo_cols = _A_data.add_suelo_features(df)
+        feature_cols += suelo_cols
+
 
     # --- Lags del rinde (autorregresivas, sin filtrar el año actual) ---
     lag_cols: List[str] = []

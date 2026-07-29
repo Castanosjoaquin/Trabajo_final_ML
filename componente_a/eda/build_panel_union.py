@@ -7,10 +7,14 @@ Características:
   - MIN_CAMPANAS por cultivo (default 20), sin REGION_NUCLEO hardcodeado.
   - Centroides via Nominatim (OSM) con caché local; los 26 del núcleo se preservan tal cual.
   - Columna 'region' para ablations (núcleo vs resto).
-  - Fuentes: MAGyP (rinde) + ONI + NASA POWER + CHIRPS + NDVI-AVHRR + ERA5-Land.
+  - Fuentes: MAGyP (rinde) + ONI + NASA POWER + CHIRPS + NDVI-AVHRR + ERA5-Land
+    + suelo/geografía (SoilGrids, SRTM, HydroSHEDS).
     NDVI y ERA5 se extraen de GEE acá mismo (paso 6b, mismo auth que CHIRPS) y se
     mergean al panel; las filas sin cobertura satelital se descartan. El NDVI de
     MODIS se retiró (2026-07). Antes NDVI/ERA5 vivían en data_sources/ (borrado).
+    Las capas estáticas NO se extraen acá: las produce eda/build_capas_estaticas.py
+    y el paso 6c solo mergea ese parquet. A diferencia del satelital, ese merge no
+    descarta filas (ver _merge_estatico).
   - Sin imputación de rinde: se reportan faltantes al final.
   - Output: data/processed/panel_union.parquet (panel ÚNICO del proyecto).
 
@@ -788,6 +792,34 @@ def load_era5() -> pd.DataFrame:
 ERA5_COLS = ["sm_planting", "sm_winter", "frost_days", "frost_days_early"]
 
 
+def _merge_estatico(panel: pd.DataFrame, est: pd.DataFrame, cols) -> pd.DataFrame:
+    """Merge de capas ESTÁTICAS (suelo, geografía) por (provincia, departamento).
+
+    Se diferencia de `_merge_satelital` en dos cosas, y las dos importan:
+      - No lleva `campania_inicio` en la clave: estas capas no varían por campaña
+        ni por cultivo, así que el valor se repite en todas las filas del depto.
+      - NO descarta las filas sin cobertura. El satelital sí lo hace, pero acá un
+        dropna cambiaría el número de filas del panel y movería X_train/X_test,
+        rompiendo los baselines de tests/test_repro.py. La expansión tiene que ser
+        estrictamente aditiva: se reporta la cobertura y los faltantes quedan NaN.
+    """
+    if not len(est):
+        return panel
+    panel = panel.copy()
+    panel["_p"], panel["_d"] = _norm_ascii(panel["provincia"]), _norm_ascii(panel["departamento"])
+    est = est.copy()
+    est["_p"], est["_d"] = _norm_ascii(est["provincia"]), _norm_ascii(est["departamento"])
+    key = ["_p", "_d"]
+    # Una fila por depto: si la fuente trae duplicados, el merge los multiplicaría.
+    est = est.drop_duplicates(subset=key)
+    n0 = len(panel)
+    merged = panel.merge(est[key + list(cols)], on=key, how="left").drop(columns=["_p", "_d"])
+    assert len(merged) == n0, f"el merge estático duplicó filas: {n0} -> {len(merged)}"
+    log.info("estáticas mergeadas (+%d cols): cobertura %.1f%% de las filas",
+             len(cols), 100 * merged[cols[0]].notna().mean())
+    return merged
+
+
 def _merge_satelital(panel: pd.DataFrame, sat: pd.DataFrame, cols) -> pd.DataFrame:
     """Merge de features satelitales al panel por (provincia, departamento,
     campania_inicio) con nombres normalizados (sin acentos/mayúsculas)."""
@@ -810,6 +842,7 @@ def build_panel_union(
     min_campanas: int = 20,
     skip_chirps: bool = False,
     skip_satelital: bool = False,
+    skip_estaticas: bool = False,
 ) -> pd.DataFrame:
     log.info("=" * 60)
     log.info("BUILD PANEL UNION (min_campanas=%d) — iniciando", min_campanas)
@@ -882,6 +915,21 @@ def build_panel_union(
             panel = panel.dropna(subset=sat_cols).reset_index(drop=True)
             log.info("descarte filas sin cobertura satelital: %d -> %d", n0, len(panel))
 
+    # 6c. Capas estáticas: suelo (SoilGrids) + geografía (SRTM, HydroSHEDS).
+    # NO se extraen acá: las produce eda/build_capas_estaticas.py, que se corre por
+    # separado (son estáticas, se extraen una vez y no dependen de las campañas).
+    # Este paso solo mergea el artefacto ya cacheado.
+    if not skip_estaticas:
+        est_path = PROC / "capas_estaticas_wide.parquet"
+        if not est_path.exists():
+            log.warning("capas estáticas: falta %s — correr "
+                        "'python eda/build_capas_estaticas.py'. Se sigue sin ellas.",
+                        est_path)
+        else:
+            est = pd.read_parquet(est_path)
+            est_cols = [c for c in est.columns if c.startswith(("suelo_", "geo_"))]
+            panel = _merge_estatico(panel, est, est_cols)
+
     # 7. Reporte de faltantes (sin imputar)
     out_path = PROC / "panel_union.parquet"
     panel.to_parquet(out_path, index=False)
@@ -920,11 +968,14 @@ if __name__ == "__main__":
                     help="Saltar descarga de CHIRPS (útil si EE no está configurado)")
     ap.add_argument("--skip-satelital", action="store_true",
                     help="Saltar NDVI-AVHRR + ERA5-Land (GEE). El panel queda sin esas features")
+    ap.add_argument("--skip-estaticas", action="store_true",
+                    help="Saltar el merge de suelo/geografía (capas_estaticas_wide.parquet)")
     args = ap.parse_args()
 
     panel = build_panel_union(
         min_campanas=args.min_campanas,
         skip_chirps=args.skip_chirps,
         skip_satelital=args.skip_satelital,
+        skip_estaticas=args.skip_estaticas,
     )
     print(f"\nPanel guardado: data/processed/panel_union.parquet  ({panel.shape})")
