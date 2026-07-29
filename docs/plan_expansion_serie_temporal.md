@@ -311,7 +311,29 @@ resultados siempre vía `evaluacion.tabla` (`:251`), cierre en `## Conclusión`.
 | ~~6~~ | ~~`componente_b/momentum.py` + kwarg `use_momentum`~~ **HECHO — RESULTADO NEGATIVO**: el EWMA es redundante con `use_lags`, que ya existía. Ver abajo | 1 |
 | ~~7~~ | ~~`CHECKPOINTS` + `_filter_momento`~~ **HECHO** — 5 checkpoints por regla de mes de corte; los 3 momentos viejos devuelven columnas idénticas | — |
 | ~~8~~ | ~~XGBoost por checkpoint~~ **HECHO** — `11_checkpoints_y_momentum.ipynb`, ejecutado. Test RMSE baja 15,9 % (soja) y 14,3 % (maíz) de pre-siembra a full | 6, 7 |
-| 9 | `12_ablations_finales.ipynb`: ablations completos | 5, 8 |
+| ~~9~~ | ~~`12_ablations_finales.ipynb`~~ **HECHO** — grilla de 80 configuraciones. Orden de importancia: **checkpoint ≫ memoria ≫ suelo**. Ver abajo | 5, 8 |
+
+### Resultado del paso 9 — el ablation final
+
+Grilla completa: 2 cultivos × 5 checkpoints × 4 niveles de memoria × suelo on/off.
+Moviendo cada eje de su peor a su mejor valor (CV-RMSE):
+
+| eje | soja | maíz |
+|---|---|---|
+| **checkpoint** | 12,1 % | 14,1 % |
+| memoria (lags) | 0,9 % | 5,6 % |
+| suelo/geo | 0,1 % | 1,1 % |
+
+**Límite encontrado: el modelo no sirve en pre-siembra.** Contra la climatología
+departamental (predecir la media histórica del depto), en pre-siembra maíz **pierde**
+(−1,9 %) y soja apenas empata (+3,3 %). La ventaja recién se vuelve clara desde noviembre
+(+5 % a +13 %) y llega a +12,7 % / +18,6 % con la campaña completa. Contra la media global
+gana siempre, pero ése es el rival fácil.
+
+Es un límite del enfoque, no un defecto de la implementación: antes de sembrar las únicas
+señales son ONI, humedad invernal, el histórico del departamento y el suelo. Para el caso
+de uso de producto, lo honesto en pre-siembra es responder con la climatología del
+departamento y reservar el modelo para cuando ya hay clima observado.
 
 ### Resultado del paso 6 — el momentum EWMA no aporta
 
