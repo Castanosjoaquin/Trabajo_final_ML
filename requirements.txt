@@ -17,11 +17,26 @@ torch>=2.0
 # Componente B — regresión de rinde
 xgboost>=2.0
 
+# ETL — extracción de capas satelitales y estáticas vía Google Earth Engine
+# (build_panel_union.py: CHIRPS, NDVI-AVHRR, ERA5; build_capas_estaticas.py:
+#  SoilGrids, SRTM, HydroSHEDS). Requiere `earthengine authenticate` la 1ª vez.
+earthengine-api>=1.0
+
 # Notebooks (generar y ejecutar los experimentos)
 nbformat
 nbconvert
 ipykernel
 
-# Nota macOS: xgboost necesita el runtime de OpenMP (`brew install libomp`). Si al
-# entrenar xgboost hay segfault (exit 139) por conflicto con torch, correr una vez:
-#   python componente_b/fix_openmp_macos.py
+# Nota macOS: xgboost necesita el runtime de OpenMP. Si al entrenar hay segfault
+# (exit 139), es el conflicto clásico de dos copias de libomp (la de torch y la de
+# xgboost) cargadas a la vez. Se resuelve apuntando xgboost al libomp de torch:
+#   install_name_tool -change <libomp_viejo> \
+#       "$PWD/.venv/lib/python3.11/site-packages/torch/lib/libomp.dylib" \
+#       .venv/lib/python3.11/site-packages/xgboost/lib/libxgboost.dylib
+#   codesign -f -s - .venv/lib/python3.11/site-packages/xgboost/lib/libxgboost.dylib
+# (`otool -L` sobre libxgboost.dylib muestra a qué libomp apunta hoy.)
+#
+# OJO: ese parche graba una ruta ABSOLUTA. Si movés la carpeta del proyecto, se
+# rompe xgboost Y todos los scripts de .venv/bin/ (shebangs absolutos). En ese
+# caso: reescribir la ruta vieja por la nueva en .venv/bin/* y .venv/pyvenv.cfg,
+# y volver a correr el install_name_tool de arriba.
