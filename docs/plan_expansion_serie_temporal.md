@@ -309,8 +309,8 @@ resultados siempre vía `evaluacion.tabla` (`:251`), cierre en `## Conclusión`.
 | ~~4~~ | ~~`build_feature_list(use_suelo=...)` + `add_suelo_features`~~ **HECHO** — 13 features derivadas, `use_suelo` también en `componente_b/datos.py`, `test_repro` verde sin re-baselinear | 3 |
 | ~~5~~ | ~~`eda_suelo_geografia.ipynb` — gate de decisión~~ **HECHO — GATE PASADO**: suelo entra en B con `use_suelo=True`. Mejora chica pero sistemática (soja +0,34 %, maíz +0,97 % de CV-RMSE, 5/5 semillas) y **creciente hacia los checkpoints tempranos** (pre-siembra: +1,4 % / +3,3 %) | 4 |
 | ~~6~~ | ~~`componente_b/momentum.py` + kwarg `use_momentum`~~ **HECHO — RESULTADO NEGATIVO**: el EWMA es redundante con `use_lags`, que ya existía. Ver abajo | 1 |
-| 7 | `CHECKPOINTS` + `_filter_momento` reescrito; verificar equivalencia de los 3 momentos viejos | — |
-| 8 | `11_momentum_y_checkpoints.ipynb`: barrido de γ, XGBoost por checkpoint | 6, 7 |
+| ~~7~~ | ~~`CHECKPOINTS` + `_filter_momento`~~ **HECHO** — 5 checkpoints por regla de mes de corte; los 3 momentos viejos devuelven columnas idénticas | — |
+| ~~8~~ | ~~XGBoost por checkpoint~~ **HECHO** — `11_checkpoints_y_momentum.ipynb`, ejecutado. Test RMSE baja 15,9 % (soja) y 14,3 % (maíz) de pre-siembra a full | 6, 7 |
 | 9 | `12_ablations_finales.ipynb`: ablations completos | 5, 8 |
 
 ### Resultado del paso 6 — el momentum EWMA no aporta

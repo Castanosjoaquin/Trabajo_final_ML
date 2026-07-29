@@ -52,6 +52,11 @@ import momentum as _momentum  # noqa: E402
 TRAIN_END = 2020
 TEST_START = 2021
 
+# Meses de la campaña, en orden Sep..Mar. Se toma del Componente A en vez de
+# redefinirlo: es el mismo orden que usan los sufijos de las columnas del panel,
+# y de él depende la regla de corte de los checkpoints.
+MESES = _A_config.MESES
+
 @dataclass
 class RegDataset:
     """Datos de un cultivo listos para regresión de rinde.
@@ -79,30 +84,77 @@ class RegDataset:
 _META_COLS = ["provincia", "departamento", "campania", "campania_inicio",
               "rinde_kgha", "sup_sembrada_ha", "zona"]
 
-# Momentos de predicción del calendario agrícola (ver build_reg_dataset):
-#   'full'        : toda la campaña Sep–Mar (comportamiento histórico).
-#   'pre_siembra' : solo lo conocible/estimable antes de sembrar — ONI (la
-#                   propuesta lo incluye: en la práctica es el pronóstico ENSO)
-#                   y humedad de suelo de invierno (sm_winter, Jun–Ago). Más las
-#                   features estructurales (depto_enc, year, lags del rinde).
-#   'pre_cosecha' : clima y NDVI observados hasta febrero (sin marzo), para
-#                   pronosticar antes de la cosecha.
-MOMENTOS = ("full", "pre_siembra", "pre_cosecha")
+# Checkpoints del calendario agrícola: en qué momento de la campaña se consulta el
+# modelo. Cada uno se define por su MES DE CORTE — el último mes cuyo clima ya se
+# observó. `None` = la campaña todavía no empezó.
+#
+#   'pre_siembra' : antes de sembrar. Solo estructurales + ONI + sm_winter.
+#   'nov'         : campaña arrancada, clima Sep–Nov observado.
+#   'ene'         : mitad de campaña, Sep–Ene.
+#   'pre_cosecha' : Sep–Feb, para pronosticar antes de cosechar.
+#   'full'        : campaña completa Sep–Mar (comportamiento histórico).
+#
+# Los meses posteriores al corte se EXCLUYEN, no se imputan.
+CHECKPOINTS = {
+    "pre_siembra": None,
+    "nov":         "nov",
+    "ene":         "ene",
+    "pre_cosecha": "feb",
+    "full":        "mar",
+}
+
+# Alias histórico: los notebooks 08-10 importan MOMENTOS. Los tres nombres viejos
+# siguen devolviendo exactamente el mismo conjunto de columnas que antes de sumar
+# los checkpoints intermedios (verificado columna por columna, ambos cultivos).
+MOMENTOS = tuple(CHECKPOINTS)
+
+# Features estacionales de ERA5: no llevan sufijo de mes, así que la regla de corte
+# no las alcanza y hay que declarar a mano desde qué checkpoint se observan.
+#   sm_winter        (Jun–Ago) : previa a la campaña -> disponible siempre.
+#   sm_planting      (Sep–Nov) : completa en noviembre.
+#   frost_days_early (Sep–Nov) : idem.
+#   frost_days       (Sep–Mar) : recién con la campaña terminada.
+_ERA5_DESDE = {
+    "sm_winter": None,          # siempre
+    "sm_planting": "nov",
+    "frost_days_early": "nov",
+    "frost_days": "mar",
+}
 
 
 def _filter_momento(clim_cols: List[str], momento: str) -> List[str]:
-    """Restringe las columnas climáticas/satelitales al momento de predicción."""
-    if momento == "full":
-        return list(clim_cols)
-    if momento == "pre_cosecha":
-        # Afuera todo lo con sufijo _mar y el ERA5 estacional que llega a marzo
-        # (frost_days cuenta heladas Sep–Mar; frost_days_early es Sep–Nov y queda).
-        return [c for c in clim_cols
-                if not c.endswith("_mar") and c != "frost_days"]
-    if momento == "pre_siembra":
-        return [c for c in clim_cols
-                if c.startswith("oni_") or c == "sm_winter"]
-    raise ValueError(f"momento desconocido: {momento!r}. Opciones: {MOMENTOS}")
+    """Restringe las columnas climáticas/satelitales a lo observable en un checkpoint.
+
+    Regla general: una columna `<prefijo>_<mes>` se observa si `mes` no es posterior
+    al mes de corte. Aprovecha que todas las columnas mensuales del panel ya llevan
+    el sufijo Sep..Mar.
+
+    Excepción deliberada — ONI: se mantiene en TODOS los checkpoints, incluido
+    pre-siembra, donde `oni_ene` y `oni_feb` todavía no ocurrieron. Es la convención
+    que ya traía el repo, y se sostiene porque en producción ese valor sería el
+    PRONÓSTICO de ENSO, disponible por adelantado. Es la única concesión de
+    información futura del esquema y conviene declararla al reportar resultados.
+    """
+    if momento not in CHECKPOINTS:
+        raise ValueError(f"checkpoint desconocido: {momento!r}. "
+                         f"Opciones: {tuple(CHECKPOINTS)}")
+    corte = CHECKPOINTS[momento]
+    hasta = -1 if corte is None else MESES.index(corte)
+
+    def observable(c: str) -> bool:
+        if c.startswith("oni_"):
+            return True                       # pronóstico ENSO, ver docstring
+        if c in _ERA5_DESDE:
+            desde = _ERA5_DESDE[c]
+            return desde is None or hasta >= MESES.index(desde)
+        mes = c.rsplit("_", 1)[-1]
+        if mes in MESES:
+            return hasta >= MESES.index(mes)
+        # Sin sufijo de mes ni regla propia: se asume estructural, disponible
+        # siempre. Si se suma una fuente estacional nueva, va en _ERA5_DESDE.
+        return True
+
+    return [c for c in clim_cols if observable(c)]
 
 
 def load_panel() -> pd.DataFrame:
