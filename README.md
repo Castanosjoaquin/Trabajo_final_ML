@@ -37,23 +37,24 @@ pip install -r requirements.txt
 ```
 Trabajo_final_ML/
 │
-├── data/processed/panel_union.parquet    # Dataset ÚNICO (6 fuentes; ver docs/fuentes_dataset.md)
+├── data/processed/panel_union.parquet    # Dataset ÚNICO (8 fuentes; ver docs/fuentes_dataset.md)
 │                                         #   lo construye componente_a/eda/build_panel_union.py
 │
 ├── componente_a/                         # Detección de anomalías
 │   ├── src/                              #   config.py · data.py (pipeline) · models/
 │   │   └── models/                       #   IForest/OCSVM · AE/DAE · VAE · seed-ensemble · deepod
-│   ├── experiments/                      #   EL TRABAJO: notebooks 00–06 (ver su README)
-│   ├── eda/                              #   ETL del panel + 2 notebooks de EDA
+│   ├── experiments/                      #   EL TRABAJO: notebooks 00–07 (ver su README)
+│   ├── eda/                              #   ETL del panel + capas estáticas + 3 notebooks EDA
 │   └── tests/                            #   test_repro (hash del dataset) + test_smoke (modelos)
 │
 ├── componente_b/                         # Predicción de rinde
-│   ├── datos.py                          #   panel → features → split temporal → RegDataset
+│   ├── datos.py                          #   panel → features → checkpoint → split → RegDataset
 │   ├── evaluacion.py                     #   métricas, CV temporal honesta, Diebold–Mariano
+│   ├── momentum.py                       #   memoria inter-campaña (EWMA); off por default
 │   ├── modelos/                          #   lineal · RF · HistGBM · XGBoost · MLP · stacking
 │   ├── integracion.py / latente.py       #   acople con el Componente A
 │   ├── wrapper_zonas.py                  #   router por zonas (especializa donde la CV lo avala)
-│   └── experimentos/                     #   notebooks 00–10 (ver su README)
+│   └── experimentos/                     #   notebooks 00–12 (ver su README)
 │
 ├── entrega/                              # Castanos_Oostdijk_Predictions_PF.zip (+ CSVs por modelo)
 ├── informe_figs/                         # figuras del informe (extraídas de los notebooks)
@@ -70,12 +71,20 @@ datos + modelos + evaluación.
 
 ## Los datos (resumen)
 
-- **Panel**: `data/processed/panel_union.parquet` — 27.865 × 84 crudo; el loader
+- **Panel**: `data/processed/panel_union.parquet` — 27.865 × 132 crudo; el loader
   deduplica el join de centroides por nombre → **20.672 filas efectivas**
-  (8.964 soja / 11.708 maíz). Detalle de las 6 fuentes: `docs/fuentes_dataset.md`.
+  (8.964 soja / 11.708 maíz). Detalle de las 8 fuentes: `docs/fuentes_dataset.md`.
 - **Features base (72)**: NASA POWER (49) + ONI (5) + NDVI-AVHRR (7) + ERA5-Land (4)
   + CHIRPS (7). El Componente B agrega `depto_enc` (target encoding con m-estimate),
   `year` y 4 features agronómicas de ventana crítica (78 en total; hasta 84 con lags).
+- **Capas estáticas (48)**: suelo (SoilGrids v2.0, 44 columnas) y geografía (SRTM +
+  HydroSHEDS, 4), un valor por departamento que se repite en todas sus campañas.
+  **No entran en X por defecto** (`use_suelo=False`): `add_suelo_features` las
+  condensa en 13 features derivadas y el ablation decide si activarlas. Las extrae
+  `componente_a/eda/build_capas_estaticas.py`, aparte del ETL.
+- **Checkpoints de campaña**: el Componente B puede restringir las features a lo
+  observable en 5 momentos (`pre_siembra` → `nov` → `ene` → `pre_cosecha` → `full`),
+  para poder consultar el modelo en cualquier punto del calendario agrícola.
 - **Etiqueta proxy (solo evaluación de A)**: `z_rinde < −1.5` vs. la media móvil de
   las 5 campañas previas (con `shift(1)`, sin mirar el año en curso).
 - **Split temporal (idéntico en A y B)**: train ≤2020/21 · test 2021/22–2024/25.
@@ -88,12 +97,13 @@ datos + modelos + evaluación.
 
 ```bash
 # 1. (opcional) reconstruir el panel — requiere auth de Google Earth Engine
-python componente_a/eda/build_panel_union.py
+python componente_a/eda/build_capas_estaticas.py     # suelo + geografía (estáticas)
+python componente_a/eda/validate_capas_estaticas.py  # chequeos de sanidad
+python componente_a/eda/build_panel_union.py         # el panel (mergea lo anterior)
 
-# 2. Componente A: abrir los notebooks de componente_a/experiments/ y "Run all" (00→06)
-# 3. Componente B: ídem componente_b/experimentos/ (00→10)
-#    (el re-tuning ya está persistido en experimentos/retuning_cv_honesta.json;
-#     para regenerarlo: python componente_b/experimentos/_retune_all.py)
+# 2. Componente A: abrir los notebooks de componente_a/experiments/ y "Run all" (00→07)
+# 3. Componente B: ídem componente_b/experimentos/ (00→12)
+#    (el re-tuning está persistido en experimentos/retuning_cv_honesta.json)
 
 # 4. Tests
 cd componente_a && python -m pytest tests/ -q     # 36 tests

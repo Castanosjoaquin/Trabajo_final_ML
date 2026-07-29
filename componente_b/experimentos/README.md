@@ -14,8 +14,11 @@ ejecutado (tablas y gráficos embebidos) y se puede re-correr de cero.
 | 5 | `05_comparacion_modelos` | **Comparación integral**: los 6 modelos + baselines, con RMSE/R²/sMAPE, **skill score** y **matriz de Diebold–Mariano** (¿las diferencias son significativas?) |
 | 6 | `06_modelo_por_zona` | **Un modelo por zona** (geo-clustering): pooled vs. por-zona, zona por zona. Con los HP re-tuneados, especializar mejora el global en ambos cultivos (aunque no en todas las zonas) |
 | 7 | `07_integracion_A_B` | **Integración A↔B (núcleo del proyecto)**: consistencia cruzada Spearman (score VAE vs. residuo), lift del latente, y **cuantificación económica** de la sequía 2022/23 (contrafactual × superficie, vs. benchmark BCR) |
+| 8 | `08_momentos_y_lags` | Los ablations que pide la consigna: los **dos momentos** del calendario agrícola (pre-siembra / pre-cosecha) y los **lags del rinde** (features autorregresivas) |
 | 9 | `09_router_por_zona` | **Router por zonas** (`WrapperPorZona`): especializa por zona solo donde la **CV en train** lo respalda; supera al pooled en test (punto medio entre pooled y por-zona puro) |
 | 10 | `10_prediccion_final` | **Modelo final ejecutable**: reconstruye el modelo final (**Random Forest en ambos cultivos**), lo justifica contra todos los demás (tabla + Diebold–Mariano), agrega el score de anomalía del Componente A, escribe `predicciones_test.csv` y define `predecir_entrega()` para un test externo |
+| 11 | `11_checkpoints_y_momentum` | Generaliza los momentos del nb 08 a **5 checkpoints** (pre-siembra → nov → ene → pre-cosecha → full), un XGBoost por cada uno, y mide que el **momentum EWMA es redundante** con los lags. Hallazgo: en maíz, agregar marzo *empeora* el CV |
+| 12 | `12_ablations_finales` | Grilla de **80 configuraciones** (checkpoint × memoria × suelo). Orden de importancia: **checkpoint ≫ memoria ≫ suelo**, y el límite del enfoque: en pre-siembra el modelo **no le gana a la climatología departamental** |
 
 ## Panel unificado y el latente del Componente A
 
@@ -33,7 +36,8 @@ latente**, y la categórica **`es_anomalo`** (score umbralado). El VAE se cachea
   test se usa **una sola vez**, para las métricas del modelo final.
 - **Selección de HP**: validación cruzada **temporal** (ventana expansiva), con el
   `depto_enc` recomputado por fold (sin fuga del target), en `evaluacion.buscar`. El
-  re-tuning de todos los modelos está en `_retune_all.py` → `retuning_cv_honesta.json`.
+  resultado del re-tuning está persistido en `retuning_cv_honesta.json`, que los
+  notebooks 05–12 leen para reconstruir los modelos sin re-buscar.
 - **Métricas**: MAE, RMSE (kg/ha), R², sMAPE; **skill score** vs. climatología y test de
   **Diebold–Mariano** para comparar modelos (`evaluacion.py`).
 
@@ -42,8 +46,6 @@ latente**, y la categórica **`es_anomalo`** (score umbralado). El VAE se cachea
 ```bash
 pip install -r ../../requirements.txt
 # En Windows: prefijar con  PYTHONUTF8=1 PYTHONIOENCODING=utf-8
-python _retune_all.py        # (opcional) re-tunea todos los modelos con CV honesta
-                             #   → regenera retuning_cv_honesta.json (ya versionado)
 jupyter nbconvert --to notebook --execute --inplace *.ipynb   # o "Run all" por notebook
 ```
 
@@ -51,14 +53,18 @@ Todos los notebooks corren sobre **los dos cultivos** (soja y maíz) en la misma
 pasada; no hay que cambiar ninguna variable.
 
 ## Estructura interna
-- **`../datos.py`** — pipeline: panel → features (clima + agro + depto-encoding + año +
-  lags/momentos) → split temporal → escalado sin leakage → `RegDataset`.
+- **`../datos.py`** — pipeline: panel → features (clima + agro + suelo + depto-encoding
+  + año + lags/momentum) → filtro por checkpoint → split temporal → escalado sin
+  leakage → `RegDataset`.
+- **`../momentum.py`** — memoria inter-campaña (EWMA con decaimiento gamma). Apagado por
+  default: el nb 11 muestra que es redundante con `use_lags`.
 - **`../evaluacion.py`** — métricas (incl. sMAPE, skill, Diebold–Mariano), baselines,
   `buscar` (CV temporal con `depto_enc` honesto) y gráficos.
 - **`../modelos/`** — los regresores con interfaz común (lineal, RF, HistGBM, XGBoost,
   MLP, stacking, detrended).
 - **`../integracion.py`** — acople A↔B (consistencia cruzada, contrafactual, económico).
 - **`../wrapper_zonas.py`** — router por zonas con selección por CV.
-- **`_retune_all.py`** — re-tuning de todos los modelos (CV temporal honesta) →
-  `retuning_cv_honesta.json`, que los notebooks 05–10 leen para reconstruir los
-  modelos finales.
+- **`retuning_cv_honesta.json`** — hiperparámetros ganadores de cada modelo y cultivo
+  (CV temporal honesta), que los notebooks 05–12 leen para reconstruirlos sin
+  re-buscar. El script que lo generaba ya no está en el árbol; para regenerarlo hay
+  que rehacer las búsquedas con `evaluacion.buscar`.
