@@ -313,6 +313,32 @@ resultados siempre vía `evaluacion.tabla` (`:251`), cierre en `## Conclusión`.
 | ~~8~~ | ~~XGBoost por checkpoint~~ **HECHO** — `11_checkpoints_y_momentum.ipynb`, ejecutado. Test RMSE baja 15,9 % (soja) y 14,3 % (maíz) de pre-siembra a full | 6, 7 |
 | ~~9~~ | ~~`12_ablations_finales.ipynb`~~ **HECHO** — grilla de 80 configuraciones. Orden de importancia: **checkpoint ≫ memoria ≫ suelo**. Ver abajo | 5, 8 |
 
+### Resultado del paso 10 — IDECOR Córdoba
+
+Se bajó la carta de suelos 1:50.000 de IDECOR (`carta_suelo_50mil_2025`, 1.555 unidades)
+y se agregó por área a los departamentos GAUL, con `build_suelo_idecor.py`. Trae agua útil
+**medida** en mm a 1/1,5/2 m y el Índice de Productividad. Cobertura útil: 17 departamentos
+(19 de los 23 de Córdoba en el panel; 4 quedan fuera del relevamiento y 3 se anulan por
+cobertura < 70 %).
+
+**Hallazgo fuerte, independiente del modelo:** la `suelo_awc_mm` derivada de SoilGrids está
+**anti-correlacionada** con el agua útil medida (Pearson −0,50). Ordena los departamentos al
+revés: pone a General Roca (sudoeste arenoso) por encima de Marcos Juárez y San Justo, que
+son la mejor tierra de la provincia. La textura de SoilGrids sí sirve (+0,65 con el IP); el
+problema es específicamente la resta `wv0033 - wv1500`. Documentado en `fuentes_dataset.md`.
+
+**Resultado predictivo: nulo y subpotenciado.** Reemplazar SoilGrids por IDECOR mueve el
+RMSE dentro de ±1 % en los cuatro escenarios probados, con solo ~570 filas de train y 16
+departamentos. Se testeó también quitando `depto_enc`, por si estaba absorbiendo la señal
+estática: no cambia nada. **No alcanza para concluir ni a favor ni en contra**, y estaba
+anticipado antes de empezar.
+
+Lectura para producto: a granularidad DEPARTAMENTAL, el suelo tiene poco que explicar —
+varía muchísimo dentro de un mismo departamento y el promedio areal borra justamente esa
+variación. Si el suelo va a importar, el camino es bajar la unidad de predicción a lote o
+píxel, que además es lo que le sirve a un productor. Eso es un cambio de alcance del
+producto, no un ajuste de features.
+
 ### Resultado del paso 9 — el ablation final
 
 Grilla completa: 2 cultivos × 5 checkpoints × 4 niveles de memoria × suelo on/off.
@@ -371,7 +397,7 @@ Decisiones que se derivan:
 - El ablation de suelo va en **Componente B**, no en A (en A las estáticas se anulan).
 - En el paso 8, los checkpoints tempranos son los que más ganan con `use_suelo=True`:
   conviene reportar la contribución de suelo **por checkpoint**, no solo agregada.
-| 10 | (Condicional) IP INTA/IDECOR con geopandas | 5 en positivo |
+| ~~10~~ | ~~(Condicional) IP INTA/IDECOR~~ **HECHO** — IDECOR Córdoba 1:50.000. Ver abajo | 5 en positivo |
 
 Los pasos 2–5 y 6–8 son **independientes entre sí** y se pueden hacer en paralelo; solo
 convergen en el paso 9.

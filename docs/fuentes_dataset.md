@@ -100,12 +100,34 @@ departamentos de 15 provincias**, de los cuales **25 son de la región núcleo**
      en unidades nativas (wv0033 = 0,328 cm³/cm³ → ×100 = 32,8 % vol).
 - **Caveat de calidad**: SoilGrids tiene habilidad local limitada en Argentina —
   sobreestima el SOC ~2,4× frente a estimaciones país-específicas (Guevara et al.
-  2018). **Tratar como gradiente relativo entre departamentos, no como valor
-  absoluto de campo.** Lo mismo aplica al nitrógeno, que en suelos hidromórficos
-  (bahía de Samborombón) llega a ~80 g/kg.
+  2018). Lo mismo aplica al nitrógeno, que en suelos hidromórficos (bahía de
+  Samborombón) llega a ~80 g/kg.
 - **Agua útil**: `wv0033 - wv1500` NO se calcula en el ETL (convención source-only);
   va en `add_suelo_features`, con `clip(lower=0)` porque SoilGrids predice cada
   profundidad de forma independiente y en 7 deptos de Misiones se cruzan.
+
+> ### ⚠️ El agua útil de SoilGrids está mal ordenada en la Pampa
+>
+> El caveat original decía "tratar como gradiente relativo entre departamentos".
+> **Eso resultó ser demasiado optimista para el agua útil**: contrastada contra las
+> cartas de suelo de IDECOR (1:50.000, dato medido) en 16 departamentos de Córdoba,
+> la `suelo_awc_mm` derivada de SoilGrids está **anti-correlacionada** con el agua
+> útil real — Pearson −0,50, Spearman −0,46. No difiere en magnitud: ordena los
+> departamentos al revés.
+>
+> | depto | SoilGrids | IDECOR (medido) | IP |
+> |---|---|---|---|
+> | San Justo | 72 mm | **178 mm** | 51 |
+> | Marcos Juárez | 93 mm | **160 mm** | **69** |
+> | General Roca | **133 mm** | 70 mm | 26 |
+>
+> Marcos Juárez y San Justo son la mejor tierra agrícola de Córdoba; General Roca es
+> el sudoeste arenoso y semiárido. IDECOR los ordena bien, SoilGrids al revés.
+>
+> La **textura** de SoilGrids sí es utilizable (`suelo_clay_sup` correlaciona +0,65
+> con el IP de IDECOR); el problema es específicamente la resta `wv0033 - wv1500`.
+>
+> Reproducir: `componente_a/eda/build_suelo_idecor.py`.
 
 ## 8. SRTM + HydroSHEDS — Geografía
 

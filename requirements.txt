@@ -17,6 +17,13 @@ torch>=2.0
 # Componente B — regresión de rinde
 xgboost>=2.0
 
+# ETL — suelo país-específico (IDECOR Córdoba): intersección areal de shapefiles
+# contra los polígonos departamentales. Solo lo necesita
+# componente_a/eda/build_suelo_idecor.py; el resto del pipeline no usa geopandas.
+geopandas>=1.0
+shapely>=2.0
+pyogrio>=0.9
+
 # ETL — extracción de capas satelitales y estáticas vía Google Earth Engine
 # (build_panel_union.py: CHIRPS, NDVI-AVHRR, ERA5; build_capas_estaticas.py:
 #  SoilGrids, SRTM, HydroSHEDS). Requiere `earthengine authenticate` la 1ª vez.
