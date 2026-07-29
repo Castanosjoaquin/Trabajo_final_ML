@@ -24,19 +24,52 @@ import pytest
 from src.config import PANEL_PATH
 from src import data as cdata
 
-# Baseline re-registrado el 2026-07-08 tras regenerar el panel con CHIRPS (panel
-# 27865 filas -> 20672 tras dedup; pipeline 72 features) y el clip de rinde_kgha
+# Baseline re-registrado el 2026-07-28 al pasar `_h` a hash redondeado (ver abajo).
+# Los hashes cambiaron por el cambio de `_h`, NO por un cambio de datos: se verificó
+# que el panel de git HEAD y el de trabajo son idénticos columna por columna, que
+# n_train/n_test no se movieron, y que el parche de la columna `region` de ese mismo
+# día es neutral (X_train idéntico antes y después). El baseline anterior
+# (2026-07-08) había quedado inservible por deriva de floats tras actualizar a
+# pandas 3.0 / numpy 2.4.
+#
+# Panel: 27865 filas -> 20672 tras dedup; pipeline 72 features; clip de rinde_kgha
 # 0.5%/99.5% por cultivo en compute_z_rinde.
 BASELINE = {
-    "soja": {"X_train": "c5d286c94ad362dc", "X_test": "a9736293782a332c",
-             "y_test": "7d395383a26c032f", "n_train": 6142, "n_test": 942},
-    "maiz": {"X_train": "61c19c94a7fe94c9", "X_test": "0c7d2bd8ce1e05e3",
-             "y_test": "969f07acd8815182", "n_train": 8082, "n_test": 1160},
+    "soja": {"X_train": "2546b1bddc254af7", "X_test": "b4b33cb812f08628",
+             "y_test": "659cc215951a6495", "n_train": 6142, "n_test": 942},
+    "maiz": {"X_train": "2f3a9ec86b2ecda8", "X_test": "b8550e158e9994c1",
+             "y_test": "e551c44a99117f35", "n_train": 8082, "n_test": 1160},
 }
 
 
+_DECIMALES = 6
+
+
 def _h(a) -> str:
-    return hashlib.md5(np.ascontiguousarray(np.asarray(a)).tobytes()).hexdigest()[:16]
+    """Hash del contenido, TOLERANTE al ruido de punto flotante.
+
+    Antes se hasheaban los bytes crudos y eso rompía el test con cada upgrade de
+    librería: pandas/numpy reordenan internamente las sumas del groupby de
+    `_normalize_per_depto` y los z-scores se mueven ~1e-15, sin que cambie ni una
+    fila del panel. Redondear a 6 decimales borra esa deriva y sigue detectando
+    cualquier cambio real del dataset, que mueve los z-scores muchos órdenes de
+    magnitud más.
+
+    Detalles que importan: se castea a float64 para que un cambio de dtype no
+    altere los bytes, y se suma 0.0 para canonicalizar -0.0 -> 0.0 (tienen
+    representación binaria distinta).
+
+    Tolerancia REAL, medida sobre X_train de soja (6142x72): perturbaciones de
+    1e-15 y 1e-12 no mueven el hash; 1e-9 ya lo mueve. El redondeo es un corte,
+    no un margen: con ~442k elementos, basta que uno caiga sobre el borde para
+    que el hash cambie, y esa probabilidad crece con el tamaño de la
+    perturbación. O sea: cubre de sobra la deriva entre versiones (~1e-15, unos
+    3 órdenes de margen) y NO sirve como test de "casi igual" para nada más
+    grosero. Cualquier cambio real de datos, que mueve z-scores en 1e-3 o más,
+    salta sin ambigüedad.
+    """
+    a = np.round(np.asarray(a, dtype=np.float64), _DECIMALES) + 0.0
+    return hashlib.md5(np.ascontiguousarray(a).tobytes()).hexdigest()[:16]
 
 
 @pytest.mark.skipif(not os.path.exists(PANEL_PATH),
