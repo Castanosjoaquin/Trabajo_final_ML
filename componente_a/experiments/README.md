@@ -13,14 +13,17 @@ experimentos corren sobre **los dos cultivos** (soja y maíz).
 | 2 | `02_ae_y_dae` | AE y Denoising AE con score MSE: el error de reconstrucción plano **no alcanza** (queda debajo de los baselines) — el cuello no son los HP. + IForest/OCSVM sobre el latente del AE |
 | 3 | `03_vae` | **VAE**: búsqueda de arquitectura multi-seed (config final: 128–64, latente 16, β=1) y los tres scores — `recon_error` falla, **`recon_prob` ≈ `neg_elbo` es el salto** (soja 0.598 vs 0.31 del AE) |
 | 4 | `04_ensemble` | **Seed-ensemble ×10 = el modelo final**: promedia el score de 10 inicializaciones → el desvío se desploma (soja ±0.041→±0.017) y la media sube (0.605 soja / 0.515 maíz en el leaderboard final) |
-| 5 | `05_robustez` | Robustez a ruido gaussiano en las features de test: degradación **gradual y monótona**, sin colapso (≈−30% relativo recién a σ=2) |
-| 6 | `06_leaderboard_y_conclusiones` | Leaderboard final soja+maíz (incluye **DeepSVDD tuneado** como referencia moderna, vía `deepod`), recapitulación del recorrido y conclusiones |
+| 6 | `06_robustez` | Robustez a ruido gaussiano en las features de test: degradación **gradual y monótona**, sin colapso (≈−30% relativo recién a σ=2) |
+| 7 | `07_leaderboard_y_conclusiones` | Leaderboard final soja+maíz (incluye **DeepSVDD tuneado** como referencia moderna, vía `deepod`), recapitulación del recorrido y conclusiones |
+
+El **slot 5 queda reservado** para el notebook de features nuevas (suelo y geografía);
+ver `docs/plan_expansion_serie_temporal.md`.
 
 ## Setup
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -r ../../requirements.txt        # incluye deepod (para el nb 06)
+pip install -r ../../requirements.txt        # incluye deepod (para el nb 07)
 jupyter notebook .                           # leer / correr
 ```
 
@@ -42,7 +45,7 @@ corrida rápida, reducir `SEEDS` en la celda de setup de cada notebook (o export
 ## Nota metodológica
 
 No hay bloque de validación separado: los HP se comparan con la **media−desvío de
-PR-AUC multi-seed** y el test se reserva para la comparación final (nb 06). Donde una
+PR-AUC multi-seed** y el test se reserva para la comparación final (nb 07). Donde una
 decisión se ilustra sobre test, el riesgo de *data snooping* queda declarado en el
 propio notebook. La etiqueta proxy se usa **solo para evaluar**: el entrenamiento es
 sin etiquetas, sobre campañas normales curadas por la proxy histórica (one-class con
