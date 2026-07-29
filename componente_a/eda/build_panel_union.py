@@ -79,6 +79,27 @@ CENTROIDES_NUCLEO = {
 }
 NUCLEO_DEPTOS = set(CENTROIDES_NUCLEO.keys())
 
+# Provincia de cada departamento del núcleo. Vive a nivel de módulo porque la usan
+# DOS pasos: la asignación de `region` (paso 1) y la geocodificación (paso 2, que
+# inyecta los centroides canónicos). Sin la provincia, marcar el núcleo por nombre
+# solo arrastra homónimos de otras provincias: Chacabuco y Junín de San Luis,
+# San Pedro de Misiones y de Jujuy, Belgrano de Santiago del Estero, etc.
+PROV_NUCLEO = {
+    "Caseros": "SANTA FE", "Villa Constitucion": "SANTA FE",
+    "General Lopez": "SANTA FE", "Rosario": "SANTA FE",
+    "San Lorenzo": "SANTA FE", "Iriondo": "SANTA FE", "Belgrano": "SANTA FE",
+    "Marcos Juarez": "CORDOBA", "Union": "CORDOBA",
+    "Juarez Celman": "CORDOBA", "General San Martin": "CORDOBA",
+    "Pergamino": "BUENOS AIRES", "Colon": "BUENOS AIRES",
+    "Rojas": "BUENOS AIRES", "Salto": "BUENOS AIRES",
+    "San Nicolas": "BUENOS AIRES", "Ramallo": "BUENOS AIRES",
+    "San Pedro": "BUENOS AIRES", "Baradero": "BUENOS AIRES",
+    "Arrecifes": "BUENOS AIRES", "Capitan Sarmiento": "BUENOS AIRES",
+    "Carmen de Areco": "BUENOS AIRES", "Chacabuco": "BUENOS AIRES",
+    "Junin": "BUENOS AIRES", "General Arenales": "BUENOS AIRES",
+    "Leandro N. Alem": "BUENOS AIRES",
+}
+
 # ── Parámetros NASA POWER ──────────────────────────────────────────────────
 NASA_END_YEAR = 2025
 NASA_PARAMS   = "T2M,T2M_MAX,T2M_MIN,PRECTOTCORR,RH2M,ALLSKY_SFC_SW_DWN,WS2M"
@@ -105,6 +126,16 @@ def normalizar(s: str) -> str:
     return " ".join(s.split()).title()
 
 
+def _norm_one(x) -> str:
+    """Un nombre normalizado para comparar entre fuentes: sin acentos, en
+    mayúsculas y con espacios colapsados. Es la forma canónica del proyecto para
+    matchear departamentos/provincias, porque MAGyP, GAUL y las constantes de este
+    archivo los escriben distinto ('Villa Constitución' vs 'Villa Constitucion',
+    'Carmen de Areco' vs 'Carmen De Areco')."""
+    x = unicodedata.normalize("NFKD", str(x)).encode("ascii", "ignore").decode()
+    return " ".join(x.upper().split())
+
+
 def campaign_year(camp_str: str) -> int:
     return int(str(camp_str).split("/")[0])
 
@@ -119,6 +150,24 @@ def mes_a_campania_inicio(mes: int, anio: int):
 
 # ── Paso 1: MAGyP sin filtro geográfico ───────────────────────────────────
 
+def _asignar_region(full: pd.DataFrame) -> pd.DataFrame:
+    """Marca cada fila como 'nucleo' o 'resto' (columna para ablations).
+
+    Compara el par (departamento, provincia) con los nombres NORMALIZADOS. Las dos
+    cosas importan: sin la provincia entran homónimos de otras regiones (Chacabuco
+    y Junín de San Luis, San Pedro de Misiones y Jujuy, Belgrano de Santiago del
+    Estero); sin normalizar quedan afuera núcleos legítimos que las fuentes
+    escriben distinto ('Carmen De Areco' en el panel vs 'Carmen de Areco' acá).
+    Con el match por nombre suelto salían 34 deptos núcleo en vez de 25."""
+    nucleo_norm = {(_norm_one(d), _norm_one(p)) for d, p in PROV_NUCLEO.items()}
+    full = full.copy()
+    full["region"] = [
+        "nucleo" if (_norm_one(d), _norm_one(p)) in nucleo_norm else "resto"
+        for d, p in zip(full["departamento"], full["provincia"])
+    ]
+    return full
+
+
 def load_magyp_full(min_campanas: int) -> pd.DataFrame:
     """Lee ambos CSVs de MAGyP sin restricción geográfica.
     Aplica MIN_CAMPANAS por (departamento, provincia, cultivo).
@@ -126,7 +175,11 @@ def load_magyp_full(min_campanas: int) -> pd.DataFrame:
     out = RAW / f"magyp_full_min{min_campanas}.parquet"
     if out.exists():
         log.info("MAGyP full: usando caché %s", out)
-        return pd.read_parquet(out)
+        # `region` se recalcula SIEMPRE, también al leer de caché: es derivada y
+        # barata, y las cachés viejas la traen mal (se asignaba por nombre de
+        # depto sin provincia). Si se dejara pasar, el fix quedaría neutralizado
+        # por un parquet de hace meses, en silencio.
+        return _asignar_region(pd.read_parquet(out))
 
     frames = []
     for cultivo, fname in [("soja", "magyp_soja.csv"), ("maiz", "magyp_maiz.csv")]:
@@ -197,10 +250,7 @@ def load_magyp_full(min_campanas: int) -> pd.DataFrame:
     ]
     full = full.merge(valid, on=["departamento", "provincia", "cultivo"], how="inner")
 
-    # Columna region
-    full["region"] = full["departamento"].apply(
-        lambda d: "nucleo" if d in NUCLEO_DEPTOS else "resto"
-    )
+    full = _asignar_region(full)
 
     n_deptos = full.groupby("cultivo")["departamento"].nunique()
     log.info("MAGyP full (min_camp=%d): %d filas | soja=%d deptos | maiz=%d deptos",
@@ -224,22 +274,8 @@ def geocode_deptos(deptos_prov: pd.DataFrame) -> pd.DataFrame:
             cache[(row["departamento"], row["provincia"])] = (row["lat"], row["lon"])
         log.info("Centroides: caché con %d entradas", len(cache))
 
-    # Inyectar núcleo (son canónicos, no geocodificar)
-    PROV_NUCLEO = {
-        "Caseros": "SANTA FE", "Villa Constitucion": "SANTA FE",
-        "General Lopez": "SANTA FE", "Rosario": "SANTA FE",
-        "San Lorenzo": "SANTA FE", "Iriondo": "SANTA FE", "Belgrano": "SANTA FE",
-        "Marcos Juarez": "CORDOBA", "Union": "CORDOBA",
-        "Juarez Celman": "CORDOBA", "General San Martin": "CORDOBA",
-        "Pergamino": "BUENOS AIRES", "Colon": "BUENOS AIRES",
-        "Rojas": "BUENOS AIRES", "Salto": "BUENOS AIRES",
-        "San Nicolas": "BUENOS AIRES", "Ramallo": "BUENOS AIRES",
-        "San Pedro": "BUENOS AIRES", "Baradero": "BUENOS AIRES",
-        "Arrecifes": "BUENOS AIRES", "Capitan Sarmiento": "BUENOS AIRES",
-        "Carmen de Areco": "BUENOS AIRES", "Chacabuco": "BUENOS AIRES",
-        "Junin": "BUENOS AIRES", "General Arenales": "BUENOS AIRES",
-        "Leandro N. Alem": "BUENOS AIRES",
-    }
+    # Inyectar núcleo (son canónicos, no geocodificar). PROV_NUCLEO vive a nivel de
+    # módulo: lo comparte la asignación de `region` en load_magyp_full.
     for depto, (lat, lon) in CENTROIDES_NUCLEO.items():
         prov = PROV_NUCLEO[depto]
         cache[(depto, prov)] = (lat, lon)
@@ -643,10 +679,7 @@ FREEZE_K, ERA5_SCALE_M = 273.15, 9000                 # escala nativa ERA5-Land
 
 def _norm_ascii(s: pd.Series) -> pd.Series:
     """Nombres para el join: sin acentos, mayúsculas, espacios colapsados."""
-    def one(x):
-        x = unicodedata.normalize("NFKD", str(x)).encode("ascii", "ignore").decode()
-        return " ".join(x.upper().split())
-    return s.map(one)
+    return s.map(_norm_one)
 
 
 def load_ndvi_avhrr() -> pd.DataFrame:
